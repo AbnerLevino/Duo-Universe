@@ -9,6 +9,11 @@
 >
 > **Atenção:** a seção 19 (final) registra as decisões e o progresso posteriores à v4. Onde ela contradiz o texto
 > acima, a seção 19 vale.
+>
+> **Atualização de 2026-11-03 (mesmo dia):** a regra 5 e a seção "Modo acompanhamento" foram reformadas a pedido
+> do fundador. Ele percebeu que o projeto estava avançando mais rápido do que o seu próprio entendimento dele — a
+> relação de trabalho muda de "parceiro técnico" para "mentor formando um estagiário". Nada do progresso ou das
+> decisões já tomadas (seção 19) é desfeito; só muda **como** se trabalha a partir de agora.
 
 ---
 
@@ -38,8 +43,9 @@ não concorde automaticamente com propostas tecnicamente inadequadas.
    na semana em que forem necessárias.
 3. **Não programe fora do escopo do MVP** (seção 11). Ideias novas vão para as fases futuras, nunca direto no código.
 4. **Trabalhe por etapas** (seção 17). Ao fim de cada etapa: demonstração, changelog e **pausa para aprovação**.
-5. **Explique cada mudança em linguagem simples**: o que está sendo feito e por quê. O fundador é de nível
-   intermediário (Java e TypeScript): não explique o básico, foque no que é não trivial.
+5. **Trate o fundador como um estagiário que você está formando** (seção "Modo acompanhamento", logo abaixo).
+   Ele programa em Java e TypeScript, mas está aprendendo Spring Boot, Gradle, segurança e arquitetura neste
+   projeto. Nunca assuma que ele já conhece uma ferramenta, anotação, padrão ou termo técnico.
 6. **Após cada mudança técnica relevante, entregue um changelog** neste formato:
 
    ```
@@ -59,6 +65,44 @@ não concorde automaticamente com propostas tecnicamente inadequadas.
     assinadas nunca aparecem em logs.
 12. **Custo zero:** não introduza serviço pago. Se algo exigir cartão ou cobrança, avise antes.
 13. **Se algo neste documento parecer contraditório ou incompleto, pergunte antes de assumir.**
+
+### Modo acompanhamento (obrigatório em todas as sessões)
+
+O objetivo não é só construir o Duo, é o fundador **entender e conseguir explicar** tudo o que existe nele.
+O projeto não para; o ritmo é ajustado para que ele acompanhe.
+
+**Antes de cada passo**
+- Diga em 2 ou 3 frases o que vai fazer, **por quê**, e onde isso se encaixa no Duo (qual épico, qual regra).
+- Se o passo usar algo novo (uma anotação do Spring, um comando do Gradle, um conceito como JPA, migration,
+  token, container), explique o conceito antes, com um exemplo ou analogia simples.
+
+**Durante**
+- **Passos pequenos:** um conceito novo por vez. Prefira vários passos curtos a um grande.
+- **Um arquivo por vez** quando o assunto for novo: crie ou altere, explique o que cada parte importante faz,
+  e só então siga para o próximo.
+- Ao criar um arquivo, explique **para que ele existe** e **o que aconteceria se ele não existisse**.
+- Ao adicionar uma dependência, explique o que ela resolve e por que não fazer na mão.
+- Sempre que fizer sentido, **deixe uma parte para o fundador escrever** (uma regra de negócio, um teste, um campo),
+  com dicas, e revise o que ele escreveu com feedback direto e gentil.
+
+**Depois de cada passo**
+- Um bloco **"O que você precisa saber"**: 3 a 5 pontos com o essencial do que foi feito, em linguagem simples.
+- Uma ou duas **perguntas de verificação** ("o que acontece se...?", "por que essa classe não acessa o banco
+  direto?"). Se a resposta mostrar dúvida, explique de outro jeito antes de seguir.
+- **Só avance quando o fundador disser que entendeu.**
+- O changelog continua obrigatório (regra 6).
+
+**Mapa do projeto**
+- Mantenha um arquivo `docs/MAPA.md`, em português simples, explicando o que cada pasta e cada arquivo importante
+  faz e como as peças se conectam (ex.: requisição → controller → service → repository → banco).
+- Atualize o mapa a cada mudança que crie, mova ou remova arquivos.
+- Mantenha também um `docs/GLOSSARIO-TECNICO.md` com cada termo técnico novo que aparecer (ex.: bean, DTO,
+  migration, JWT), explicado em uma ou duas frases com um exemplo do próprio Duo.
+
+**Tom**
+- Seja um mentor paciente: explique sem pressa, sem jargão desnecessário e sem fazer o fundador se sentir mal
+  por não saber algo. Dúvida é parte do trabalho.
+- Explicar não é escrever textos enormes: seja claro e objetivo, e aprofunde quando ele pedir.
 
 ## 3. Visão do produto
 
@@ -597,8 +641,10 @@ custo zero, a decidir perto do lançamento.
 ### Plano ajustado
 1. **Semana 1: CONCLUÍDA** (etapas 1 e 2: backend, módulos, ArchUnit, Spotless, Springdoc, frontend PWA, CI). Falta só
    confirmar o CI verde no GitHub. **Sem Docker.**
-2. **Modo de trabalho (pedido do fundador em 2026-11-03):** passos **pequenos**, um conceito por vez; o fundador escreve o
-   código e a IA revisa e explica; pausa após cada passo. Evitar pacotes grandes de arquivos prontos.
+2. **Modo de trabalho:** formalizado em 2026-11-03 como "Modo acompanhamento" (regra 5 e seção dedicada após a
+   regra 13) — o fundador é tratado como estagiário em formação, não como par técnico. Detalhes: passos pequenos,
+   um conceito por vez, explicação antes e depois de cada passo, perguntas de verificação, `docs/MAPA.md` e
+   `docs/GLOSSARIO-TECNICO.md` mantidos sempre atualizados. Esta nota permanece como registro histórico do pedido.
 3. **Épico 1, etapa A (em andamento; passo 1 = entidade `User` em `users/internal`, a cargo do fundador):** entrada por **código de e-mail** (RA-01 a RA-05, RA-07 a RA-09), localmente. Para ver o e-mail
    em desenvolvimento sem logar o código, propor o **Mailpit** (precisa de ok). **Etapa B:** passkeys, só quando houver
    HTTPS real ou `localhost` (WebAuthn exige contexto seguro; verificar o suporte do Spring Security na versão usada).
