@@ -620,7 +620,13 @@ custo zero, a decidir perto do lançamento.
   bem no Linux), **Node.js 22.23.1** (a seção anterior tinha Node 26 LTS no Windows; por ora mantido, sem
   problema conhecido com o `package.json` atual), **Git 2.56.0**. Gradle continua só pelo wrapper (9.8.2), sem
   mudança.
-- **Faltam instalar:** JDK 21 e PostgreSQL — nenhum dos dois está presente (nem `psql`, nem serviço).
+- **JDK 21: resolvido sem instalar nada no sistema.** O Fedora 44 não empacota mais nenhum `java-21-openjdk`
+  (só 25 e um 27 em early access via `dnf`), então adicionamos o plugin oficial do Gradle
+  `org.gradle.toolchains.foojay-resolver-convention` (versão 1.0.0, confirmada no Gradle Plugin Portal em
+  2026-11-03) em `backend/settings.gradle.kts`. Ele deixa o próprio Gradle baixar o JDK que falta, sem `sudo`:
+  `./gradlew compileJava` já baixou um **Eclipse Temurin 21.0.13** (mesma build do Windows) para
+  `~/.gradle/jdks/`, isolado do JDK 25 do sistema.
+- **Falta instalar:** PostgreSQL — nem `psql` nem serviço presentes.
 - **Docker/containers:** não instalado; o Fedora traz **Podman** em vez do Docker Engine, sem plugin de compose
   configurado. A decisão de não usar containers por ora (seção 9) continua valendo, mas o motivo mudou: antes era
   a fricção do Docker no Windows, agora é a RAM apertada (acima) e evitar empilhar containers como conceito novo
@@ -680,5 +686,6 @@ custo zero, a decidir perto do lançamento.
 - **Q-06:** matriz de permissões por estado do vínculo (o que cada pessoa pode fazer em `ACTIVE`, `PAUSED`, `ENDED`);
   confirmar se a pausa é do vínculo do casal, do Personal Universe ou de ambos.
 - Preencher a **Q-13** com um número de horas por semana.
-- **Instalar JDK 21 e PostgreSQL nativos no Fedora** (ver "Ambiente de desenvolvimento" acima) — recomendado pela
-  IA em 2026-11-03 por causa da RAM apertada; aguardando o ok do fundador antes de rodar `sudo dnf install`.
+- **Instalar PostgreSQL nativo no Fedora** (`sudo dnf install postgresql-server postgresql-contrib`, versão
+  18.6) — o JDK 21 já foi resolvido pelo Gradle (ver acima); falta o fundador rodar esse comando e inicializar
+  o serviço.
