@@ -576,22 +576,35 @@ custo zero, a decidir perto do lançamento.
   Flyway, PostgreSQL, Actuator. Pacote raiz `com.duo`.
 - `V1__create_users.sql`: tabela `users` com índice único em `lower(email)` (RA-01).
 - `shared/SecurityConfig`: tudo autenticado (RN-20), exceto `/actuator/health`.
-- Testes (3, passando): contexto, saúde pública, rota protegida. Perfil `test` aponta para `duo_test`.
+- Testes (8, passando): contexto, saúde pública, rota protegida, 3 regras ArchUnit, 2 da documentação da API.
+  Perfil `test` aponta para `duo_test`.
+- Módulos criados (só `package-info`): `auth`, `users`; `shared` tem `SecurityConfig`. Convenção: API pública do módulo na
+  raiz do pacote, implementação em `com.duo.<modulo>.internal` (decisão aguardando confirmação do fundador).
+- `ArchitectureTest` (ArchUnit 1.5.1): sem ciclos entre módulos, controller sem acesso a `Repository`, `internal` privado
+  ao módulo. Spotless 8.11.0 (só imports, espaços finais e newline; preserva tabs). Springdoc 3.2.0 (POM sobre Boot 4.1.2),
+  protegido por autenticação (RN-20); desligar o Swagger UI em produção quando houver deploy.
+- `frontend/`: Vite 8.3.5, React 19.3.1, **TypeScript 6.0.3** (o `typescript-eslint` exige `<6.1.0`; não usar o 7),
+  ESLint 10, Prettier, Vitest 5. PWA com `vite-plugin-pwa` (manifest + service worker **sem cache da API**), proxy
+  `/api` → `localhost:8080` no dev, ícones **provisórios**. Node 26 local e no CI. `npm audit` acusa falhas só em
+  ferramentas de build (workbox/ESLint); não aplicar `--force` (faz downgrade). Reavaliar depois.
+- CI (`.github/workflows/ci.yml`): jobs `backend` (Postgres como service) e `frontend`. **Ainda não confirmado verde no
+  GitHub** (o `gh` não está instalado; conferir na aba Actions).
+- `gradlew` versionado com permissão de execução (runner Linux).
 - Notas técnicas do Boot 4: starters renomeados (`spring-boot-starter-webmvc`, `-flyway`); em testes, um
   `application.properties` em `src/test/resources` **substitui** o principal, por isso usamos `application-test.properties`
   com `@ActiveProfiles("test")`.
-- Springdoc ainda **não** adicionado (confirmar versão compatível com o Boot 4.1 na documentação oficial).
 
 ### Plano ajustado
-1. **Semana 1 (em andamento):** backend local concluído até a migration V1 e o endpoint de saúde. Faltam: estrutura de
-   módulos, verificação de fronteiras (ArchUnit proposto), Springdoc, formatação (Spotless proposto), frontend Vite,
-   CI básica. **Sem Docker.**
-2. **Épico 1, etapa A:** entrada por **código de e-mail** (RA-01 a RA-05, RA-07 a RA-09), localmente. Para ver o e-mail
+1. **Semana 1: CONCLUÍDA** (etapas 1 e 2: backend, módulos, ArchUnit, Spotless, Springdoc, frontend PWA, CI). Falta só
+   confirmar o CI verde no GitHub. **Sem Docker.**
+2. **Modo de trabalho (pedido do fundador em 2026-11-03):** passos **pequenos**, um conceito por vez; o fundador escreve o
+   código e a IA revisa e explica; pausa após cada passo. Evitar pacotes grandes de arquivos prontos.
+3. **Épico 1, etapa A (em andamento; passo 1 = entidade `User` em `users/internal`, a cargo do fundador):** entrada por **código de e-mail** (RA-01 a RA-05, RA-07 a RA-09), localmente. Para ver o e-mail
    em desenvolvimento sem logar o código, propor o **Mailpit** (precisa de ok). **Etapa B:** passkeys, só quando houver
    HTTPS real ou `localhost` (WebAuthn exige contexto seguro; verificar o suporte do Spring Security na versão usada).
-3. **Marco de infraestrutura (adiado):** deploy, Caddy/HTTPS, backups e passkeys em dispositivo real, depois de
+4. **Marco de infraestrutura (adiado):** deploy, Caddy/HTTPS, backups e passkeys em dispositivo real, depois de
    resolver o cartão (Q-14) ou escolher outra hospedagem.
-4. Semanas 3 a 6 como na seção 17, ajustadas pela disponibilidade.
+5. Semanas 3 a 6 como na seção 17, ajustadas pela disponibilidade.
 
 ### Pendências abertas
 - **Q-23:** login com Google no MVP? (antes da etapa A do épico 1)
