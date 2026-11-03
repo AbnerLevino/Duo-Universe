@@ -53,16 +53,26 @@ rota; o frontend mostra uma tela única. Ainda não há login real, nem casal, n
 - `OpenApiDocsTest.java`: confirma que a documentação da API (gerada pelo Springdoc) também exige login.
 - `ArchitectureTest.java`: não testa o que o código faz, testa **como ele está organizado** — garante que os
   módulos não dependem um do outro em círculo, que controllers nunca acessam o banco direto, e que a pasta
-  `internal` de um módulo só é usada por ele mesmo. Ainda "vazio" porque os módulos não têm classes.
+  `internal` de um módulo só é usada por ele mesmo.
+- `users/internal/UserRepositoryTest.java`: primeiro teste que fala com o PostgreSQL de verdade (`duo_test`),
+  usando `@DataJpaTest` — confirma que `User` é salvo e encontrado pelo `UserRepository`.
 - `application-test.properties` (em `src/test/resources`): troca o banco de desenvolvimento (`duo`) pelo
   banco de teste (`duo_test`), para os testes nunca sujarem dados reais.
 
-**O que falta para existir um fluxo completo:** hoje não há `controller`, `service` nem `repository` — são
-as três camadas que, quando o Épico 1 começar a entidade `User`, vão formar o caminho de uma requisição:
+**`users/internal/User.java`:** a primeira entidade JPA do projeto — mapeia a tabela `users` (da migration
+`V1`). Tem um construtor protegido vazio (exigido pelo Hibernate) e um construtor público com os campos
+obrigatórios; `createdAt` é preenchido sozinho (`@CreationTimestamp`), nunca pelo código que cria o `User`.
+
+**`users/internal/UserRepository.java`:** a interface Spring Data JPA que dá acesso ao banco para `User`
+(`save`, `findById`, etc., herdados de `JpaRepository`) mais uma busca própria por e-mail sem diferenciar
+maiúsculas (`findByEmailIgnoreCase`), usada pelo futuro login.
+
+**O que falta para existir um fluxo completo:** ainda não há `controller` nem `service` — faltam essas duas
+camadas para formar o caminho de uma requisição:
 
 ```
 navegador → SecurityConfig (confere login) → Controller (recebe o HTTP)
-          → Service (regra de negócio) → Repository (fala com o banco) → PostgreSQL
+          → Service (regra de negócio) → UserRepository (fala com o banco) → PostgreSQL
 ```
 
 ## `frontend/` — o app

@@ -71,6 +71,18 @@ não concorde automaticamente com propostas tecnicamente inadequadas.
 O objetivo não é só construir o Duo, é o fundador **entender e conseguir explicar** tudo o que existe nele.
 O projeto não para; o ritmo é ajustado para que ele acompanhe.
 
+**Dois ritmos dentro do Modo acompanhamento (acordado em 2026-11-03):** o fundador já domina CRUD básico em
+Spring Boot (entidade, repository, controller, service, nos padrões comuns) — ensinar isso do zero seria
+perda de tempo.
+- **CRUD mecânico, dentro de padrões que ele já conhece:** implemente direto, sem pausar para ensinar
+  conceito por conceito. Changelog (regra 6) continua obrigatório; o resto deste "Modo acompanhamento" (abaixo)
+  não se aplica a essa categoria.
+- **Qualquer coisa concreta e específica do domínio do Duo** (regras de negócio, concorrência, segurança,
+  autenticação, fluxos que não são CRUD genérico): volta ao Modo acompanhamento, mas numa **versão mais leve**
+  do que o resto desta seção descreve — explique o conceito novo antes de implementar, mas sem o ritual
+  inteiro (sem bloco "o que você precisa saber" nem perguntas de verificação formais a cada passo).
+- Na dúvida sobre qual ritmo vale para uma tarefa, pergunte antes de seguir.
+
 **Antes de cada passo**
 - Diga em 2 ou 3 frases o que vai fazer, **por quê**, e onde isso se encaixa no Duo (qual épico, qual regra).
 - Se o passo usar algo novo (uma anotação do Spring, um comando do Gradle, um conceito como JPA, migration,
@@ -639,6 +651,15 @@ custo zero, a decidir perto do lançamento.
 - Rodar o build: `./gradlew build` em `backend/` (sem `.bat`); só precisa definir `JAVA_HOME` manualmente se o
   Gradle não achar um JDK 21 por conta própria.
 - Se a RAM apertar: fechar abas do navegador antes de builds pesados; IDE leve (VS Code).
+- **Correção importante (descoberta tentando configurar o Postgres):** o shell interativo do terminal do
+  fundador é **`zsh`**, não `bash` — mesmo o `/etc/passwd` listando `/bin/bash` como shell da conta (algum
+  app de terminal está sobrepondo isso). Por isso: `~/.bashrc` **nunca** é lido automaticamente; as variáveis
+  `DUO_DB_PASSWORD`/`DUO_APP_DB_PASSWORD` do fundador devem ir no **`~/.zshrc`**. O Gradle, quando chamado
+  pela IA (que roda em `bash` puro), ainda precisa que as variáveis sejam carregadas manualmente nesse `bash`
+  a cada sessão nova (shell state não persiste entre chamadas de ferramenta).
+- **PostgreSQL local, confirmado funcionando de ponta a ponta em 2026-11-03:** serviço ativo, `pg_hba.conf`
+  corrigido (`ident` → `scram-sha-256` nas linhas `host`), role `duo_app` autenticando por senha via rede,
+  bancos `duo`/`duo_test` criados, `UserRepositoryTest` rodando contra `duo_test` de verdade.
 
 ### Estado do código
 - `backend/`: Spring Boot **4.1.2**, Java 21, Gradle Kotlin DSL, com Web (`webmvc`), Security, Data JPA, Validation,
@@ -661,7 +682,13 @@ custo zero, a decidir perto do lançamento.
 - `gradlew` versionado com permissão de execução (runner Linux).
 - Notas técnicas do Boot 4: starters renomeados (`spring-boot-starter-webmvc`, `-flyway`); em testes, um
   `application.properties` em `src/test/resources` **substitui** o principal, por isso usamos `application-test.properties`
-  com `@ActiveProfiles("test")`.
+  com `@ActiveProfiles("test")`. As anotações de test slice também mudaram de pacote (ver
+  `docs/GLOSSARIO-TECNICO.md`, entrada `@DataJpaTest`) — confira o pacote real pelo `.jar` antes de copiar de
+  tutorial antigo.
+- `users/internal/User.java` + `UserRepository.java`: primeira entidade/repositório do projeto (Épico 1,
+  passo 1 — CRUD básico, implementado direto sem modo acompanhamento, acordo de 2026-11-03). `UserRepositoryTest`
+  (`@DataJpaTest`) roda contra o `duo_test` real. Build completo (`./gradlew build`) passando: 10/10 testes,
+  Spotless e ArchUnit ok.
 
 ### Plano ajustado
 1. **Semana 1: CONCLUÍDA** (etapas 1 e 2: backend, módulos, ArchUnit, Spotless, Springdoc, frontend PWA, CI). Falta só
@@ -670,9 +697,12 @@ custo zero, a decidir perto do lançamento.
    regra 13) — o fundador é tratado como estagiário em formação, não como par técnico. Detalhes: passos pequenos,
    um conceito por vez, explicação antes e depois de cada passo, perguntas de verificação, `docs/MAPA.md` e
    `docs/GLOSSARIO-TECNICO.md` mantidos sempre atualizados. Esta nota permanece como registro histórico do pedido.
-3. **Épico 1, etapa A (em andamento; passo 1 = entidade `User` em `users/internal`, a cargo do fundador):** entrada por **código de e-mail** (RA-01 a RA-05, RA-07 a RA-09), localmente. Para ver o e-mail
-   em desenvolvimento sem logar o código, propor o **Mailpit** (precisa de ok). **Etapa B:** passkeys, só quando houver
-   HTTPS real ou `localhost` (WebAuthn exige contexto seguro; verificar o suporte do Spring Security na versão usada).
+3. **Épico 1, etapa A (em andamento): passo 1 concluído** — entidade `User` + `UserRepository` (2026-11-03).
+   **Passo 2 (próximo):** entrada por **código de e-mail** (RA-01 a RA-05, RA-07 a RA-09) — aqui já é lógica
+   concreta do Duo, não CRUD genérico, então volta o Modo acompanhamento (versão leve, seção 2). Para ver o
+   e-mail em desenvolvimento sem logar o código, propor o **Mailpit** (precisa de ok). **Etapa B:** passkeys,
+   só quando houver HTTPS real ou `localhost` (WebAuthn exige contexto seguro; verificar o suporte do Spring
+   Security na versão usada).
 4. **Marco de infraestrutura (adiado):** deploy, Caddy/HTTPS, backups e passkeys em dispositivo real, depois de
    resolver o cartão (Q-14) ou escolher outra hospedagem.
 5. Semanas 3 a 6 como na seção 17, ajustadas pela disponibilidade.

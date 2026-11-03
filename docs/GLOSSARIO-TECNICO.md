@@ -81,8 +81,16 @@
 - **`MockMvc`:** simula requisições HTTP contra os controllers sem precisar de um servidor real escutando
   numa porta. No Duo: `OpenApiDocsTest.java`.
 - **Testcontainers:** ferramenta que sobe um banco de dados real (num container) só para os testes, e
-  descarta depois. Estava no plano original (DEC-018), mas está **fora por ora** porque o ambiente é
-  Windows sem Docker (seção 19) — os testes usam um Postgres local instalado de verdade (`duo_test`).
+  descarta depois. Estava no plano original (DEC-018), mas está **fora por ora** (seção 19) — os testes usam
+  um Postgres local instalado de verdade (`duo_test`).
+- **`@DataJpaTest` / `@AutoConfigureTestDatabase`:** anotações de teste que isolam só a camada JPA (sem
+  subir o app inteiro) e, por padrão, tentam **trocar** o banco configurado por um embutido em memória — o
+  que falha se não houver um na dependência (não temos H2). `@AutoConfigureTestDatabase(replace = NONE)`
+  desliga essa troca e usa o Postgres real (`duo_test`). **Pegadinha do Spring Boot 4.1:** essas duas classes
+  mudaram de pacote em relação a versões antigas/tutoriais na internet — agora vivem em
+  `org.springframework.boot.data.jpa.test.autoconfigure` e `org.springframework.boot.jdbc.test.autoconfigure`
+  (não mais em `org.springframework.boot.test.autoconfigure.*`). Vale lembrar isso para a próxima slice de
+  teste (`@WebMvcTest`, etc.) — o pacote provavelmente também mudou.
 
 ### Documentação da API
 
