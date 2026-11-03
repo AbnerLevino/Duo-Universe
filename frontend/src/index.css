@@ -1,0 +1,18 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, sans-serif;
+  background: #14101f;
+  color: #f3eefc;
+}
+
+body {
+  margin: 0;
+}
+
+.home {
+  min-height: 100dvh;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  padding: 1rem;
+}
