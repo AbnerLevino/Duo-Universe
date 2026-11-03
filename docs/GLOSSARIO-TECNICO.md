@@ -111,6 +111,32 @@
 - **jsdom:** simula um navegador dentro do Node.js, para os testes do Vitest conseguirem renderizar
   componentes React sem abrir uma janela de verdade.
 
+### PostgreSQL e sistema operacional (setup local no Linux)
+
+- **`initdb` (via `postgresql-setup --initdb` no Fedora):** cria, em disco, a estrutura de arquivos onde o
+  PostgreSQL guarda tudo (tabelas, índices, configuração) — como "formatar" um espaço antes de usá-lo. Sem
+  isso, o serviço não tem banco nenhum para servir. Roda uma única vez por instalação.
+- **Serviço systemd:** o jeito padrão do Linux de manter um programa rodando em segundo plano. `systemctl
+  enable` faz ele iniciar sozinho a cada boot; `--now` também inicia imediatamente; `systemctl status` só
+  consulta, não muda nada. No Duo: `systemctl enable --now postgresql`.
+- **Role (PostgreSQL):** o sistema de "usuários" do próprio Postgres, **separado** dos usuários do Linux,
+  mesmo que tenham o mesmo nome por coincidência (ex.: role `postgres` ≠ usuário Linux `postgres`). Uma role
+  só pode efetivamente logar como cliente se tiver o atributo `LOGIN`.
+- **Autenticação `peer`:** um dos métodos do Postgres para conexões **locais** (via socket, não rede): deixa
+  entrar sem senha se o nome do usuário do sistema operacional for igual ao nome da role pedida. É por isso
+  que `sudo -u postgres psql` não pede senha — não funciona para conexões por rede (`host`).
+- **`pg_hba.conf`:** o arquivo que lista, para cada combinação de origem da conexão (local ou rede) + banco +
+  role, qual método de autenticação vale (`peer`, `scram-sha-256`/senha, `trust`...). O Spring Boot conecta
+  via rede (`jdbc:postgresql://localhost:5432/...`), então precisa de uma regra `host` que exija senha.
+- **`\password` (comando do `psql`):** pede uma senha nova duas vezes, com o texto escondido, e manda já
+  criptografada ao servidor — ao contrário de `ALTER ROLE ... PASSWORD '...'` digitado direto, que ficaria
+  salvo em texto puro no histórico do shell (RA-09 / regra 11: segredo nunca em log).
+- **Owner (dono) de um banco:** a role que automaticamente tem todas as permissões dentro daquele banco, sem
+  precisar de `GRANT` manual depois. No Duo: `duo_app` é dono de `duo` e de `duo_test`.
+- **Variável de ambiente como segredo:** valores como senha de banco nunca ficam escritos no código — o
+  Spring Boot lê `${DUO_APP_DB_PASSWORD}` do ambiente do sistema operacional em tempo de execução. Assim a
+  senha nunca entra no Git (e no histórico do Git para sempre, mesmo se removida depois).
+
 ### CI (GitHub Actions)
 
 - **CI (Continuous Integration):** rodar automaticamente build e testes a cada mudança no repositório, para
