@@ -392,7 +392,8 @@ a miniatura é gerada de forma assíncrona (uma tabela de tarefas pendentes bast
 
 **Ambiente de desenvolvimento:** Postgres e emulador/implementação local de storage em Docker Compose; JDK 21 e
 Node.js LTS instalados no computador (melhor experiência na IDE). Dev Containers são uma alternativa aceitável.
-(*Revisto na seção 19: por ora tudo instalado direto no Windows, sem Docker.*)
+(*Revisto na seção 19: por ora tudo instalado direto no sistema (agora Linux), sem Docker — pendente confirmar
+a instalação do JDK 21 e do PostgreSQL.*)
 
 ## 10. Funcionalidades por fase
 
@@ -605,15 +606,33 @@ Infosimples, Hub do Desenvolvedor). Nenhum plano gratuito confirmado; verificar 
 contratar. Só é obrigatória antes de abrir ao público; o módulo fica atrás de uma interface. Exceção consciente ao
 custo zero, a decidir perto do lançamento.
 
-### Ambiente de desenvolvimento (Windows, sem Docker)
-- Notebook: i5-1035G1, **7,8 GB de RAM** (limitante), disco C: com bastante espaço.
-- Instalados: **JDK Temurin 21.0.13**, **PostgreSQL 16.15** (serviço Windows, porta 5432), **Node.js 26.13.0 (LTS)**,
-  Git. Gradle vem pelo wrapper (9.8.2).
-- Bancos: `duo` (desenvolvimento) e `duo_test` (testes), dono `duo_app`.
-- Segredos só em variáveis de ambiente do usuário Windows: `DUO_DB_PASSWORD` (superusuário `postgres`) e
-  `DUO_APP_DB_PASSWORD` (aplicação). Nunca no repositório.
-- Rodar o build: definir `JAVA_HOME` e `DUO_APP_DB_PASSWORD` no processo e executar `.\gradlew.bat build` em `backend/`.
-- Se a RAM apertar: Postgres pode passar para início manual; fechar abas do navegador; IDE leve (VS Code).
+### Ambiente de desenvolvimento (Linux, sem Docker por ora)
+
+> **2026-11-03:** o fundador trocou de Windows para Linux (Fedora) **no mesmo notebook**. Este bloco substitui o
+> antigo ("Ambiente de desenvolvimento (Windows, sem Docker)"); nenhuma decisão de produto ou arquitetura mudou,
+> só o sistema operacional de desenvolvimento.
+
+- Notebook: i5-1035G1, mesma máquina de antes. RAM visível ao SO confirmada em ~7 GB — e já apertada no dia a
+  dia (`free -h` mostrou só ~150 Mi livres e ~2,8 Gi de swap em uso em uso normal, sem nada do projeto rodando
+  ainda). RAM continua o fator limitante, agora com um número concreto. Fedora Linux (`fc44`); disco com bastante
+  espaço livre (~454 GB).
+- Instalados: **OpenJDK 25** (não é o 21 que a DEC-018 pede — falta instalar o 21 à parte; múltiplos JDKs convivem
+  bem no Linux), **Node.js 22.23.1** (a seção anterior tinha Node 26 LTS no Windows; por ora mantido, sem
+  problema conhecido com o `package.json` atual), **Git 2.56.0**. Gradle continua só pelo wrapper (9.8.2), sem
+  mudança.
+- **Faltam instalar:** JDK 21 e PostgreSQL — nenhum dos dois está presente (nem `psql`, nem serviço).
+- **Docker/containers:** não instalado; o Fedora traz **Podman** em vez do Docker Engine, sem plugin de compose
+  configurado. A decisão de não usar containers por ora (seção 9) continua valendo, mas o motivo mudou: antes era
+  a fricção do Docker no Windows, agora é a RAM apertada (acima) e evitar empilhar containers como conceito novo
+  enquanto o fundador aprende JPA/Hibernate. **Instalação de JDK 21 + PostgreSQL nativos aguardando confirmação
+  do fundador** antes de rodar qualquer comando com `sudo`.
+- Bancos previstos (sem mudança): `duo` (desenvolvimento) e `duo_test` (testes), dono `duo_app`.
+- Segredos em variáveis de ambiente do usuário Linux (substitui o `setx` do Windows): `DUO_DB_PASSWORD`
+  (superusuário `postgres`) e `DUO_APP_DB_PASSWORD` (aplicação) — por exemplo em `~/.bashrc` ou `~/.profile`.
+  Nunca no repositório.
+- Rodar o build: `./gradlew build` em `backend/` (sem `.bat`); só precisa definir `JAVA_HOME` manualmente se o
+  Gradle não achar um JDK 21 por conta própria.
+- Se a RAM apertar: fechar abas do navegador antes de builds pesados; IDE leve (VS Code).
 
 ### Estado do código
 - `backend/`: Spring Boot **4.1.2**, Java 21, Gradle Kotlin DSL, com Web (`webmvc`), Security, Data JPA, Validation,
@@ -661,3 +680,5 @@ custo zero, a decidir perto do lançamento.
 - **Q-06:** matriz de permissões por estado do vínculo (o que cada pessoa pode fazer em `ACTIVE`, `PAUSED`, `ENDED`);
   confirmar se a pausa é do vínculo do casal, do Personal Universe ou de ambos.
 - Preencher a **Q-13** com um número de horas por semana.
+- **Instalar JDK 21 e PostgreSQL nativos no Fedora** (ver "Ambiente de desenvolvimento" acima) — recomendado pela
+  IA em 2026-11-03 por causa da RAM apertada; aguardando o ok do fundador antes de rodar `sudo dnf install`.
