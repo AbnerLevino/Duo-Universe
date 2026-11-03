@@ -1,0 +1,16 @@
+﻿# Segredos e ambiente local (regra 11): nunca versionar
+.env
+.env.*
+*.pem
+*.key
+
+# Frontend
+node_modules/
+dist/
+
+# IDEs e SO
+.idea/
+.vscode/
+*.iml
+Thumbs.db
+.DS_Store
