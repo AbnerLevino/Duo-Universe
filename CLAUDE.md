@@ -594,6 +594,24 @@ domínio próprio; termos de uso e política de privacidade revisados.
 ## 19. Progresso e decisões posteriores à v4 (2026-11-03)
 
 > Esta seção prevalece sobre o texto acima onde houver conflito. Atualize-a a cada etapa concluída.
+> **Revisão de 2026-11-04:** limpeza de contradições (PostgreSQL já instalado e confirmado — não é mais
+> pendência) e resumo abaixo para retomar o contexto rapidamente.
+
+### Onde paramos / próximo passo (2026-11-04)
+- **Ambiente local: pronto.** JDK 21 (via toolchain do Gradle) e PostgreSQL nativo (Fedora, `duo`/`duo_test`)
+  funcionando de ponta a ponta. Sem Docker (adiado), sem deploy (adiado — Q-14, sem cartão).
+- **Semana 1 (seção 17): concluída**, exceto confirmar o CI verde no GitHub (pendência, ver abaixo).
+- **Épico 1, etapa A — passo 1: concluído.** Entidade `User` + `UserRepository` (commit `1e478e0`), testada
+  contra `duo_test` de verdade.
+- **Próximo passo (passo 2): entrada por código de 6 dígitos por e-mail** (RA-01 a RA-05, RA-07 a RA-09).
+  É lógica concreta do Duo (não CRUD genérico) → volta o **Modo acompanhamento, versão leve** (seção 2):
+  explicar o conceito novo antes de implementar, sem o ritual inteiro de perguntas de verificação.
+  Nada desse passo foi implementado ainda. Usar **Mailpit** (ok do fundador) para ver o e-mail em
+  desenvolvimento sem logar o código de verdade (RA-09).
+- **Depois do passo 2, etapa B:** passkeys — só quando houver HTTPS real ou `localhost` (WebAuthn exige
+  contexto seguro).
+- Decisões ainda em aberto que podem bloquear o próximo passo: nenhuma identificada para o passo 2 em si;
+  ver "Pendências abertas" abaixo para o resto.
 
 ### Decisões do fundador
 | Código | Decisão |
@@ -638,12 +656,14 @@ custo zero, a decidir perto do lançamento.
   2026-11-03) em `backend/settings.gradle.kts`. Ele deixa o próprio Gradle baixar o JDK que falta, sem `sudo`:
   `./gradlew compileJava` já baixou um **Eclipse Temurin 21.0.13** (mesma build do Windows) para
   `~/.gradle/jdks/`, isolado do JDK 25 do sistema.
-- **Falta instalar:** PostgreSQL — nem `psql` nem serviço presentes.
 - **Docker/containers:** não instalado; o Fedora traz **Podman** em vez do Docker Engine, sem plugin de compose
   configurado. A decisão de não usar containers por ora (seção 9) continua valendo, mas o motivo mudou: antes era
   a fricção do Docker no Windows, agora é a RAM apertada (acima) e evitar empilhar containers como conceito novo
-  enquanto o fundador aprende JPA/Hibernate. **Instalação de JDK 21 + PostgreSQL nativos aguardando confirmação
-  do fundador** antes de rodar qualquer comando com `sudo`.
+  enquanto o fundador aprende JPA/Hibernate.
+- **JDK 21 e PostgreSQL: os dois já resolvidos**, sem `sudo` para o JDK (toolchain do Gradle, acima) e com
+  `sudo dnf install postgresql-server postgresql-contrib` (18.6) para o PostgreSQL — serviço instalado,
+  inicializado e confirmado funcionando de ponta a ponta (ver bullet abaixo). Não há mais pendência de ambiente
+  bloqueando o Épico 1.
 - Bancos previstos (sem mudança): `duo` (desenvolvimento) e `duo_test` (testes), dono `duo_app`.
 - Segredos em variáveis de ambiente do usuário Linux (substitui o `setx` do Windows): `DUO_DB_PASSWORD`
   (superusuário `postgres`) e `DUO_APP_DB_PASSWORD` (aplicação) — por exemplo em `~/.bashrc` ou `~/.profile`.
@@ -716,6 +736,5 @@ custo zero, a decidir perto do lançamento.
 - **Q-06:** matriz de permissões por estado do vínculo (o que cada pessoa pode fazer em `ACTIVE`, `PAUSED`, `ENDED`);
   confirmar se a pausa é do vínculo do casal, do Personal Universe ou de ambos.
 - Preencher a **Q-13** com um número de horas por semana.
-- **Instalar PostgreSQL nativo no Fedora** (`sudo dnf install postgresql-server postgresql-contrib`, versão
-  18.6) — o JDK 21 já foi resolvido pelo Gradle (ver acima); falta o fundador rodar esse comando e inicializar
-  o serviço.
+- **Confirmar o CI verde no GitHub** (aba Actions do repositório) — ainda não verificado nesta máquina (sem `gh`
+  instalado).
