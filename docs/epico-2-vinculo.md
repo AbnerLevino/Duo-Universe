@@ -133,12 +133,72 @@ RN-13 a RN-18 (seção 8 do CLAUDE.md).
 **data** e indicador de **marco**, para que o universo visual futuro (docs/IDEIAS.md) seja só uma forma de olhar
 os mesmos dados.
 
-## Perguntas ainda abertas
+## Perguntas ainda abertas (detalhadas)
 
-1. **Código ou link do pareamento:** aceita que A envie por fora (WhatsApp etc.) e que expire (proposta: 7 dias)?
-2. **Obrigatoriedade:** basta o texto não estar vazio? (Proposta: sim. Um tamanho mínimo incentiva "asdfasdf".)
-3. **Consenso das datas:** como o casal chega ao acordo na tela? (Proposta: um propõe, o outro aceita ou
-   contrapropõe, até concordarem.)
-4. **O que levar (RN-09):** modelamos a estrutura agora e a tela fica na Semana 4? (Proposta: sim.)
-5. **DEC-002:** o Personal Universe volta durante a pausa, ou só no término?
-6. **Gesto de celebração:** quando o universo nasce, o gesto simultâneo entra como toque final opcional (depois)?
+Todas aguardam decisão do fundador. Cada uma traz alternativas, consequências e uma **recomendação**.
+Nenhuma é implementada antes da decisão (regra 1). Responda por número (ex.: "P1: A").
+
+### P1 — Como a pessoa chamada encontra o casal? (código ou link)
+
+Não há busca de pessoas por e-mail (RA-07: não revelar quem tem conta).
+
+| Opção | Como funciona | Prós | Contras |
+| --- | --- | --- | --- |
+| **A. Link com código que expira (recomendada)** | O sistema gera um link com código aleatório; A o envia por fora (WhatsApp etc.). Expira em 7 dias e só vale uma vez. | Funciona perto e longe; sem busca; simples. | Quem tiver o link entra: exige código longo e aleatório, uso único e cancelamento por A. |
+| B. Código curto digitado | Ex.: 8 caracteres lidos em voz alta ou digitados. | Bom para quem está junto. | Mais fácil de adivinhar; exige limite de tentativas (RA-08, ainda pendente). |
+| C. Procurar pelo e-mail | A digita o e-mail de B. | Direto. | Revela quem tem conta (viola RA-07). |
+
+Consequência: o prazo (7 dias, a confirmar) também define quando os rascunhos são apagados (RN-29).
+
+### P2 — O que significa "obrigatório"?
+
+| Opção | Consequência |
+| --- | --- |
+| **A. Texto não vazio, depois de remover espaços (recomendada)** | Simples; cada passo precisa de alguma resposta. Quem quiser burlar escreve qualquer coisa. |
+| B. Tamanho mínimo (ex.: 20 caracteres) | Incentiva respostas de verdade, mas também "asdfasdf asdfasdf" e frustra quem responde curto e sincero. |
+
+Observação: validar a **qualidade** da história é impossível e contrariaria o princípio da maturidade. A
+obrigatoriedade garante o ritual, não o conteúdo.
+
+### P3 — Como o casal chega ao consenso das datas (conheceram-se e começaram a namorar)?
+
+| Opção | Como funciona | Prós | Contras |
+| --- | --- | --- | --- |
+| **A. Propor e aceitar (recomendada)** | Um propõe as duas datas, o outro aceita ou propõe outra, até concordarem. Só depois de aceitas o casal pode firmar. | Reflete "é um casal, precisam concordar"; sem desempate arbitrário. | Pode travar; precisa de prazo (o mesmo do pareamento) e de uma tela clara. |
+| B. Cada um informa e o sistema compara | Se baterem, segue; se não, pede para conversarem. | Cada um informa sem influência do outro. | Mais passos; dois lugares para errar. |
+
+Em qualquer opção: as datas são do **casal**, editáveis depois pelos dois (RN-27); o contador usa a data de
+início do namoro (RN-28).
+
+### P4 — "O que levar" (RN-09): quando entra?
+
+Não há ainda conteúdo do Personal Universe para escolher (fotos só na Semana 4).
+
+| Opção | Consequência |
+| --- | --- |
+| **A. Modelar a estrutura na Semana 3, tela na Semana 4 (recomendada)** | Os escopos `PERSONAL`, `ARCHIVED` e `MEMBER_SIDE` e as regras entram agora, com testes usando itens fictícios; a tela real vem com as fotos. Evita retrabalho no banco. |
+| B. Adiar tudo para a Semana 4 | Semana 3 mais enxuta; risco de a estrutura nascer sem pensar na regra. |
+
+### P5 — O Personal Universe volta durante a pausa?
+
+A DEC-002 diz que, vinculado, **não existe um "eu" separado**; só no término a pessoa volta ao Personal (DEC-009).
+Você disse que a pessoa pode "ter o personal" quando pausa.
+
+| Opção | Consequência |
+| --- | --- |
+| A. Só no término (DEC-002 como está) | Pausa congela o espaço, sem mudar o modelo. Mais simples. |
+| **B. Volta durante a pausa (recomendada, se for essa a intenção)** | A pessoa vê o que postou no próprio lado e o que estava arquivado, em modo leitura ou edição (a definir). **Revisa a DEC-002**; a matriz de estados precisa de uma linha nova ("ver o Personal"). |
+
+Se escolher B, falta decidir: pode postar no Personal durante a pausa? E o que acontece com isso ao retomar?
+
+### P6 — Gesto de celebração
+
+| Opção | Consequência |
+| --- | --- |
+| **A. Fora da Semana 3, toque final opcional depois (recomendada)** | O vínculo funciona de forma assíncrona; o gesto entra no polimento visual, sem atrasar. |
+| B. Dentro da Semana 3 | Exige os dois online ao mesmo tempo (tempo real), uma peça técnica a mais; aumenta o risco do cronograma (3 h/semana). |
+
+---
+
+**Depois das respostas:** registro as decisões no `CLAUDE.md` (seção 19), promovo as RN novas à seção 8, marco
+esta especificação como aprovada e começo a Semana 3 pela migration V4 e pela regra de concorrência.
