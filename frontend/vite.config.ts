@@ -28,7 +28,9 @@ export default defineConfig({
         // Só arquivos estáticos do app entram no cache. A API NUNCA é cacheada:
         // são dados privados do casal (seção 15) e não há runtimeCaching configurado.
         globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],
-        navigateFallbackDenylist: [/^\/api/],
+        // O login com Google navega por /oauth2 e /login (em produção, na mesma origem): o service worker
+        // não pode responder essas rotas com o index.html.
+        navigateFallbackDenylist: [/^\/api/, /^\/oauth2/, /^\/login/],
       },
     }),
   ],

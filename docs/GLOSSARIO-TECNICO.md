@@ -156,3 +156,35 @@
   backend).
 - **Concurrency group:** regra que cancela a execução anterior do CI na mesma branch quando um push novo
   chega, para não gastar a cota gratuita de minutos rodando uma versão já desatualizada.
+
+### Sessão e tokens (Épico 1, passos 5 a 7)
+
+- **JWT (JSON Web Token):** um texto assinado que carrega informações (aqui, o id do usuário e a hora de
+  vencimento). O servidor confere a assinatura e não precisa consultar o banco. No Duo: o token de acesso de
+  15 minutos, assinado com `DUO_JWT_SECRET` (`JwtConfig.java`).
+- **Token de acesso x token de renovação:** o de acesso é curto (15 min) e vai em cada chamada; o de renovação
+  é longo (30 dias), fica num cookie e só serve para pedir um token de acesso novo. Se o de acesso vazar, o
+  estrago acaba em minutos; o de renovação é a chave que merece mais proteção.
+- **Bearer:** o jeito de enviar o token de acesso: cabeçalho `Authorization: Bearer <token>`. No Duo: o frontend
+  o envia em toda chamada a `/api/...` (`session.ts`).
+- **`oauth2-resource-server`:** módulo do Spring Security que valida o token Bearer em toda requisição
+  (assinatura, validade, emissor). No Duo: configurado em `SecurityConfig` com `oauth2ResourceServer`.
+- **Cookie `HttpOnly`:** cookie que o JavaScript da página não consegue ler, então um script malicioso não o
+  rouba. No Duo: `duo_refresh`.
+- **Cookie `Secure`:** o navegador só o envia por HTTPS (e por `localhost`). Em desenvolvimento sem HTTPS pode
+  ser desligado com `DUO_COOKIE_SECURE=false`.
+- **Cookie `SameSite=Strict`:** o navegador não envia o cookie quando a requisição nasce em outro site. É o que
+  protege `/api/auth/refresh` e `/logout` de CSRF, por isso o CSRF do Spring continua desligado.
+- **Rotação do token de renovação:** cada uso troca o token por um novo e invalida o antigo (RA-05).
+- **Família de tokens (`family_id`):** o conjunto de tokens de renovação que descendem do mesmo login (um
+  aparelho). Se um token **já usado** reaparece, alguém o copiou: toda a família é encerrada.
+- **Hash (SHA-256):** uma "impressão digital" de um texto, impossível de reverter. O banco guarda o hash do
+  token de renovação, não o token: se o banco vazar, os tokens não servem para nada.
+- **Lock pessimista (`PESSIMISTIC_WRITE`):** trava a linha do banco até o fim da transação, para duas requisições
+  simultâneas não usarem o mesmo token de renovação. No Duo: `findForUpdateByTokenHash`.
+- **`@Modifying` (Spring Data):** marca uma query de `update`/`delete` escrita à mão. Ela não atualiza os objetos
+  que o Hibernate já tem em memória; por isso usamos `flushAutomatically` e `clearAutomatically`.
+- **`Clock` (como bean):** o relógio do sistema entregue pelo Spring, para os testes poderem fixar o "agora" e
+  testar expiração sem esperar. No Duo: `ClockConfig.java`.
+- **Race condition (condição de corrida):** duas requisições simultâneas que disputam o mesmo recurso. No Duo: dois
+  primeiros logins com o mesmo `sub`; o índice único do banco decide e o perdedor busca a conta criada.

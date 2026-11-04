@@ -15,9 +15,10 @@ Duo-Universe/
   .github/         configuração do CI (verificação automática a cada push)
 ```
 
-Hoje só existe o **esqueleto**: o backend sobe, responde "estou vivo" e exige login para qualquer outra
-rota; o frontend mostra uma tela única. Ainda não há login real, nem casal, nem fotos — isso vem com o
-Épico 1 (seção 12 do `CLAUDE.md`).
+Hoje existe o **login completo**: entrar com Google, sessão própria (tokens), sair de um aparelho ou de todos,
+e uma tela inicial provisória no frontend. Ainda não há casal, nem fotos — isso vem a partir da Semana 3
+(seção 17 do `CLAUDE.md`). A seção "Sessão própria" no fim deste arquivo explica como as peças do login se
+conectam.
 
 ## `backend/` — a API
 
@@ -32,12 +33,11 @@ rota; o frontend mostra uma tela única. Ainda não há login real, nem casal, n
 **Código (`src/main/java/com/duo/`):**
 - `DuoBackendApplication.java`: o `main()` do projeto — o arquivo que, ao ser executado, liga toda a
   aplicação Spring Boot (lê as configurações, conecta no banco, abre a porta HTTP).
-- `shared/SecurityConfig.java`: a regra de acesso de hoje — **tudo exige login, exceto `/actuator/health`**
-  (RN-20). Quando o Épico 1 trouxer o login de verdade (código por e-mail, depois passkey), este arquivo
-  muda para usar esse mecanismo em vez do login básico provisório que está aqui agora.
-- `auth/package-info.java` e `users/package-info.java`: ainda não têm código, só uma "placa" (Javadoc do
-  pacote) explicando o que cada módulo vai guardar. `auth` vai cuidar de login/sessão; `users` vai cuidar
-  da conta e do Personal Universe. Eles ainda não se falam porque ainda não têm nada dentro.
+- `shared/SecurityConfig.java`: a regra de acesso — **tudo exige o token de acesso (Bearer), exceto
+  `/actuator/health`, o início do login com Google e `POST /api/auth/refresh` e `/logout`** (RN-20).
+- `shared/ClockConfig.java`: entrega o relógio do sistema como bean; os testes o trocam por um relógio fixo.
+- `auth/package-info.java` e `users/package-info.java`: a "placa" (Javadoc do pacote) de cada módulo. `auth`
+  cuida de login e sessão; `users` cuida da conta e, no futuro, do Personal Universe.
 
 **Configuração (`src/main/resources/`):**
 - `application.properties`: onde o backend acha o banco de dados (endereço, usuário, senha — a senha vem
@@ -83,8 +83,7 @@ navegador → SecurityConfig (confere login) → Controller (recebe o HTTP)
 - `index.html`: a página HTML única do app (todo o resto é desenhado por React dentro dela).
 - `src/main.tsx`: o ponto de entrada — pega a `<div id="root">` do `index.html` e manda o React desenhar o
   `<App />` dentro dela.
-- `src/App.tsx`: o componente principal. Hoje só mostra o título "Duo Universe"; vai crescer conforme as
-  telas do Épico 1 (criar conta, entrar) forem chegando.
+- `src/App.tsx`: o componente principal. Decide qual tela mostrar (carregando, entrar ou início); veja a seção "Sessão própria".
 - `src/App.test.tsx` / `src/test-setup.ts`: o teste do componente acima e a configuração que liga o Vitest
   (framework de teste) ao `jsdom` (um navegador falso que roda em memória, sem abrir uma janela de verdade).
 - `src/index.css`: estilo global básico.
@@ -116,3 +115,48 @@ precisamos confirmar na aba Actions do repositório (seção 19 do `CLAUDE.md`).
 - `application.properties`: registro do Google lendo `DUO_GOOGLE_CLIENT_ID` e `DUO_GOOGLE_CLIENT_SECRET` do ambiente.
 
 Fluxo: navegador → `/oauth2/authorization/google` → Google → `/login/oauth2/code/google` → handler → `UserService` → banco → `/api/me`.
+
+## Sessão própria (Épico 1, passos 5 a 7 — RA-04, RA-05, H4)
+
+Depois do login com Google, o Duo não usa a sessão padrão do Spring: usa dois tokens.
+
+| Token | Dura | Onde vive | Para quê |
+| --- | --- | --- | --- |
+| **Acesso (JWT)** | 15 min | só na memória do frontend | provar quem você é em cada chamada (`Authorization: Bearer`) |
+| **Renovação** | 30 dias, uso único | cookie `HttpOnly` (o JavaScript não lê) | pedir um token de acesso novo |
+
+**Backend, módulo `auth`** (`src/main/java/com/duo/auth/`):
+- `RefreshTokenService.java` + `IssuedRefreshToken.java`: a API pública do token de renovação (emitir, rotacionar,
+  sair deste aparelho, sair de todos).
+- `AccessTokenService.java` + `AccessToken.java`: a API pública do token de acesso.
+- `AuthController.java`: `POST /api/auth/refresh`, `/logout` e `/logout-all`.
+- `MeController.java`: `GET /api/me`; agora lê quem é a pessoa **do token**, nunca de um id enviado.
+- `RefreshCookies.java`: monta e lê o cookie `duo_refresh` (`HttpOnly`, `Secure`, `SameSite=Strict`, `/api/auth`).
+- `GoogleLoginSuccessHandler.java`: ao terminar o login com Google, cria/acha a conta, grava o cookie e manda a
+  pessoa de volta ao frontend (com `?erro=...` se for recusada).
+- `internal/RefreshToken.java`, `RefreshTokenRepository.java`, `RefreshTokenServiceImpl.java`: a tabela
+  `refresh_tokens` (migration `V3`) e a regra de rotação: cada uso troca o token por outro da mesma "família";
+  se um token **já usado** reaparece, a família inteira é encerrada. O banco guarda só o hash (SHA-256).
+- `internal/JwtConfig.java`, `JwtAccessTokenService.java`: assinam e validam o JWT com `DUO_JWT_SECRET`.
+
+**Módulo `users`:** `UserService.findById` (usado pelo `/api/me`) e `EmailAlreadyLinkedException` (e-mail já
+ligado a outra conta).
+
+**Frontend** (`frontend/src/`):
+- `session.ts`: guarda o token de acesso em memória, renova quando vence e repete a chamada; junta pedidos
+  simultâneos de renovação numa só (renovação é de uso único).
+- `App.tsx`: decide a tela — carregando, `LoginScreen.tsx` (botão "Entrar com Google") ou `HomeScreen.tsx`
+  (tela inicial provisória com "Sair" e "Sair de todos os aparelhos").
+- `session.test.ts` e `App.test.tsx`: testes com um backend simulado.
+
+**Testes novos no backend:** `SessionFlowTest` (fluxo completo pelos filtros de segurança), `RefreshToken*Test`,
+`UserServiceConflictTest` (primeiro login simultâneo e e-mail repetido) e o `GoogleLoginSuccessHandlerTest`.
+
+Fluxo completo:
+
+```
+Entrar com Google → Google → GoogleLoginSuccessHandler → cookie duo_refresh → frontend
+frontend → POST /api/auth/refresh (cookie) → token de acesso (JWT) na memória
+frontend → GET /api/me (Bearer) → quem sou eu
+JWT venceu (401) → refresh de novo → repete a chamada
+```
