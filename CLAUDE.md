@@ -659,6 +659,71 @@ domínio próprio; termos de uso e política de privacidade revisados.
   da tela inicial (centro "Couple Universe", contador de tempo juntos, "Relembre como começou") depende do
   vínculo; idade e profissão exibidas no protótipo ainda não existem no modelo de dados (decidir junto com o
   perfil e a verificação de idade, DEC-010/011).
+
+### Roteiro restante do Épico 2 (Etapas 4 a 18 — plano aprovado em 2026-11-04)
+
+> Plano completo (com o raciocínio de cada escolha) também salvo em
+> `/home/leevino/.claude/plans/jaunty-knitting-pike.md` — mas o resumo abaixo já basta para retomar o
+> trabalho em uma sessão nova, mesmo sem acesso a esse arquivo. Módulo `com.duo.relationships` já existe
+> (Etapas 1-3: `Couple`/`CoupleMember` com RN-06 garantida no banco; `CouplePairing` com `initiate`/`cancel`/
+> `find` e expiração lazy; `inviteByLink`/`redeemByLink` com código hash SHA-256). Cada etapa a seguir: anunciar
+> o que vai ser feito e por quê antes de codar, confirmar qualquer decisão técnica nova com o fundador (regras
+> 1 e 8), terminar com `./gradlew build` verde, changelog (regra 6) e **pausa para aprovação** antes da próxima.
+
+**Bloco A (continuação) — ainda sem HTTP:**
+- **Etapa 4 — coluna `handle` em `users`.** `V7__add_handle_to_users.sql` (nullable, índice único parcial em
+  `lower(handle)`, mesma técnica das Etapas 1/3); `UserService.chooseHandle`/`findByHandle`;
+  `HandleTakenException`. Decisões a confirmar: formato do handle (regex, tamanho); quando/como quem já tem
+  conta (Épico 1) escolhe o handle (bloquear navegação no próximo login vs. tela opcional vs. gerar
+  automático).
+- **Etapa 5 — convite por @handle, caminho padrão (P1/RN-30).** `inviteByHandle` busca exata via
+  `UserService.findByHandle`; handle inexistente e handle de alguém já vinculado devolvem a mesma mensagem
+  genérica (anti-enumeração). Decisão a confirmar: RA-08 (limite de tentativas) — tabela própria vs.
+  biblioteca de rate limiting vs. adiar de novo.
+- **Etapa 6 — história em 4 passos (RN-25/26).** `V8__create_pairing_stories.sql`; `saveStoryDraft` (sem
+  validar tamanho, rascunho pode ficar incompleto); `isStoryComplete` (4 passos, ≥20 caracteres);
+  `readPartnerStory` (só devolve quando **ambas** completas); `StoryTooShortException`.
+- **Etapa 7 — datas do casal: propor e aceitar (P3/RN-27).** Acrescenta a `couple_pairings`:
+  `date_proposed_by_user_id`, `proposed_known_since_date`, `proposed_dating_since_date`, `dates_accepted_at`.
+  `proposeDates`/`acceptDates`; `DatesNotAcceptedException`.
+- **Etapa 8 — firmar e nascimento do `Couple` (RN-06/08 — a mais delicada do épico).** Colunas
+  `initiator_confirmed_at`/`invitee_confirmed_at`. `confirm(pairingId, userId)`: trava a linha
+  (`@Lock(PESSIMISTIC_WRITE)`, igual a `findForUpdateByTokenHash`), valida PENDING/não expirado/datas
+  aceitas/história completa, grava a confirmação; quando ambos confirmaram, `CoupleFactory.createFrom(pairing)`
+  com `@Transactional(propagation = REQUIRES_NEW)` (conceito novo — explicar antes de usar) cria `Couple`+
+  `CoupleMember`s; se o índice único da Etapa 1 rejeitar, só essa transação nova desfaz, a confirmação
+  permanece, `AlreadyInRelationshipException`. **Teste de concorrência real** (`ExecutorService`+
+  `CountDownLatch`) — primeira vez nesse estilo no repositório, pedir autorização explícita antes de escrever.
+- **Etapa 9 — "o que levar" (P4/RN-09), sem tela ainda.** Enum `Scope{PERSONAL,ARCHIVED,MEMBER_SIDE,
+  COUPLE_CENTER}` (confirmar se `shared` é o lugar certo); interface de teste `Scopeable`, só em testes
+  unitários com objetos fictícios. Sem tabela nova, sem endpoint.
+
+**Bloco B — pausa, saída, permissões, HTTP e frontend:**
+- **Etapa 10 — pausar/retomar/sair (RN-13 a 18).** `CoupleService.pause/resume/leave`; `leave` com 2 membros
+  termina o casal inteiro (bulk update de `left_at`); `IllegalCoupleTransitionException`.
+- **Etapa 11 — matriz de permissões por estado (RN-11/12/12a/13a).** Guard `canView`/`canPostToCouple`/
+  `canPostToOwnSide`. RN-13a (Personal em leitura durante `PAUSED`) só modela a parte já decidida; postar/
+  editar na pausa continua em aberto, não implementar.
+- **Etapa 12 — limpeza de rascunhos (RN-29) e casos de borda restantes.** Decisão a confirmar: `@Scheduled`
+  vs. lazy (recomendado) para limpeza proativa; decidir se dois pareamentos `PENDING` simultâneos entre as
+  mesmas duas pessoas são permitidos ou bloqueados (a spec lista o caso, não dá a regra).
+- **Etapa 13 — exposição HTTP.** `CouplePairingController`/`CoupleController` (nunca tocam repositório
+  direto). Decisão a confirmar: `try/catch` manual por controller (padrão atual) vs.
+  `@RestControllerAdvice` central (primeira vez no projeto). Testes de acesso cruzado (RN-12/RN-20).
+- **Etapa 14 — frontend: telas do vínculo.** Decisão a confirmar: estender o `useState` de `App.tsx` vs.
+  `react-router` (tecnologia nova). Telas: `HandleSetupScreen`, `InviteScreen`, `AcceptInviteScreen`,
+  `StoryScreen` (autosave, cuidado com StrictMode), `DateConsensusScreen`, `ConfirmScreen`,
+  `CoupleHomeScreen`. Via `session.ts`/`authedFetch`; sem CSS novo além de `index.css`.
+
+**Bloco D — P6, celebração em tempo real (isolado, por último; nada do A/B depende disto):**
+- **Etapa 15 — decisão técnica: WebSocket (STOMP) vs. SSE vs. polling.** Nenhuma tecnologia de tempo real
+  existe hoje; não decidir sem apresentar ao fundador (regra 8).
+- **Etapa 16 — presença online.** `PresenceTracker` em memória (`ConcurrentHashMap`); só funciona numa
+  única instância — registrar como nota para ADR futura, não resolver agora.
+- **Etapa 17 — canal de celebração.** Ao nascer o `Couple` (fim da Etapa 8), publica evento; se ambos
+  presentes, celebra; senão, marca pendente e dispara quando ambos estiverem presentes juntos depois.
+- **Etapa 18 — frontend: recebendo a celebração.** Cliente do canal da Etapa 15 + animação simples em
+  `index.css`.
 - **Ambiente desta sessão:** a IA rodou em Windows (Git Bash); `DUO_GOOGLE_CLIENT_ID`, `DUO_GOOGLE_CLIENT_SECRET` e
   `DUO_APP_DB_PASSWORD` estão definidas lá (via `setx`; só valem para processos abertos depois). No Linux
   (Fedora, `~/.zshrc`) o fundador ainda precisa repetir as variáveis do Google. O mesmo OAuth Client serve nas
