@@ -633,13 +633,20 @@ domínio próprio; termos de uso e política de privacidade revisados.
     repetir também as variáveis do Google (seção abaixo).
   - **Testes:** backend 43 (inclui `SessionFlowTest`: refresh, rotação, reuso, token vencido, assinatura falsa,
     emissor errado, logout, logout-all); frontend 9. O "Estado do código" mais abaixo está defasado nesses números.
-- **Próximo passo:** Semana 3 — vínculo (seção 17). **Em 2026-11-04** o fundador decidiu o formato e respondeu as
-  seis perguntas abertas (P1-P6) de `docs/epico-2-vinculo.md` — especificação **aprovada**, ainda **sem código**.
-  Começar pela migration V4 e pela regra de concorrência (RN-06), depois o convite por @handle (precisa da coluna
-  `handle` em `users`) e, por último, a peça de celebração em tempo real (P6, nova dependência técnica). Pendência
-  anterior: identidade visual. O protótipo da tela inicial (centro "Couple Universe", contador de tempo juntos,
-  "Relembre como começou") depende do vínculo; idade e profissão exibidas no protótipo ainda não existem no modelo
-  de dados (decidir junto com o perfil e a verificação de idade, DEC-010/011).
+- **Épico 2 — plano de implementação aprovado em 2026-11-04**, em 18 etapas pequenas (4 blocos: A-esqueleto do
+  casal, B-pausa/saída/HTTP/frontend, C está dentro de B, D-celebração em tempo real isolada por último). Cada
+  etapa termina com changelog e pausa para aprovação, conforme a regra 4.
+- **Etapa 1 (esqueleto do casal, RN-06/07/08) — concluída em 2026-11-04.** Módulo novo `com.duo.relationships`:
+  entidades `Couple`/`CoupleMember`, repositórios, migration `V4__create_couples.sql`. A peça central é o
+  índice único **parcial** `couple_members_active_person_unique` (`WHERE left_at IS NULL`) — RN-06 (um vínculo
+  ACTIVE/PAUSED por pessoa) garantida pelo banco, no mesmo espírito de `users_email_unique`/
+  `refresh_tokens_token_hash_unique`. 3 testes novos (`CoupleMemberRepositoryTest`) contra o `duo_test` real.
+  Ainda não existe `CouplePairing` (o convite em si) nem nenhum endpoint.
+- **Próximo passo:** Etapa 2 (`CouplePairing`, máquina de estados pura, sem convite real ainda — ver plano
+  completo nas notas da sessão de 2026-11-04). Pendência anterior: identidade visual. O protótipo da tela
+  inicial (centro "Couple Universe", contador de tempo juntos, "Relembre como começou") depende do vínculo;
+  idade e profissão exibidas no protótipo ainda não existem no modelo de dados (decidir junto com o perfil e a
+  verificação de idade, DEC-010/011).
 - **Ambiente desta sessão:** a IA rodou em Windows (Git Bash); `DUO_GOOGLE_CLIENT_ID`, `DUO_GOOGLE_CLIENT_SECRET` e
   `DUO_APP_DB_PASSWORD` estão definidas lá (via `setx`; só valem para processos abertos depois). No Linux
   (Fedora, `~/.zshrc`) o fundador ainda precisa repetir as variáveis do Google. O mesmo OAuth Client serve nas

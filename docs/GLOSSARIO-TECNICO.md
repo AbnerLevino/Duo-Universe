@@ -188,3 +188,11 @@
   testar expiração sem esperar. No Duo: `ClockConfig.java`.
 - **Race condition (condição de corrida):** duas requisições simultâneas que disputam o mesmo recurso. No Duo: dois
   primeiros logins com o mesmo `sub`; o índice único do banco decide e o perdedor busca a conta criada.
+
+### Épico 2 — o vínculo
+
+- **Índice único parcial (`CREATE UNIQUE INDEX ... WHERE ...`):** um índice único que só vale para as linhas
+  que batem com a condição do `WHERE` — as outras linhas podem repetir o valor sem problema. No Duo:
+  `couple_members_active_person_unique` só proíbe duas linhas com o mesmo `user_id` **enquanto** `left_at` for
+  nulo (RN-06); depois que a pessoa sai de um vínculo (`left_at` preenchido), aquela linha "antiga" não conta
+  mais para a regra, e a pessoa pode entrar em outro vínculo.

@@ -45,7 +45,10 @@ conectam.
   Hibernate "só confira se o banco bate com as entidades, não crie tabelas sozinho — isso é trabalho do
   Flyway").
 - `db/migration/V1__create_users.sql`: a primeira "migration" do Flyway — um script SQL versionado que cria
-  a tabela `users`. `V2__add_google_sub_to_users.sql` acrescenta `google_sub` (único, obrigatório; DEC-030). Cada migration nova vira um arquivo `V2__...`, `V3__...`, nunca editamos um já aplicado.
+  a tabela `users`. `V2__add_google_sub_to_users.sql` acrescenta `google_sub` (único, obrigatório; DEC-030).
+  `V3__create_refresh_tokens.sql` cria `refresh_tokens`. `V4__create_couples.sql` (Épico 2, Etapa 1) cria
+  `couples` e `couple_members`. Cada migration nova vira um arquivo `V5__...`, `V6__...`, nunca editamos um
+  já aplicado.
 
 **Testes (`src/test/java/com/duo/`):**
 - `DuoBackendApplicationTests.java`: só liga a aplicação inteira e confere que nada quebra ao subir.
@@ -160,3 +163,27 @@ frontend → POST /api/auth/refresh (cookie) → token de acesso (JWT) na memór
 frontend → GET /api/me (Bearer) → quem sou eu
 JWT venceu (401) → refresh de novo → repete a chamada
 ```
+
+## Épico 2 — o vínculo (módulo `relationships`, em andamento)
+
+Especificação aprovada em `docs/epico-2-vinculo.md`; progresso etapa a etapa na seção 19 do `CLAUDE.md`.
+
+**Etapa 1 — esqueleto do casal (concluída):**
+- `relationships/package-info.java`: a "placa" do módulo novo — o vínculo entre duas pessoas, do convite ao
+  casal nascido, até a saída. Ainda não sabe nada de fotos/memórias.
+- `relationships/internal/Couple.java`: a entidade do casal (migration `V4`) — estado (`ACTIVE`/`PAUSED`/
+  `ENDED`) e as duas datas do relacionamento, ainda sempre nulas (ninguém as preenche até a Etapa 7). Sem
+  nenhuma regra de transição ainda — isso chega nas Etapas 8 e 10.
+- `relationships/internal/CoupleMember.java`: uma pessoa dentro de um casal. `leftAt` nulo = "ainda dentro do
+  vínculo"; é esse campo que o índice único da migration usa para valer a RN-06.
+- `relationships/internal/CoupleRepository.java`, `CoupleMemberRepository.java`: acesso ao banco para as duas
+  entidades acima; `findByUserIdAndLeftAtIsNull` é a consulta que vai apoiar a regra de concorrência mais
+  adiante.
+- `db/migration/V4__create_couples.sql`: cria `couples` e `couple_members`, com o índice único **parcial**
+  `couple_members_active_person_unique` — só existe para linhas com `left_at IS NULL`. É a peça que faz o
+  banco recusar, sozinho, uma segunda linha "ativa" para a mesma pessoa (RN-06).
+- `relationships/internal/CoupleMemberRepositoryTest.java`: prova as três coisas acima contra o banco de
+  teste real: salva e acha a filiação ativa; recusa uma segunda filiação ativa para a mesma pessoa; permite
+  uma nova filiação depois que a pessoa "sai" da anterior (`leftAt` preenchido).
+
+Ainda não existe nenhum `CouplePairing` (o convite em si) nem nenhum endpoint — isso começa na Etapa 2.
