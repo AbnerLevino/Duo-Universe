@@ -603,15 +603,13 @@ domínio próprio; termos de uso e política de privacidade revisados.
 - **Semana 1 (seção 17): concluída**, exceto confirmar o CI verde no GitHub (pendência, ver abaixo).
 - **Épico 1, etapa A — passo 1: concluído.** Entidade `User` + `UserRepository` (commit `1e478e0`), testada
   contra `duo_test` de verdade.
-- **Próximo passo (passo 2): entrada por código de 6 dígitos por e-mail** (RA-01 a RA-05, RA-07 a RA-09).
-  É lógica concreta do Duo (não CRUD genérico) → volta o **Modo acompanhamento, versão leve** (seção 2):
-  explicar o conceito novo antes de implementar, sem o ritual inteiro de perguntas de verificação.
-  Nada desse passo foi implementado ainda. Usar **Mailpit** (ok do fundador) para ver o e-mail em
-  desenvolvimento sem logar o código de verdade (RA-09).
-- **Depois do passo 2, etapa B:** passkeys — só quando houver HTTPS real ou `localhost` (WebAuthn exige
-  contexto seguro).
-- Decisões ainda em aberto que podem bloquear o próximo passo: nenhuma identificada para o passo 2 em si;
-  ver "Pendências abertas" abaixo para o resto.
+- **Próximo passo (DEC-030, 2026-11-04): entrada SÓ com Google** (OpenID Connect), no lugar do código por e-mail.
+  É autenticação → Modo acompanhamento, versão leve (explicar o conceito antes de implementar). Passos:
+  (1) migration `V2` com `google_sub`; (2) ajustar `User` (+ `findByGoogleSub`); (3) criar o OAuth Client no
+  Google Cloud (fundador, guiado); (4) login no backend com Spring `oauth2-client`; (5) sessão própria
+  (access 15 min + refresh rotacionado, RA-04/RA-05) com `refresh_tokens`; (6) logout e testes de acesso;
+  (7) frontend: botão "Entrar com Google". Mailpit e Q-18 saem do caminho. Nada disso implementado ainda.
+- **Etapa B (depois):** passkeys e/ou código por e-mail como segunda forma de entrar (HTTPS real ou `localhost`).
 
 ### Decisões do fundador
 | Código | Decisão |
@@ -620,7 +618,8 @@ domínio próprio; termos de uso e política de privacidade revisados.
 | Q-15 | **Cloudflare R2** para as mídias (exige meio de pagamento na ativação; ver Q-14). |
 | Q-16 | **Confirmada:** passkeys + código de 6 dígitos por e-mail, sem senha (DEC-026 agora `DECIDIDO`). |
 | Q-14 | **Fundador não tem cartão de crédito.** Oracle Always Free e R2 ficam bloqueados até resolver (cartão virtual de banco digital, pré-pago ou outra hospedagem). O deploy foi **adiado**; não criar contas nem VM por enquanto. |
-| Q-13 | "Bastante tempo" (número exato não informado). |
+| Q-13 | **3 horas por semana**, ajustável conforme o ritmo real. |
+| Q-23 / DEC-030 | **Entrar só com Google no MVP** (2026-11-04). Revisa a DEC-026 e o Épico 1: passkeys e código por e-mail passam para a etapa B. Ganhos: sem serviço de e-mail, sem códigos, e-mail já verificado pelo Google (RA-01). Custo: quem não tem conta Google não entra; o Google vira ponto único de falha. RA-02 (sem senha) segue valendo; RA-03, RA-06, H3 e H5 ficam suspensos até a etapa B. |
 | Docker | **Adiado para outra fase.** Ferramentas instaladas direto no Windows. Consequência: Testcontainers (DEC-018) fica fora por ora e os testes usam um Postgres local (`duo_test`). |
 | Git | Repositório privado `https://github.com/AbnerLevino/Duo-Universe.git`, branch `main`. **A cada requisição atendida: commit e push** (autorização durável só para este repositório). |
 
@@ -728,13 +727,12 @@ custo zero, a decidir perto do lançamento.
 5. Semanas 3 a 6 como na seção 17, ajustadas pela disponibilidade.
 
 ### Pendências abertas
-- **Q-23:** login com Google no MVP? (antes da etapa A do épico 1)
-- Ok para **ArchUnit** e **Spotless**; ok para o **Mailpit**.
+- ~~Q-23~~ resolvida: DEC-030 (só Google).
+- Ok para **ArchUnit** e **Spotless**; ok para o **Mailpit** (desnecessário com a DEC-030).
 - **Q-18:** serviço de e-mail transacional gratuito (pesquisar quando o envio real for necessário).
 - **Q-17 e exclusão de conta:** o que acontece com o centro do casal e com fotos que mostram o parceiro quando uma
   pessoa exclui a conta (conflito entre LGPD e RN-17/RN-18).
 - **Q-06:** matriz de permissões por estado do vínculo (o que cada pessoa pode fazer em `ACTIVE`, `PAUSED`, `ENDED`);
   confirmar se a pausa é do vínculo do casal, do Personal Universe ou de ambos.
-- Preencher a **Q-13** com um número de horas por semana.
 - **Confirmar o CI verde no GitHub** (aba Actions do repositório) — ainda não verificado nesta máquina (sem `gh`
   instalado).
