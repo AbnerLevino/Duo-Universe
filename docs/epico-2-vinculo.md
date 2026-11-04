@@ -1,7 +1,9 @@
 # Épico 2 — O vínculo (Couple Universe nasce)
 
-> Especificação para revisão do fundador. **Nenhum código foi escrito.** Itens `DECIDIDO` vêm das conversas de
-> 2026-11-04; itens `PROPOSTA` são recomendações que aguardam aprovação (regra 1 do CLAUDE.md).
+> **Especificação aprovada em 2026-11-04** (perguntas P1 a P6 respondidas pelo fundador). **Ainda nenhum código
+> foi escrito** — a implementação (migration V4 e regra de concorrência) começa como próxima etapa, por fora
+> desta sessão de decisões. Itens `DECIDIDO` vêm das conversas de 2026-11-04; itens `PROPOSTA` são recomendações
+> que aguardam aprovação (regra 1 do CLAUDE.md).
 
 ## Objetivo
 
@@ -27,6 +29,12 @@ guardar a história no Duo. O conceito do ritual continua sendo especial e pode 
 | Conteúdo | Tudo editável (tirar, mover, apagar) pelo dono. | `DECIDIDO` |
 | Chat e "dar um tempo da rede" | Fase 2. Fora do MVP. | `DECIDIDO` |
 | Data de entrada no Duo | Gravada automaticamente (`created_at`) só para métricas. Não aparece para o casal. | `DECIDIDO` |
+| P1 — Convite | Caminho **padrão**: buscar a pessoa dentro do próprio Duo por um **@handle exato** (identificador único escolhido no cadastro, nunca nome ou e-mail) — reforça o Duo como rede social, sem depender de apps de terceiros. Link com código que expira em 7 dias, de uso único, continua existindo como **alternativa** (ex.: antes de saber o @handle do outro). Revisa o escopo de anti-enumeração do RA-07 **só para este fluxo de convite** (DEC-031, seção 19 do CLAUDE.md). | `DECIDIDO` |
+| P2 — Obrigatoriedade | Cada um dos 4 passos da história exige **no mínimo 20 caracteres** (depois de remover espaços) — não basta não estar vazio. | `DECIDIDO` |
+| P3 — Consenso das datas | **Propor e aceitar:** um propõe as duas datas do casal, o outro aceita ou propõe outras, até concordarem; só depois disso o casal pode firmar (RN-27). | `DECIDIDO` |
+| P4 — O que levar | Estrutura modelada **já na Semana 3** (escopos `PERSONAL`, `ARCHIVED`, `MEMBER_SIDE` e regras, com itens fictícios nos testes); a tela real para escolher o que levar vem na Semana 4, junto das fotos (RN-09). | `DECIDIDO` |
+| P5 — Personal na pausa | O Personal Universe **volta durante a `PAUSED`** (leitura do que foi postado no próprio lado e do que está arquivado) — revisa a DEC-002 (nova regra RN-13a). **Ainda em aberto:** se dá para postar/editar no Personal durante a pausa, e o que acontece com isso ao retomar. | `DECIDIDO (parcial)` |
+| P6 — Celebração | O gesto de celebração entra **já na Semana 3**, em **tempo real**: os dois precisam estar online juntos no momento em que o Couple Universe nasce. Acrescenta uma peça técnica nova ao MVP (presença online + notificação em tempo real) — ver nota técnica na seção de requisitos não funcionais. | `DECIDIDO` |
 
 ## Histórias
 
@@ -42,8 +50,10 @@ guardar a história no Duo. O conceito do ritual continua sendo especial e pode 
 
 ## O fluxo
 
-1. A inicia. O sistema cria um `CouplePairing` `PENDING` e um **código ou link que expira**.
-2. B entra com o código (já logado com Google).
+1. A inicia e busca B pelo **@handle exato** dentro do Duo (padrão) ou gera um **link com código** para enviar por
+   fora (alternativa, ex.: B ainda não tem conta ou A não sabe o @handle). O sistema cria um `CouplePairing`
+   `PENDING`; o convite por link também carrega um código que expira em 7 dias e vale uma única vez.
+2. B aceita o convite recebido no próprio Duo, ou entra com o código/link (já logado com Google em ambos os casos).
 3. Cada um escreve a sua história em **passos curtos**, tudo obrigatório, com rascunho salvo.
 4. Os dois combinam as duas datas do casal (V4).
 5. Cada um confirma ("firmar"). Só com os dois confirmados o `Couple` nasce como `ACTIVE` (RN-08).
@@ -86,12 +96,17 @@ Couple:    ACTIVE ⇄ PAUSED
 RN-13 a RN-18 (seção 8 do CLAUDE.md).
 
 **Novas (a registrar na seção 8 após aprovação):**
-- **RN-25:** a história é obrigatória para o vínculo nascer; só texto não vazio é exigido (ver Q-aberta 4).
+- **RN-25:** a história é obrigatória para o vínculo nascer; cada passo exige no mínimo 20 caracteres (P2).
 - **RN-26:** as duas histórias só ficam visíveis uma à outra depois que ambas foram concluídas.
-- **RN-27:** a data de conhecimento e a data de início do namoro são únicas por casal e precisam do consenso dos
-  dois.
+- **RN-27:** a data de conhecimento e a data de início do namoro são únicas por casal, propostas por um e aceitas
+  pelo outro até concordarem (P3).
 - **RN-28:** o contador de tempo juntos usa a data de início do namoro.
 - **RN-29:** pareamento expirado, recusado ou cancelado apaga os rascunhos.
+- **RN-30:** a busca de pessoas para convite só aceita **@handle exato** (sem busca livre por nome/e-mail, sem
+  listar resultados parciais); limite de tentativas por conta e por IP (RA-08). Link com código continua
+  disponível como alternativa (P1).
+- **RN-13a:** durante a `PAUSED`, a pessoa vê (leitura) o que postou no próprio lado e o que estava arquivado —
+  revisa a DEC-002 (P5). Postar/editar no Personal durante a pausa fica em aberto.
 
 ## Requisitos não funcionais
 
@@ -101,8 +116,14 @@ RN-13 a RN-18 (seção 8 do CLAUDE.md).
 - **Autorização (RN-12, RN-20):** o casal é sempre derivado do usuário autenticado; nunca de um `coupleId`
   enviado pelo frontend. Testes de acesso cruzado (a pessoa C tentando ver o casal A).
 - **Privacidade:** textos das histórias, códigos de pareamento e rascunhos nunca em logs (RA-09).
-- **Anti-enumeração (RA-07):** não há busca de pessoas por e-mail; o encontro é por código ou link.
+- **Anti-enumeração (RN-30, revisa o escopo do RA-07 para este fluxo):** sem busca livre por nome ou e-mail, sem
+  listagem; só @handle exato, com limite de tentativas (RA-08). Link com código continua como alternativa.
 - **Métricas:** funil iniciado, entrou, terminou, firmou, sem expor conteúdo.
+- **Celebração em tempo real (P6, nota técnica):** o nascimento do Couple Universe precisa avisar os dois membros
+  "ao vivo" quando o segundo confirma — exige presença online (quem está conectado agora) e um canal de tempo
+  real (WebSocket ou SSE; a decidir no detalhamento técnico da Semana 3). Se alguém não estiver online no
+  momento, a celebração completa (com o parceiro) só ocorre quando ambos estiverem simultaneamente; o vínculo em
+  si não fica bloqueado esperando isso.
 
 ## Casos de borda
 
@@ -129,16 +150,25 @@ RN-13 a RN-18 (seção 8 do CLAUDE.md).
 ## Modelo de dados (visão geral, migration V4 a detalhar)
 
 `couples` (estado, datas do casal), `couple_members` (com índice único parcial por pessoa ativa),
-`couple_pairings` (estado, código, expiração) e as histórias dos membros. O acontecimento guardado já nasce com
-**data** e indicador de **marco**, para que o universo visual futuro (docs/IDEIAS.md) seja só uma forma de olhar
-os mesmos dados.
+`couple_pairings` (estado, código, expiração, e se foi criado por @handle ou por link) e as histórias dos
+membros. O acontecimento guardado já nasce com **data** e indicador de **marco**, para que o universo visual
+futuro (docs/IDEIAS.md) seja só uma forma de olhar os mesmos dados.
 
-## Perguntas ainda abertas (detalhadas)
+**Nova necessidade (P1):** a tabela `users` (Épico 1) precisa de uma coluna `handle` única (ex.: índice único em
+`lower(handle)`, como já existe para `email`), escolhida no cadastro ou num passo adicional antes do primeiro
+convite — a decidir no detalhamento técnico de quando essa coluna é preenchida para quem já se cadastrou pelo
+Épico 1.
 
-Todas aguardam decisão do fundador. Cada uma traz alternativas, consequências e uma **recomendação**.
-Nenhuma é implementada antes da decisão (regra 1). Responda por número (ex.: "P1: A").
+## Perguntas respondidas em 2026-11-04 (histórico)
+
+Todas as seis perguntas abaixo foram respondidas pelo fundador em 2026-11-04. As decisões finais já estão na
+tabela "Decisões deste épico"; o conteúdo abaixo fica como registro das alternativas consideradas.
 
 ### P1 — Como a pessoa chamada encontra o casal? (código ou link)
+
+> **Resolvida:** nem A nem B nem C como estavam propostas — o fundador quis o Duo como rede social, com busca
+> **dentro do próprio app** por @handle exato, mantendo o link com código como alternativa. Ver linha P1 na
+> tabela de decisões.
 
 Não há busca de pessoas por e-mail (RA-07: não revelar quem tem conta).
 
@@ -152,6 +182,8 @@ Consequência: o prazo (7 dias, a confirmar) também define quando os rascunhos 
 
 ### P2 — O que significa "obrigatório"?
 
+> **Resolvida:** opção B (mínimo de 20 caracteres).
+
 | Opção | Consequência |
 | --- | --- |
 | **A. Texto não vazio, depois de remover espaços (recomendada)** | Simples; cada passo precisa de alguma resposta. Quem quiser burlar escreve qualquer coisa. |
@@ -161,6 +193,8 @@ Observação: validar a **qualidade** da história é impossível e contrariaria
 obrigatoriedade garante o ritual, não o conteúdo.
 
 ### P3 — Como o casal chega ao consenso das datas (conheceram-se e começaram a namorar)?
+
+> **Resolvida:** opção A (propor e aceitar), a recomendada.
 
 | Opção | Como funciona | Prós | Contras |
 | --- | --- | --- | --- |
@@ -172,6 +206,8 @@ início do namoro (RN-28).
 
 ### P4 — "O que levar" (RN-09): quando entra?
 
+> **Resolvida:** opção A (modelar a estrutura na Semana 3, tela na Semana 4), a recomendada.
+
 Não há ainda conteúdo do Personal Universe para escolher (fotos só na Semana 4).
 
 | Opção | Consequência |
@@ -180,6 +216,9 @@ Não há ainda conteúdo do Personal Universe para escolher (fotos só na Semana
 | B. Adiar tudo para a Semana 4 | Semana 3 mais enxuta; risco de a estrutura nascer sem pensar na regra. |
 
 ### P5 — O Personal Universe volta durante a pausa?
+
+> **Resolvida:** opção B (volta durante a pausa, em leitura), a recomendada. Revisa a DEC-002. Falta ainda
+> decidir se dá para postar/editar durante a pausa.
 
 A DEC-002 diz que, vinculado, **não existe um "eu" separado**; só no término a pessoa volta ao Personal (DEC-009).
 Você disse que a pessoa pode "ter o personal" quando pausa.
@@ -193,6 +232,9 @@ Se escolher B, falta decidir: pode postar no Personal durante a pausa? E o que a
 
 ### P6 — Gesto de celebração
 
+> **Resolvida:** opção B (dentro da Semana 3, em tempo real) — **não** é a recomendada; o fundador assumiu
+> conscientemente a peça técnica extra (presença online + canal em tempo real) dentro do cronograma de 3h/semana.
+
 | Opção | Consequência |
 | --- | --- |
 | **A. Fora da Semana 3, toque final opcional depois (recomendada)** | O vínculo funciona de forma assíncrona; o gesto entra no polimento visual, sem atrasar. |
@@ -200,5 +242,7 @@ Se escolher B, falta decidir: pode postar no Personal durante a pausa? E o que a
 
 ---
 
-**Depois das respostas:** registro as decisões no `CLAUDE.md` (seção 19), promovo as RN novas à seção 8, marco
-esta especificação como aprovada e começo a Semana 3 pela migration V4 e pela regra de concorrência.
+**Feito em 2026-11-04:** decisões registradas no `CLAUDE.md` (seção 19); RNs novas (RN-25 a RN-30, RN-13a)
+prontas para promoção à seção 8 na próxima etapa de código; especificação marcada como **aprovada**. Próximo
+passo: começar a Semana 3 pela migration V4 e pela regra de concorrência (RN-06), seguido do fluxo de convite
+por @handle (precisa da coluna `handle` em `users`) e, por último, a peça de celebração em tempo real (P6).

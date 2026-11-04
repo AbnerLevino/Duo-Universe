@@ -210,11 +210,13 @@ Status: `DECIDIDO`, `PROPOSTA`, `EM ABERTO`, `REVISADA` (vale, com mudança), `S
 MVP com o universo do solteiro (mínimo) e o Couple Universe. A parte social dos solteiros (descobrir pessoas,
 comunidades) fica no horizonte.
 
-### DEC-002 — Do "eu" ao "nós" · `DECIDIDO` (revisada em 2026-11-03)
+### DEC-002 — Do "eu" ao "nós" · `DECIDIDO` (revisada em 2026-11-03; pausa revisada em 2026-11-04)
 Solteiro tem Personal Universe; ao se vincular, deixa de existir um "eu" separado e tudo vive no Couple Universe
 (centro do casal + lado de cada um). No vínculo, a pessoa escolhe o que leva; o resto fica guardado e volta no
 término. Login sempre individual; autoria sempre rastreável. (A v3 propunha manter o Personal Universe permanente;
-o fundador decidiu pela visão original.)
+o fundador decidiu pela visão original.) **Revisão de 2026-11-04 (P5, Épico 2):** durante a `PAUSED`, a pessoa
+volta a **ver** (leitura) o que postou no próprio lado e o que estava arquivado — RN-13a, `docs/epico-2-vinculo.md`.
+Falta decidir se dá para postar/editar no Personal durante a pausa.
 
 ### DEC-003 — Perfil do casal = centro + lado de cada um · `DECIDIDO`
 O lado de cada um agora inclui fotos e momentos, não só nome, foto e bio.
@@ -579,10 +581,12 @@ sozinhos toda semana.
 
 **Antes da semana 2:** Q-23: login com Google também no MVP?
 
-**Antes da semana 3:** ~~Q-01~~, ~~Q-05~~, ~~Q-10~~, ~~Q-06~~ decididas em 2026-11-04 (ver `docs/epico-2-vinculo.md`).
-Ainda abertas: código ou link do pareamento e prazo; obrigatoriedade (só "não vazio"?); como o casal chega ao
-consenso das datas; "o que levar" na Semana 3 ou 4; Personal Universe durante a pausa (DEC-002); identidade
-visual e design system mínimo.
+**Antes da semana 3:** ~~Q-01~~, ~~Q-05~~, ~~Q-10~~, ~~Q-06~~ decididas em 2026-11-04; **P1 a P6 do Épico 2
+também decididas em 2026-11-04** (convite por @handle dentro do Duo com link/código como alternativa — DEC-031;
+história com mínimo de 20 caracteres; consenso das datas por propor/aceitar; "o que levar" modelado já na
+Semana 3; Personal Universe volta em leitura durante a pausa, revisando a DEC-002; celebração em tempo real já
+na Semana 3). Especificação **aprovada** em `docs/epico-2-vinculo.md`. Ainda aberta: identidade visual e design
+system mínimo.
 
 **Antes da semana 4:** Q-04 prazo da lixeira; Q-17 destino do centro do casal no término; Q-19 exclusão em massa;
 Q-20 cotas, tamanho máximo e compressão das fotos.
@@ -629,11 +633,13 @@ domínio próprio; termos de uso e política de privacidade revisados.
     repetir também as variáveis do Google (seção abaixo).
   - **Testes:** backend 43 (inclui `SessionFlowTest`: refresh, rotação, reuso, token vencido, assinatura falsa,
     emissor errado, logout, logout-all); frontend 9. O "Estado do código" mais abaixo está defasado nesses números.
-- **Próximo passo:** Semana 3 — vínculo (seção 17). **Em 2026-11-04** o fundador decidiu o formato (ver tabela de
-  decisões e `docs/epico-2-vinculo.md`); falta responder as "Perguntas ainda abertas" desse documento e aprovar a
-  especificação antes de qualquer código. Pendência anterior: identidade visual. O protótipo da tela inicial (centro "Couple
-  Universe", contador de tempo juntos, "Relembre como começou") depende do vínculo; idade e profissão exibidas no
-  protótipo ainda não existem no modelo de dados (decidir junto com o perfil e a verificação de idade, DEC-010/011).
+- **Próximo passo:** Semana 3 — vínculo (seção 17). **Em 2026-11-04** o fundador decidiu o formato e respondeu as
+  seis perguntas abertas (P1-P6) de `docs/epico-2-vinculo.md` — especificação **aprovada**, ainda **sem código**.
+  Começar pela migration V4 e pela regra de concorrência (RN-06), depois o convite por @handle (precisa da coluna
+  `handle` em `users`) e, por último, a peça de celebração em tempo real (P6, nova dependência técnica). Pendência
+  anterior: identidade visual. O protótipo da tela inicial (centro "Couple Universe", contador de tempo juntos,
+  "Relembre como começou") depende do vínculo; idade e profissão exibidas no protótipo ainda não existem no modelo
+  de dados (decidir junto com o perfil e a verificação de idade, DEC-010/011).
 - **Ambiente desta sessão:** a IA rodou em Windows (Git Bash); `DUO_GOOGLE_CLIENT_ID`, `DUO_GOOGLE_CLIENT_SECRET` e
   `DUO_APP_DB_PASSWORD` estão definidas lá (via `setx`; só valem para processos abertos depois). No Linux
   (Fedora, `~/.zshrc`) o fundador ainda precisa repetir as variáveis do Google. O mesmo OAuth Client serve nas
@@ -650,7 +656,8 @@ domínio próprio; termos de uso e política de privacidade revisados.
 ### Decisões do fundador
 | Código | Decisão |
 | --- | --- |
-| Épico 2 (2026-11-04) | **Vínculo:** cada um conta a sua história, obrigatória, revelada ao mesmo tempo (DEC-012 revisada); perto ou longe é o mesmo fluxo; nome na interface "Couple Universe"; matriz de estados aprovada; contador de tempo juntos parte das datas do relacionamento, e o casal precisa de consenso sobre a data em que se conheceram e a em que começaram a namorar; sem prévia da história antes de os dois terminarem; tudo editável pelo dono; **sem Instagram** (sem cards nem compartilhamento externo); chat e "dar um tempo da rede" na Fase 2; universo de estrelas e planetas como ideia (`docs/IDEIAS.md`). Especificação: `docs/epico-2-vinculo.md` (**sem código ainda**). |
+| Épico 2 (2026-11-04) | **Vínculo:** cada um conta a sua história, obrigatória, revelada ao mesmo tempo (DEC-012 revisada); perto ou longe é o mesmo fluxo; nome na interface "Couple Universe"; matriz de estados aprovada; contador de tempo juntos parte das datas do relacionamento, e o casal precisa de consenso sobre a data em que se conheceram e a em que começaram a namorar; sem prévia da história antes de os dois terminarem; tudo editável pelo dono; **sem Instagram** (sem cards nem compartilhamento externo); chat e "dar um tempo da rede" na Fase 2; universo de estrelas e planetas como ideia (`docs/IDEIAS.md`). Especificação **aprovada**: `docs/epico-2-vinculo.md` (**sem código ainda**). |
+| P1-P6 / DEC-031 (2026-11-04) | **Perguntas do Épico 2 respondidas:** convite por **@handle exato** dentro do Duo como caminho padrão (reforça o Duo como rede social própria), link com código de 7 dias como alternativa — revisa o escopo do RA-07 só para este fluxo de convite (DEC-031, RN-30); história com mínimo de **20 caracteres** por passo (não só "não vazio"); consenso das datas do casal por **propor e aceitar**; "o que levar" (RN-09) modelado já na Semana 3, tela na Semana 4; Personal Universe volta em **leitura** durante a `PAUSED` (revisa DEC-002, RN-13a — falta decidir se dá para postar/editar na pausa); gesto de celebração entra **já na Semana 3, em tempo real** (contra a recomendação — o fundador assumiu a peça técnica extra de presença online/WebSocket dentro das 3h/semana). Detalhe de cada pergunta: `docs/epico-2-vinculo.md`. |
 | Q-22 | **Gradle (Kotlin DSL).** |
 | Q-15 | **Cloudflare R2** para as mídias (exige meio de pagamento na ativação; ver Q-14). |
 | Q-16 | **Confirmada:** passkeys + código de 6 dígitos por e-mail, sem senha (DEC-026 agora `DECIDIDO`). |
