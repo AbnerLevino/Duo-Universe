@@ -105,3 +105,14 @@ paralelo:
 
 Se qualquer um desses passos falhar, o GitHub marca o commit como vermelho — é esse sinal que ainda
 precisamos confirmar na aba Actions do repositório (seção 19 do `CLAUDE.md`).
+
+## Login com Google (Épico 1, etapa 4 — DEC-030)
+
+- `users/UserService.java` + `UserSummary.java`: a **API pública** do módulo `users`. Outros módulos só conversam com ele por aqui. `findOrCreateByGoogle` acha a pessoa pelo `sub` do Google ou cria a conta no primeiro acesso.
+- `users/internal/UserServiceImpl.java`: a implementação (pacote `internal`, invisível para outros módulos — o ArchUnit garante).
+- `auth/GoogleLoginSuccessHandler.java`: roda quando o Google confirma a identidade. Recusa e-mail não verificado (RA-01) e chama o `UserService`.
+- `auth/MeController.java`: `GET /api/me`, devolve quem está logado. Serve para provar o login.
+- `shared/SecurityConfig.java`: liga o `oauth2Login`; sem login, qualquer rota responde 401 (RN-20).
+- `application.properties`: registro do Google lendo `DUO_GOOGLE_CLIENT_ID` e `DUO_GOOGLE_CLIENT_SECRET` do ambiente.
+
+Fluxo: navegador → `/oauth2/authorization/google` → Google → `/login/oauth2/code/google` → handler → `UserService` → banco → `/api/me`.

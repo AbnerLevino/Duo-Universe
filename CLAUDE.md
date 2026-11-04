@@ -608,7 +608,8 @@ domínio próprio; termos de uso e política de privacidade revisados.
   (1) migration `V2` com `google_sub`; (2) ajustar `User` (+ `findByGoogleSub`); (3) criar o OAuth Client no
   Google Cloud (fundador, guiado); (4) login no backend com Spring `oauth2-client`; (5) sessão própria
   (access 15 min + refresh rotacionado, RA-04/RA-05) com `refresh_tokens`; (6) logout e testes de acesso;
-  (7) frontend: botão "Entrar com Google". Mailpit e Q-18 saem do caminho. Nada disso implementado ainda.
+  (7) frontend: botão "Entrar com Google". Mailpit e Q-18 saem do caminho.
+  **Feito:** passos 1, 2 e 4 (código). **Passo 3 (Google Cloud) é do fundador;** o teste manual do passo 4 depende dele.
 - **Etapa B (depois):** passkeys e/ou código por e-mail como segunda forma de entrar (HTTPS real ou `localhost`).
 
 ### Decisões do fundador
