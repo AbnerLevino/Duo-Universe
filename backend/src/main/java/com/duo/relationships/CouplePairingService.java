@@ -17,6 +17,21 @@ public interface CouplePairingService {
 	void cancel(Long pairingId, Long userId);
 
 	/**
+	 * Gera um convite por link: um pareamento {@code PENDING} sem convidado ainda, mais um código aleatório
+	 * de uso único, válido por 7 dias (P1, alternativa ao @handle da Etapa 5). O código em texto puro só
+	 * existe no retorno — o banco guarda só o hash (RA-09).
+	 */
+	IssuedPairingInvite inviteByLink(Long initiatorUserId);
+
+	/**
+	 * Usa o código do link: anexa {@code inviteeUserId} ao pareamento que o código identifica.
+	 *
+	 * @throws InviteCodeInvalidException se o código não existir, já tiver sido usado, estiver vencido, ou
+	 *         se a própria pessoa que criou o link tentar usá-lo
+	 */
+	PairingSummary redeemByLink(String code, Long inviteeUserId);
+
+	/**
 	 * Busca um pareamento que a pessoa possa ver. Se ele já passou da validade e ainda estava
 	 * {@code PENDING}, marca como {@code CANCELLED} nesta mesma chamada (expiração "lazy": sem job
 	 * agendado, decisão da Etapa 2).

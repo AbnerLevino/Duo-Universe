@@ -650,10 +650,15 @@ domínio próprio; termos de uso e política de privacidade revisados.
   **Confirmado nesta sessão:** `bootRun` aplica V1-V5 também no banco de desenvolvimento (`duo`), não só no
   de teste — verificado por um subagente, que **expôs a senha do `duo_app`** num log de depuração por engano
   (ver aviso de segurança registrado na conversa; recomendado trocar a senha).
-- **Próximo passo:** Etapa 3 (convite por link/código, alternativa — P1). Pendência anterior: identidade
-  visual. O protótipo da tela inicial (centro "Couple Universe", contador de tempo juntos, "Relembre como
-  começou") depende do vínculo; idade e profissão exibidas no protótipo ainda não existem no modelo de dados
-  (decidir junto com o perfil e a verificação de idade, DEC-010/011).
+- **Etapa 3 (convite por link/código, alternativa — P1) — concluída em 2026-11-04.** `inviteByLink`/
+  `redeemByLink` em `CouplePairingService`; código aleatório (`SecureRandom`, 32 bytes) com hash SHA-256
+  guardado no banco (mesmo padrão do token de renovação, RA-09), nunca o código em texto puro; uso único;
+  migration `V6` acrescenta `invite_code_hash` (índice único parcial). RA-08 (limite de tentativas) ainda não
+  implementado — adiado para a Etapa 5 (@handle), onde o risco de força bruta é maior. 24 testes novos.
+- **Próximo passo:** Etapa 4 (coluna `handle` em `users`). Pendência anterior: identidade visual. O protótipo
+  da tela inicial (centro "Couple Universe", contador de tempo juntos, "Relembre como começou") depende do
+  vínculo; idade e profissão exibidas no protótipo ainda não existem no modelo de dados (decidir junto com o
+  perfil e a verificação de idade, DEC-010/011).
 - **Ambiente desta sessão:** a IA rodou em Windows (Git Bash); `DUO_GOOGLE_CLIENT_ID`, `DUO_GOOGLE_CLIENT_SECRET` e
   `DUO_APP_DB_PASSWORD` estão definidas lá (via `setx`; só valem para processos abertos depois). No Linux
   (Fedora, `~/.zshrc`) o fundador ainda precisa repetir as variáveis do Google. O mesmo OAuth Client serve nas

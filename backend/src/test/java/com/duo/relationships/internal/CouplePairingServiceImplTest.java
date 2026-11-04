@@ -8,6 +8,8 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 
 import com.duo.relationships.Channel;
+import com.duo.relationships.InviteCodeInvalidException;
+import com.duo.relationships.IssuedPairingInvite;
 import com.duo.relationships.PairingNotFoundException;
 import com.duo.relationships.PairingState;
 import com.duo.relationships.PairingSummary;
@@ -97,5 +99,59 @@ class CouplePairingServiceImplTest {
 		PairingSummary found = service.find(pairing.id(), initiatorId);
 
 		assertThat(found.state()).isEqualTo(PairingState.PENDING);
+	}
+
+	@Test
+	void inviteByLinkStoresOnlyTheHashNeverTheCode() {
+		IssuedPairingInvite invite = serviceAt(NOW).inviteByLink(initiatorId);
+
+		assertThat(pairings.findByInviteCodeHash(invite.code())).isEmpty();
+		assertThat(pairings.findByInviteCodeHash(CouplePairingServiceImpl.hash(invite.code()))).isPresent();
+		assertThat(invite.expiresAt()).isEqualTo(NOW.plus(CouplePairingServiceImpl.TTL));
+	}
+
+	@Test
+	void redeemByLinkAttachesTheInviteeToThePairing() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		IssuedPairingInvite invite = service.inviteByLink(initiatorId);
+
+		PairingSummary redeemed = service.redeemByLink(invite.code(), inviteeId);
+
+		assertThat(redeemed.inviteeUserId()).isEqualTo(inviteeId);
+		assertThat(redeemed.state()).isEqualTo(PairingState.PENDING);
+	}
+
+	@Test
+	void redeemByLinkRejectsAnUnknownCode() {
+		assertThatThrownBy(() -> serviceAt(NOW).redeemByLink("codigo-que-nao-existe", inviteeId))
+				.isInstanceOf(InviteCodeInvalidException.class);
+	}
+
+	@Test
+	void redeemByLinkRejectsACodeAlreadyUsed() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		IssuedPairingInvite invite = service.inviteByLink(initiatorId);
+		service.redeemByLink(invite.code(), inviteeId);
+		Long anotherPerson = users.save(new User("sub-cp-d", "cp-d@example.com", "D")).getId();
+
+		assertThatThrownBy(() -> service.redeemByLink(invite.code(), anotherPerson))
+				.isInstanceOf(InviteCodeInvalidException.class);
+	}
+
+	@Test
+	void redeemByLinkRejectsAnExpiredCode() {
+		IssuedPairingInvite invite = serviceAt(NOW).inviteByLink(initiatorId);
+		Instant afterExpiry = NOW.plus(CouplePairingServiceImpl.TTL).plusSeconds(1);
+
+		assertThatThrownBy(() -> serviceAt(afterExpiry).redeemByLink(invite.code(), inviteeId))
+				.isInstanceOf(InviteCodeInvalidException.class);
+	}
+
+	@Test
+	void redeemByLinkRejectsTheInitiatorUsingTheirOwnCode() {
+		IssuedPairingInvite invite = serviceAt(NOW).inviteByLink(initiatorId);
+
+		assertThatThrownBy(() -> serviceAt(NOW).redeemByLink(invite.code(), initiatorId))
+				.isInstanceOf(InviteCodeInvalidException.class);
 	}
 }

@@ -208,5 +208,22 @@ Especificação aprovada em `docs/epico-2-vinculo.md`; progresso etapa a etapa n
   o relógio "congelado" em um instante escolhido — é assim que se testa "passou uma semana" sem esperar uma
   semana de verdade.
 
-Ainda não existe nenhum jeito de **convidar alguém de verdade** (por @handle ou por link) — isso é passar os
-dois ids "na mão"; a Etapa 3 conecta isso a um código de convite real.
+**Etapa 3 — convite por link/código (concluída):**
+- `relationships/IssuedPairingInvite.java`: o código do convite em texto puro, só para A mandar por fora
+  (WhatsApp etc.) — o `toString` o esconde de propósito (nunca em log, RA-09), igual ao `IssuedRefreshToken`
+  do login.
+- `relationships/InviteCodeInvalidException.java`: um erro só, de propósito, para quatro motivos diferentes
+  (código não existe, já foi usado, venceu, ou a própria pessoa que criou o link tentando usá-lo) — não
+  revelar qual deles é o real.
+- `relationships/CouplePairingService.java` ganhou `inviteByLink` (gera o código, guarda só o hash) e
+  `redeemByLink` (alguém usa o código; se já tiver vencido, o pareamento é cancelado na hora — mesma
+  "expiração lazy" da Etapa 2).
+- `relationships/internal/CouplePairing.java` ganhou `inviteCodeHash` e `redeemLink` — preenche quem aceitou
+  o convite; só funciona uma vez.
+- `db/migration/V6__add_invite_code_to_pairings.sql`: acrescenta `invite_code_hash` a `couple_pairings`, com
+  índice único parcial (só conta quando não é nulo — convites por @handle, da Etapa 5, não têm código).
+- Testes: a máquina de estados do código (sem banco, em `CouplePairingTest`) e o fluxo completo contra o
+  `duo_test` real (`CouplePairingServiceImplTest`), incluindo "o código nunca fica salvo em texto puro".
+
+Ainda não existe nenhum jeito de convidar alguém **pelo @handle** — isso é a Etapa 4 (a coluna `handle` em
+`users`) seguida da Etapa 5.

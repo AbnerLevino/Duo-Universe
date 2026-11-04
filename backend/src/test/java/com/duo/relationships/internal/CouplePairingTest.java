@@ -7,6 +7,7 @@ import java.time.Instant;
 
 import com.duo.relationships.Channel;
 import com.duo.relationships.IllegalPairingTransitionException;
+import com.duo.relationships.InviteCodeInvalidException;
 import com.duo.relationships.PairingState;
 
 import org.junit.jupiter.api.Test;
@@ -88,5 +89,50 @@ class CouplePairingTest {
 
 		assertThat(pairing.involves(1L)).isTrue();
 		assertThat(pairing.involves(2L)).isFalse();
+	}
+
+	private CouplePairing linkPairingWithoutInvitee() {
+		return new CouplePairing(1L, null, Channel.LINK, NOW.plusSeconds(60), "hash-do-codigo");
+	}
+
+	@Test
+	void redeemLinkFillsInTheInvitee() {
+		CouplePairing pairing = linkPairingWithoutInvitee();
+
+		pairing.redeemLink(2L, NOW);
+
+		assertThat(pairing.getInviteeUserId()).isEqualTo(2L);
+		assertThat(pairing.involves(2L)).isTrue();
+	}
+
+	@Test
+	void redeemLinkRejectsASecondUse() {
+		CouplePairing pairing = linkPairingWithoutInvitee();
+		pairing.redeemLink(2L, NOW);
+
+		assertThatThrownBy(() -> pairing.redeemLink(3L, NOW)).isInstanceOf(InviteCodeInvalidException.class);
+	}
+
+	@Test
+	void redeemLinkRejectsAnExpiredCode() {
+		CouplePairing pairing = linkPairingWithoutInvitee();
+
+		assertThatThrownBy(() -> pairing.redeemLink(2L, NOW.plusSeconds(61)))
+				.isInstanceOf(InviteCodeInvalidException.class);
+	}
+
+	@Test
+	void redeemLinkRejectsTheInitiatorUsingTheirOwnCode() {
+		CouplePairing pairing = linkPairingWithoutInvitee();
+
+		assertThatThrownBy(() -> pairing.redeemLink(1L, NOW)).isInstanceOf(InviteCodeInvalidException.class);
+	}
+
+	@Test
+	void redeemLinkRejectsACancelledPairing() {
+		CouplePairing pairing = linkPairingWithoutInvitee();
+		pairing.cancel(NOW);
+
+		assertThatThrownBy(() -> pairing.redeemLink(2L, NOW)).isInstanceOf(InviteCodeInvalidException.class);
 	}
 }

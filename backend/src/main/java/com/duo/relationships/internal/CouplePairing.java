@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.duo.relationships.Channel;
 import com.duo.relationships.IllegalPairingTransitionException;
+import com.duo.relationships.InviteCodeInvalidException;
 import com.duo.relationships.PairingState;
 
 import jakarta.persistence.Column;
@@ -56,15 +57,25 @@ public class CouplePairing {
 	@Column(name = "couple_id")
 	private Long coupleId;
 
+	@Column(name = "invite_code_hash", length = 64, updatable = false)
+	private String inviteCodeHash;
+
 	protected CouplePairing() {
 	}
 
 	public CouplePairing(Long initiatorUserId, Long inviteeUserId, Channel channel, Instant expiresAt) {
+		this(initiatorUserId, inviteeUserId, channel, expiresAt, null);
+	}
+
+	/** Usado pelo convite por link (Etapa 3): {@code inviteeUserId} começa nulo até alguém "redimir" o código. */
+	public CouplePairing(
+			Long initiatorUserId, Long inviteeUserId, Channel channel, Instant expiresAt, String inviteCodeHash) {
 		this.initiatorUserId = initiatorUserId;
 		this.inviteeUserId = inviteeUserId;
 		this.channel = channel;
 		this.state = PairingState.PENDING;
 		this.expiresAt = expiresAt;
+		this.inviteCodeHash = inviteCodeHash;
 	}
 
 	public Long getId() {
@@ -103,6 +114,10 @@ public class CouplePairing {
 		return coupleId;
 	}
 
+	public String getInviteCodeHash() {
+		return inviteCodeHash;
+	}
+
 	/** Só conta como vencido enquanto ainda não foi decidido — um pareamento já CANCELLED não "expira" de novo. */
 	public boolean isExpired(Instant now) {
 		return state == PairingState.PENDING && !expiresAt.isAfter(now);
@@ -117,6 +132,19 @@ public class CouplePairing {
 		requireTransitionFrom(PairingState.CANCELLED);
 		this.state = PairingState.CANCELLED;
 		this.decidedAt = when;
+	}
+
+	/**
+	 * Preenche o convidado quando alguém usa o código do link (Etapa 3). Uso único: falha se o pareamento já
+	 * não estiver mais {@code PENDING} (cancelado, vencido ou já redimido por outra pessoa) ou se a própria
+	 * pessoa que criou o link tentar usá-lo.
+	 */
+	public void redeemLink(Long inviteeUserId, Instant now) {
+		if (state != PairingState.PENDING || isExpired(now) || this.inviteeUserId != null
+				|| initiatorUserId.equals(inviteeUserId)) {
+			throw new InviteCodeInvalidException();
+		}
+		this.inviteeUserId = inviteeUserId;
 	}
 
 	/** Usado pela Etapa 8, quando os dois lados já confirmaram e o Couple nasceu. */
