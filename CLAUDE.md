@@ -642,11 +642,18 @@ domínio próprio; termos de uso e política de privacidade revisados.
   ACTIVE/PAUSED por pessoa) garantida pelo banco, no mesmo espírito de `users_email_unique`/
   `refresh_tokens_token_hash_unique`. 3 testes novos (`CoupleMemberRepositoryTest`) contra o `duo_test` real.
   Ainda não existe `CouplePairing` (o convite em si) nem nenhum endpoint.
-- **Próximo passo:** Etapa 2 (`CouplePairing`, máquina de estados pura, sem convite real ainda — ver plano
-  completo nas notas da sessão de 2026-11-04). Pendência anterior: identidade visual. O protótipo da tela
-  inicial (centro "Couple Universe", contador de tempo juntos, "Relembre como começou") depende do vínculo;
-  idade e profissão exibidas no protótipo ainda não existem no modelo de dados (decidir junto com o perfil e a
-  verificação de idade, DEC-010/011).
+- **Etapa 2 (`CouplePairing`, máquina de estados pura) — concluída em 2026-11-04.** API pública
+  `CouplePairingService` (`initiate`/`cancel`/`find`) + entidade interna `CouplePairing`, migration `V5`.
+  Expiração de 7 dias (RN-29) checada **lazy** (sem `@Scheduled`): `find` marca `CANCELLED` na hora se o
+  convite já venceu. Ainda sem convite real por @handle/link (ids passados direto em teste) e sem HTTP.
+  13 testes novos (8 de máquina de estados pura, sem banco; 5 de serviço contra o `duo_test` real).
+  **Confirmado nesta sessão:** `bootRun` aplica V1-V5 também no banco de desenvolvimento (`duo`), não só no
+  de teste — verificado por um subagente, que **expôs a senha do `duo_app`** num log de depuração por engano
+  (ver aviso de segurança registrado na conversa; recomendado trocar a senha).
+- **Próximo passo:** Etapa 3 (convite por link/código, alternativa — P1). Pendência anterior: identidade
+  visual. O protótipo da tela inicial (centro "Couple Universe", contador de tempo juntos, "Relembre como
+  começou") depende do vínculo; idade e profissão exibidas no protótipo ainda não existem no modelo de dados
+  (decidir junto com o perfil e a verificação de idade, DEC-010/011).
 - **Ambiente desta sessão:** a IA rodou em Windows (Git Bash); `DUO_GOOGLE_CLIENT_ID`, `DUO_GOOGLE_CLIENT_SECRET` e
   `DUO_APP_DB_PASSWORD` estão definidas lá (via `setx`; só valem para processos abertos depois). No Linux
   (Fedora, `~/.zshrc`) o fundador ainda precisa repetir as variáveis do Google. O mesmo OAuth Client serve nas

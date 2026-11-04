@@ -186,4 +186,27 @@ Especificação aprovada em `docs/epico-2-vinculo.md`; progresso etapa a etapa n
   teste real: salva e acha a filiação ativa; recusa uma segunda filiação ativa para a mesma pessoa; permite
   uma nova filiação depois que a pessoa "sai" da anterior (`leftAt` preenchido).
 
-Ainda não existe nenhum `CouplePairing` (o convite em si) nem nenhum endpoint — isso começa na Etapa 2.
+**Etapa 2 — o convite como máquina de estados pura (concluída):**
+- `relationships/Channel.java`, `PairingState.java`: os dois "vocabulários" públicos do convite — como ele
+  chegou (`HANDLE`/`LINK`) e em que pé está (`PENDING`/`CONFIRMED`/`CANCELLED`).
+- `relationships/PairingSummary.java`: o que o resto do sistema pode saber sobre um convite, sem tocar na
+  entidade JPA (que é `internal`).
+- `relationships/PairingNotFoundException.java`, `IllegalPairingTransitionException.java`: os dois erros de
+  negócio deste pedaço — "não existe (ou não é seu)" e "esse convite já foi decidido".
+- `relationships/CouplePairingService.java` (API pública) + `internal/CouplePairingServiceImpl.java`:
+  `initiate` (cria `PENDING`, vence em 7 dias — RN-29), `cancel` (qualquer um dos dois desiste) e `find`
+  (busca o convite; se já venceu e ainda estava `PENDING`, marca `CANCELLED` **na hora** — é a "expiração
+  lazy": não existe nenhum processo rodando sozinho de tempos em tempos, só confere quando alguém olha).
+- `relationships/internal/CouplePairing.java`: a entidade. `cancel`/`markConfirmed` só funcionam se o estado
+  ainda for `PENDING` — tentar de novo (ex.: cancelar um convite já cancelado) lança
+  `IllegalPairingTransitionException`. `markConfirmed` já existe, mas só será chamado de verdade na Etapa 8
+  (quando os dois lados tiverem confirmado).
+- `db/migration/V5__create_couple_pairings.sql`: cria `couple_pairings`. Sem índice único aqui — ainda é
+  permitido alguém ter mais de um convite pendente ao mesmo tempo (decisão de deixar para a Etapa 12).
+- `relationships/internal/CouplePairingTest.java`: testa a máquina de estados sozinha, sem banco (rápido).
+- `relationships/internal/CouplePairingServiceImplTest.java`: testa o serviço contra o `duo_test` real, com
+  o relógio "congelado" em um instante escolhido — é assim que se testa "passou uma semana" sem esperar uma
+  semana de verdade.
+
+Ainda não existe nenhum jeito de **convidar alguém de verdade** (por @handle ou por link) — isso é passar os
+dois ids "na mão"; a Etapa 3 conecta isso a um código de convite real.

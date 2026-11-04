@@ -196,3 +196,9 @@
   `couple_members_active_person_unique` só proíbe duas linhas com o mesmo `user_id` **enquanto** `left_at` for
   nulo (RN-06); depois que a pessoa sai de um vínculo (`left_at` preenchido), aquela linha "antiga" não conta
   mais para a regra, e a pessoa pode entrar em outro vínculo.
+- **Expiração "lazy" (sem job agendado):** em vez de um processo rodando sozinho de tempos em tempos
+  (`@Scheduled`) para varrer o banco procurando convites vencidos, o próprio código confere a validade só
+  quando alguém acessa aquele convite — se já passou do prazo, marca como vencido **naquele instante**. No
+  Duo: `CouplePairingServiceImpl.find`, para os 7 dias do convite (RN-29). Mais simples, sem infraestrutura
+  nova; o custo é que um convite vencido "sem ninguém olhar" fica tecnicamente pendente no banco até alguém
+  acessá-lo — aceitável por ora (revisitar se a Etapa 12 precisar de limpeza proativa).
