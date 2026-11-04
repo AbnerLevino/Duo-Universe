@@ -45,7 +45,7 @@ rota; o frontend mostra uma tela única. Ainda não há login real, nem casal, n
   Hibernate "só confira se o banco bate com as entidades, não crie tabelas sozinho — isso é trabalho do
   Flyway").
 - `db/migration/V1__create_users.sql`: a primeira "migration" do Flyway — um script SQL versionado que cria
-  a tabela `users`. Cada migration nova vira um arquivo `V2__...`, `V3__...`, nunca editamos um já aplicado.
+  a tabela `users`. `V2__add_google_sub_to_users.sql` acrescenta `google_sub` (único, obrigatório; DEC-030). Cada migration nova vira um arquivo `V2__...`, `V3__...`, nunca editamos um já aplicado.
 
 **Testes (`src/test/java/com/duo/`):**
 - `DuoBackendApplicationTests.java`: só liga a aplicação inteira e confere que nada quebra ao subir.
@@ -60,12 +60,12 @@ rota; o frontend mostra uma tela única. Ainda não há login real, nem casal, n
   banco de teste (`duo_test`), para os testes nunca sujarem dados reais.
 
 **`users/internal/User.java`:** a primeira entidade JPA do projeto — mapeia a tabela `users` (da migration
-`V1`). Tem um construtor protegido vazio (exigido pelo Hibernate) e um construtor público com os campos
+`V1` e `V2`). Tem um construtor protegido vazio (exigido pelo Hibernate) e um construtor público com os campos
 obrigatórios; `createdAt` é preenchido sozinho (`@CreationTimestamp`), nunca pelo código que cria o `User`.
 
 **`users/internal/UserRepository.java`:** a interface Spring Data JPA que dá acesso ao banco para `User`
 (`save`, `findById`, etc., herdados de `JpaRepository`) mais uma busca própria por e-mail sem diferenciar
-maiúsculas (`findByEmailIgnoreCase`), usada pelo futuro login.
+maiúsculas (`findByEmailIgnoreCase`) e por `googleSub` (`findByGoogleSub`), usada pelo futuro login com Google.
 
 **O que falta para existir um fluxo completo:** ainda não há `controller` nem `service` — faltam essas duas
 camadas para formar o caminho de uma requisição:

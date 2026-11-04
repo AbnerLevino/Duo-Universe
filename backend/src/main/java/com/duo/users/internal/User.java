@@ -22,6 +22,9 @@ public class User {
 	@Column(nullable = false, length = 320)
 	private String email;
 
+	@Column(name = "google_sub", nullable = false, unique = true)
+	private String googleSub;
+
 	@Column(name = "display_name", nullable = false, length = 100)
 	private String displayName;
 
@@ -36,13 +39,18 @@ public class User {
 	protected User() {
 	}
 
-	public User(String email, String displayName) {
+	public User(String googleSub, String email, String displayName) {
+		this.googleSub = googleSub;
 		this.email = email;
 		this.displayName = displayName;
 	}
 
 	public Long getId() {
 		return id;
+	}
+
+	public String getGoogleSub() {
+		return googleSub;
 	}
 
 	public String getEmail() {
