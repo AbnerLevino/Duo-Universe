@@ -609,7 +609,31 @@ domínio próprio; termos de uso e política de privacidade revisados.
   Google Cloud (fundador, guiado); (4) login no backend com Spring `oauth2-client`; (5) sessão própria
   (access 15 min + refresh rotacionado, RA-04/RA-05) com `refresh_tokens`; (6) logout e testes de acesso;
   (7) frontend: botão "Entrar com Google". Mailpit e Q-18 saem do caminho.
-  **Feito:** passos 1, 2 e 4 (código). **Passo 3 (Google Cloud) é do fundador;** o teste manual do passo 4 depende dele.
+  **Feito:** passos 1, 2, 3 e 4. O login real com Google foi testado à mão em 2026-11-04 e funcionou
+  (`/oauth2/authorization/google` → conta criada → `/api/me`). Commits: `35f002c` (V2/User), `1d6d910` (login).
+  **Provisório:** a sessão ainda é o `JSESSIONID` padrão do Spring; o passo 5 a substitui.
+- **PARAMOS AQUI (2026-11-04) — Passo 5, sessão própria, dividido em 5a e 5b (decisões na tabela abaixo):**
+  - **5a (em andamento):** tabela `refresh_tokens` + emissão e rotação do token de renovação, com testes.
+    - **Próxima ação do fundador:** criar `backend/src/main/resources/db/migration/V3__create_refresh_tokens.sql`
+      (dois underscores). Colunas: `id`, `user_id` (FK `users`), `token_hash` VARCHAR(64) (SHA-256 em hex),
+      `family_id` UUID, `expires_at`, `revoked_at`, `replaced_by` (FK para a própria tabela), `created_at`;
+      índice único em `token_hash` e índices em `family_id` e `user_id`. A IA já passou o SQL e a explicação
+      de cada coluna; falta o fundador salvar o arquivo e a IA rodar o build.
+    - Depois: entidade `RefreshToken` + repositório (CRUD, a IA pode implementar direto), serviço de
+      emissão/rotação/reuso (regra de negócio, volta o Modo acompanhamento leve) e testes de rotação e de reuso
+      derrubando a família.
+    - Pergunta de verificação deixada ao fundador: por que guardar o hash e não o token?
+  - **5b (depois):** JWT de acesso (15 min) com `oauth2-resource-server`, segredo `DUO_JWT_SECRET` (variável de
+    ambiente), handler do Google passa a emitir os tokens, endpoints `POST /api/auth/refresh`, `/logout`,
+    `/logout-all`, `/api/me` protegido por Bearer, testes de segurança.
+  - **Passo 6:** logout e testes de acesso. **Passo 7:** frontend com o botão "Entrar com Google".
+- **Ambiente desta sessão:** a IA rodou em Windows (Git Bash); `DUO_GOOGLE_CLIENT_ID`, `DUO_GOOGLE_CLIENT_SECRET` e
+  `DUO_APP_DB_PASSWORD` estão definidas lá (via `setx`; só valem para processos abertos depois). No Linux
+  (Fedora, `~/.zshrc`) o fundador ainda precisa repetir as variáveis do Google. O mesmo OAuth Client serve nas
+  duas máquinas. Para subir: `cd backend && ./gradlew bootRun`; se parar a tarefa do Gradle, conferir que o
+  processo `java` da porta 8080 também morreu.
+- **Pendência de segurança conhecida (passo 5/6):** primeiro login simultâneo com o mesmo `sub` pode dar 500
+  (o índice único protege os dados); e-mail já existente ligado a outro `sub` também dá erro. Tratar depois.
 - **Etapa B (depois):** passkeys e/ou código por e-mail como segunda forma de entrar (HTTPS real ou `localhost`).
 
 ### Decisões do fundador
@@ -621,6 +645,7 @@ domínio próprio; termos de uso e política de privacidade revisados.
 | Q-14 | **Fundador não tem cartão de crédito.** Oracle Always Free e R2 ficam bloqueados até resolver (cartão virtual de banco digital, pré-pago ou outra hospedagem). O deploy foi **adiado**; não criar contas nem VM por enquanto. |
 | Q-13 | **3 horas por semana**, ajustável conforme o ritmo real. |
 | Q-23 / DEC-030 | **Entrar só com Google no MVP** (2026-11-04). Revisa a DEC-026 e o Épico 1: passkeys e código por e-mail passam para a etapa B. Ganhos: sem serviço de e-mail, sem códigos, e-mail já verificado pelo Google (RA-01). Custo: quem não tem conta Google não entra; o Google vira ponto único de falha. RA-02 (sem senha) segue valendo; RA-03, RA-06, H3 e H5 ficam suspensos até a etapa B. |
+| Sessão (passo 5) | **Decidido em 2026-11-04:** token de acesso JWT de 15 min (validado pela biblioteca `spring-boot-starter-security-oauth2-resource-server`, sem escrever criptografia na mão) + token de renovação **aleatório, não JWT**, guardado só como hash, em cookie `HttpOnly`/`Secure`/`SameSite=Strict`, rotacionado a cada uso; `family_id` é nosso (reuso de token antigo derruba toda a família). **Opção A:** após o login com Google o backend só define o cookie e redireciona ao front; o front chama `/api/auth/refresh` e recebe o token de acesso no JSON. Nenhum token vai em URL (RA-09). O cookie é definido em todo login com Google e a cada rotação. |
 | Docker | **Adiado para outra fase.** Ferramentas instaladas direto no Windows. Consequência: Testcontainers (DEC-018) fica fora por ora e os testes usam um Postgres local (`duo_test`). |
 | Git | Repositório privado `https://github.com/AbnerLevino/Duo-Universe.git`, branch `main`. **A cada requisição atendida: commit e push** (autorização durável só para este repositório). |
 
