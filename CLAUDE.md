@@ -178,7 +178,7 @@ Convenção decidida: **código e banco em inglês; interface em português.**
 | Centro do casal | `CoupleCenter` / campos de `Couple` | O que é de "nós". |
 | Lado de cada um | `CoupleMember` + escopo `MEMBER_SIDE` | Momentos de cada pessoa dentro do casal, visíveis ao parceiro. |
 | Membro do casal | `CoupleMember` | Associação pessoa ↔ casal. |
-| Momento do vínculo | `CouplePairing` | Momento especial em que o vínculo nasce. **Não é "convite"**. Nome final em aberto (Q-10). |
+| Momento do vínculo | `CouplePairing` | Momento especial em que o vínculo nasce. **Não é "convite"**. Na interface: "Couple Universe" (Q-10, 2026-11-04); no código segue `CouplePairing`. |
 | Pausa / Encerramento | `Couple.state = PAUSED / ENDED` | Estados do vínculo. |
 | Duo Cloud | módulos `storage` + `media` | Sistema de armazenamento de fotos e vídeos. |
 | Mídia | `MediaAsset` | Foto ou vídeo armazenado. |
@@ -244,10 +244,13 @@ Por causa do ECA Digital (Lei 15.211/2025). Regras de 16–17 anos documentadas 
 Implementada no backend (módulo `verification`). Obrigatória **antes de abrir para o público**; o piloto com casais
 conhecidos pode começar antes dela (Q-21 confirma). O CPF prova a idade do titular, não de quem digita.
 
-### DEC-012 — O vínculo nasce por um momento especial, não por convite · `DECIDIDO` (formato `EM ABERTO`)
-Opções: pedido; gesto simultâneo; **pergunta secreta** (cada um responde uma pergunta sobre o outro sem ver a
-resposta, e o universo nasce quando os dois acertam); "nascimento do universo" como celebração.
-Backend genérico: proposta + confirmação de todos.
+### DEC-012 — O vínculo nasce por um momento especial, não por convite · `REVISADA` (2026-11-04)
+**Formato decidido:** cada um conta a **sua história** (como se conheceram, o tempo antes de namorar, o que
+pensava, o que pensa agora), tudo obrigatório. As duas histórias são reveladas ao mesmo tempo quando as duas
+estão completas, e o Couple Universe nasce. O vínculo **não é um pedido de namoro** (o casal já existe na vida
+real); continua sendo um momento especial, e pode ganhar celebração visual (gesto, em `docs/IDEIAS.md`).
+Backend: proposta + confirmação de todos (RN-08). A ideia da pergunta secreta com resposta aproximada foi
+**abandonada**: o vínculo não é uma prova. Detalhes e perguntas abertas em `docs/epico-2-vinculo.md`.
 
 ### DEC-013 — Entrega mobile · `REVISADA` (2026-11-03)
 **PWA mobile-first** no MVP: roda no iPhone e no Android sem custo e sem lojas. App nativo (com backup automático
@@ -576,9 +579,10 @@ sozinhos toda semana.
 
 **Antes da semana 2:** Q-23: login com Google também no MVP?
 
-**Antes da semana 3:** Q-01 formato do momento do vínculo; Q-05 presencial ou à distância; Q-10 nome oficial;
-Q-02 quem retoma a pausa; Q-06 o que se pode fazer na pausa (matriz de permissões por estado);
-identidade visual e design system mínimo.
+**Antes da semana 3:** ~~Q-01~~, ~~Q-05~~, ~~Q-10~~, ~~Q-06~~ decididas em 2026-11-04 (ver `docs/epico-2-vinculo.md`).
+Ainda abertas: código ou link do pareamento e prazo; obrigatoriedade (só "não vazio"?); como o casal chega ao
+consenso das datas; "o que levar" na Semana 3 ou 4; Personal Universe durante a pausa (DEC-002); identidade
+visual e design system mínimo.
 
 **Antes da semana 4:** Q-04 prazo da lixeira; Q-17 destino do centro do casal no término; Q-19 exclusão em massa;
 Q-20 cotas, tamanho máximo e compressão das fotos.
@@ -625,8 +629,9 @@ domínio próprio; termos de uso e política de privacidade revisados.
     repetir também as variáveis do Google (seção abaixo).
   - **Testes:** backend 43 (inclui `SessionFlowTest`: refresh, rotação, reuso, token vencido, assinatura falsa,
     emissor errado, logout, logout-all); frontend 9. O "Estado do código" mais abaixo está defasado nesses números.
-- **Próximo passo:** Semana 3 — vínculo (seção 17). Antes, o fundador decide as pendências "antes da semana 3"
-  (seção 18: Q-01, Q-05, Q-06, Q-10, Q-02, identidade visual). O protótipo da tela inicial (centro "Couple
+- **Próximo passo:** Semana 3 — vínculo (seção 17). **Em 2026-11-04** o fundador decidiu o formato (ver tabela de
+  decisões e `docs/epico-2-vinculo.md`); falta responder as "Perguntas ainda abertas" desse documento e aprovar a
+  especificação antes de qualquer código. Pendência anterior: identidade visual. O protótipo da tela inicial (centro "Couple
   Universe", contador de tempo juntos, "Relembre como começou") depende do vínculo; idade e profissão exibidas no
   protótipo ainda não existem no modelo de dados (decidir junto com o perfil e a verificação de idade, DEC-010/011).
 - **Ambiente desta sessão:** a IA rodou em Windows (Git Bash); `DUO_GOOGLE_CLIENT_ID`, `DUO_GOOGLE_CLIENT_SECRET` e
@@ -645,6 +650,7 @@ domínio próprio; termos de uso e política de privacidade revisados.
 ### Decisões do fundador
 | Código | Decisão |
 | --- | --- |
+| Épico 2 (2026-11-04) | **Vínculo:** cada um conta a sua história, obrigatória, revelada ao mesmo tempo (DEC-012 revisada); perto ou longe é o mesmo fluxo; nome na interface "Couple Universe"; matriz de estados aprovada; contador de tempo juntos parte das datas do relacionamento, e o casal precisa de consenso sobre a data em que se conheceram e a em que começaram a namorar; sem prévia da história antes de os dois terminarem; tudo editável pelo dono; **sem Instagram** (sem cards nem compartilhamento externo); chat e "dar um tempo da rede" na Fase 2; universo de estrelas e planetas como ideia (`docs/IDEIAS.md`). Especificação: `docs/epico-2-vinculo.md` (**sem código ainda**). |
 | Q-22 | **Gradle (Kotlin DSL).** |
 | Q-15 | **Cloudflare R2** para as mídias (exige meio de pagamento na ativação; ver Q-14). |
 | Q-16 | **Confirmada:** passkeys + código de 6 dígitos por e-mail, sem senha (DEC-026 agora `DECIDIDO`). |
