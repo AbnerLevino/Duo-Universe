@@ -756,23 +756,28 @@ no piloto) decididas em 2026-11-05; domínio próprio; termos de uso e política
   (tipo concreto) pela interface `AuthenticationSuccessHandler` do Spring Security. 7 testes novos
   (`RelationshipsHttpTest`, via `MockMvc`, incluindo acesso cruzado RN-12/RN-20), 151 no total, build verde.
   Detalhe completo em `docs/MAPA.md`.
-- **Etapa 14 — código escrito nesta sessão, FALTA CONFIRMAR NO SEU TERMINAL.** `react-router-dom` adicionado
-  ao `package.json`; telas novas (`HandleSetupScreen`, `InviteScreen`, `AcceptInviteScreen`, `ConfirmScreen`,
-  `StoryScreen`, `DateConsensusScreen`, `CoupleHomeScreen`) e `Dashboard.tsx` (decide pra onde mandar a
-  pessoa ao abrir o app); `src/api.ts` novo com todas as chamadas HTTP do vínculo; `PairingSummary` (backend)
-  ganhou mais campos ao longo do caminho (`coupleId`, confirmações, proposta de datas) — o frontend precisava
-  deles e não existiam ainda. **Importante:** este ambiente (onde a IA roda) não tem Node.js instalado — só o
-  backend foi de fato compilado e testado aqui. **Preciso que você rode, no seu terminal:**
-  ```
-  cd frontend && npm install && npm test && npm run build
-  ```
-  e me diga o resultado antes de considerarmos a Etapa 14 concluída (regra 10: nada está concluído sem
-  compilar e sem os testes passando). Detalhe completo, inclusive uma limitação conhecida (link de convite se
-  perde se clicado por alguém deslogado) e o que ficou sem teste dedicado, em `docs/MAPA.md`.
-- **Próximo passo, depois de confirmado:** Etapa 13 (backend) já concluída; falta só o acabamento visual —
-  identidade visual / protótipo da tela inicial (o fundador trouxe um esboço,
-  `~/Downloads/DUO Universe.png`, só como referência; ainda não virou protótipo nem código) e, depois, o
-  Bloco D (celebração em tempo real, Etapas 15 a 18, isolado de propósito).
+- **Etapa 14 — CONCLUÍDA e confirmada em 2026-11-05, pelo fundador, no terminal real dele.**
+  `react-router-dom` no `package.json`; telas novas (`HandleSetupScreen`, `InviteScreen`,
+  `AcceptInviteScreen`, `ConfirmScreen`, `StoryScreen`, `DateConsensusScreen`, `CoupleHomeScreen`) e
+  `Dashboard.tsx` (decide pra onde mandar a pessoa ao abrir o app); `src/api.ts` novo com todas as chamadas
+  HTTP do vínculo; `PairingSummary` (backend) ganhou `coupleId`, as confirmações de cada lado e a proposta de
+  datas em curso — o frontend precisava deles e não existiam ainda.
+  - **Descoberta importante sobre o ambiente desta sessão:** a IA roda num sandbox isolado, sem acesso ao
+    sistema real do fundador (sem `sudo`, sem ver o que ele instala) — só alcança serviços de rede expostos,
+    como o PostgreSQL em `localhost:5432`. O `!` do Claude Code roda **nesse mesmo sandbox**, não no terminal
+    real — por isso só o fundador, numa janela de terminal de verdade (fora do Claude Code/VS Code), conseguiu
+    rodar `npm install`/`npm test`/`npm run build`. Revisa a suposição anterior ("mesma máquina"); o Node.js
+    precisou ser instalado de novo no sistema real (`sudo dnf install nodejs npm`, v22.23.1).
+  - **Resultado:** `npm install` (507 pacotes), **15 testes passando** (`session.test.ts`, `api.test.ts`,
+    `App.test.tsx`), `npm run build` (tsc + vite) sem erro. Dois avisos do React Router sobre flags da v7
+    (não são erro). `npm audit` com avisos só em ferramentas de build (mesma situação já conhecida e aceita,
+    seção "Estado do código").
+  - Detalhe completo, inclusive uma limitação conhecida (link de convite se perde se clicado por alguém
+    deslogado) e o que ficou sem teste dedicado, em `docs/MAPA.md`.
+- **Próximo passo:** Etapas 13 e 14 concluídas. Falta o acabamento visual — identidade visual / protótipo da
+  tela inicial (o fundador trouxe um esboço, `~/Downloads/DUO Universe.png`, só como referência; ainda não
+  virou protótipo nem código) e, depois, o Bloco D (celebração em tempo real, Etapas 15 a 18, isolado de
+  propósito).
 
 ### Roteiro restante do Épico 2 (Etapas 4 a 18 — plano aprovado em 2026-11-04)
 

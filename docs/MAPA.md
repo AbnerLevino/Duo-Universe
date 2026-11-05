@@ -201,8 +201,11 @@ JWT venceu (401) → refresh de novo → repete a chamada
 - **Cobertura que ficou de fora, por tempo:** não há testes dedicados para `AcceptInviteScreen`,
   `ConfirmScreen`, `StoryScreen`, `DateConsensusScreen` ou `CoupleHomeScreen` isoladas — só o caminho
   principal, via `App.test.tsx`. Vale voltar aqui quando o fluxo estiver sendo usado de verdade.
-- **Não rodei `npm install`/`npm test`/`npm run build` nesta sessão** — este ambiente não tem Node.js
-  instalado (diferente do backend, que tem o JDK baixado pelo Gradle). Precisa confirmar no seu terminal.
+- **Confirmado pelo fundador, no terminal real dele, em 2026-11-05:** `npm install` (507 pacotes), **15
+  testes passando** (`session.test.ts` 3, `api.test.ts` 4, `App.test.tsx` 8), `npm run build` (tsc + vite) sem
+  erro. A IA roda num sandbox isolado (sem `sudo`, sem ver o sistema real) — por isso não conseguiu rodar isso
+  sozinha; só alcança serviços de rede expostos, como o PostgreSQL. Ver seção 19 do `CLAUDE.md` para o
+  detalhe dessa descoberta.
 
 ## Épico 2 — o vínculo (módulo `relationships`, em andamento)
 
