@@ -260,3 +260,34 @@ Especificação aprovada em `docs/epico-2-vinculo.md`; progresso etapa a etapa n
 
 Ainda falta: tela para escolher o @handle (Etapa 14) e o controller HTTP de convite (Etapa 13) — hoje tudo
 isso só existe no `Service`, chamado pelos testes.
+
+**Etapa 6 — história em 4 passos (concluída):**
+- `relationships/StoryStep.java`: os 4 passos fixos da história (como nos conhecemos, o tempo antes de
+  namorar, o que eu pensava, o que eu penso agora — mesma ordem de `docs/epico-2-vinculo.md`).
+- `relationships/StorySummary.java`: o que o resto do sistema pode saber sobre a história de alguém (os 4
+  textos), sem tocar na entidade JPA.
+- `relationships/StoryIncompleteException.java`: erro de "ainda falta preencher algum passo" — usado por
+  quem exigir a história pronta (a Etapa 8 vai reusar isso na hora de "firmar" o vínculo).
+- `relationships/internal/CouplePairingStory.java`: a entidade — uma linha por pessoa por pareamento, com os
+  4 passos em colunas (não em linhas separadas: são sempre os mesmos 4, sempre lidos e escritos juntos).
+  `updateStep` troca o texto de um passo por vez, sem validar nada — é assim que o **rascunho** existe pela
+  metade enquanto a pessoa ainda escreve. `isComplete()` só confere se os 4 passos têm texto depois de
+  `trim()` — **revisão de 2026-11-05:** o plano original pedia um mínimo de 20 caracteres (RN-25); o fundador
+  decidiu que isso pune quem responde curto e sincero sem garantir resposta de verdade, então o texto ficou
+  livre (só não pode ficar vazio).
+- `relationships/internal/CouplePairingStoryRepository.java`: acesso ao banco (`findByPairingIdAndUserId`).
+- `db/migration/V9__create_couple_pairing_stories.sql`: cria `couple_pairing_stories`, com índice único em
+  `(pairing_id, user_id)` — uma história por pessoa por pareamento.
+- `relationships/internal/CouplePairing.java` ganhou `partnerOf(userId)`: devolve a outra pessoa do
+  pareamento (ou `null` se for um convite por link ainda não usado por ninguém) — é como `readPartnerStory`
+  sabe de quem buscar a história.
+- `relationships/CouplePairingService.java`/`internal/CouplePairingServiceImpl.java` ganharam
+  `saveStoryDraft` (grava um passo, sem validar), `isStoryComplete`/`requireStoryComplete` (RN-25) e
+  `readPartnerStory` — só devolve a história do parceiro quando **as duas** (a própria e a dele) estiverem
+  completas (RN-26); nunca antes, mesmo se só a minha estiver pronta.
+- Testes novos (17): `CouplePairingStoryTest` (a lógica de `isComplete`, sem banco), 3 testes de `partnerOf`
+  em `CouplePairingTest`, e 8 testes de fluxo completo em `CouplePairingServiceImplTest` contra o `duo_test`
+  real (rascunho incompleto, texto livre sem mínimo, acesso cruzado recusado, `readPartnerStory` só liberando
+  com as duas completas, e vazio para convite por link ainda não usado).
+- **Sem tela nova nesta etapa** (decisão do fundador, 2026-11-05): a demonstração é só pelos testes — a tela
+  real do vínculo é a Etapa 14, quando já houver dados reais (casal, fotos) para ligar nela.

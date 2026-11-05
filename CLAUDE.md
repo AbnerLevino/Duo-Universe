@@ -693,10 +693,22 @@ no piloto) decididas em 2026-11-05; domínio próprio; termos de uso e política
   mantendo a estrutura de pastas e o código em inglês como estão (DEC-028 continua `DECIDIDO`, sem mudança).
   Se a necessidade de reorganizar por camada voltar, o desenho já discutido (nested dentro de `internal/`,
   sem precisar tocar no `ArchitectureTest`) fica registrado aqui para não refazer a análise.
-- **Próximo passo:** Etapa 6 (história em 4 passos, RN-25/26). Pendência anterior: identidade visual. O protótipo
-  da tela inicial (centro "Couple Universe", contador de tempo juntos, "Relembre como começou") depende do
-  vínculo; idade e profissão exibidas no protótipo ainda não existem no modelo de dados (decidir junto com o
-  perfil e a verificação de idade, DEC-010/011).
+- **Etapa 6 (história em 4 passos, RN-25/26) — concluída em 2026-11-05.** Módulo `relationships` ganhou
+  `StoryStep`/`StorySummary`/`StoryIncompleteException`; entidade `CouplePairingStory` (migration `V9`, uma
+  linha por pessoa por pareamento, 4 colunas de texto); `CouplePairingService` ganhou
+  `saveStoryDraft`/`isStoryComplete`/`requireStoryComplete`/`readPartnerStory` (RN-26: só libera a história do
+  parceiro quando as duas estão completas); `CouplePairing` ganhou `partnerOf`. **Revisão de plano, decidida
+  pelo fundador nesta etapa:** RN-25 não exige mais 20 caracteres mínimos — só texto não vazio (ver linha
+  própria na tabela de decisões abaixo e `docs/epico-2-vinculo.md`); e a etapa ficou **só no backend**, sem
+  tela nova (demonstração pelos testes; a tela real é a Etapa 14). 17 testes novos, `./gradlew build` verde.
+  Detalhe em `docs/MAPA.md`.
+- **Próximo passo:** Etapa 7 (datas do casal: propor e aceitar, P3/RN-27). Pendência anterior: identidade
+  visual. O protótipo da tela inicial (centro "Couple Universe", contador de tempo juntos, "Relembre como
+  começou") depende do vínculo; idade e profissão exibidas no protótipo ainda não existem no modelo de dados
+  (decidir junto com o perfil e a verificação de idade, DEC-010/011). Nesta sessão, o fundador trouxe um
+  esboço visual da tela inicial (`~/Downloads/DUO Universe.png`) só como referência de direção visual — ainda
+  não virou protótipo nem código; se quiser, posso transformá-lo num protótipo visual avulso (fora do
+  repositório) quando for útil, sem comprometer a Etapa 14.
 
 ### Roteiro restante do Épico 2 (Etapas 4 a 18 — plano aprovado em 2026-11-04)
 
@@ -791,6 +803,8 @@ no piloto) decididas em 2026-11-05; domínio próprio; termos de uso e política
 | Q-11/Q-12 (2026-11-05) | **Pergunta do dia:** o app escolhe as perguntas (curadoria própria); a resposta do parceiro aparece assim que ele responder, **sem** esperar os dois (ao contrário do formato da história do vínculo, DEC-012); a pergunta **nunca expira** — sem marca de "atrasada", só um contador de dias (mecânica exata a detalhar na Semana 5). Perguntas entre o casal com jogos interativos ficam para a Fase 2 (`docs/IDEIAS.md`). |
 | RA-08 (2026-11-05) | **Limite de tentativas:** tabela própria no Postgres (padrão de `email_login_codes.attempts`), a implementar na Etapa 5. Esclarecido: diferente da RN-30 (busca só por @handle exato — nunca há lista de resultados a paginar); RA-08 limita quantas tentativas por período, não o que a busca devolve. |
 | Organização/idioma (2026-11-05) | Reorganizar pastas por camada técnica (`exception/`/`model/`/`repository/`/`service/`) e traduzir o código para português foram as duas propostas do fundador; as duas ficaram **sem aplicar** — optou por reforçar `docs/GLOSSARIO-TECNICO.md`/`docs/MAPA.md` em vez disso. DEC-028 (código em inglês) continua valendo. |
+| RN-25 (2026-11-05) | **Mínimo de 20 caracteres revertido.** Os 4 passos da história exigem só texto não vazio (depois de remover espaços), sem tamanho mínimo — revisa P2/DEC-031 (2026-11-04), ver `docs/epico-2-vinculo.md`. Motivo do fundador: o mínimo de caracteres não garante resposta de verdade e pune quem responde curto e sincero; a obrigatoriedade sozinha já garante o ritual. |
+| Etapa 6 (2026-11-05) | **Demonstração simples, sem tela nova.** A Etapa 6 (história em 4 passos) fica só no backend — lógica funcionando, testes provando; apresentação em texto corrido (sem UI), já que a tela real do vínculo é a Etapa 14. Telas elaboradas ficam para depois de o fluxo todo avançar. |
 
 ### Princípios reafirmados pelo fundador
 - **Pressão e conflito** são assunto do casal: o app dá os meios (privar, excluir, editar) e o casal conversa.

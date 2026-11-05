@@ -15,6 +15,9 @@ import com.duo.relationships.IssuedPairingInvite;
 import com.duo.relationships.PairingNotFoundException;
 import com.duo.relationships.PairingState;
 import com.duo.relationships.PairingSummary;
+import com.duo.relationships.StoryIncompleteException;
+import com.duo.relationships.StoryStep;
+import com.duo.relationships.StorySummary;
 import com.duo.shared.RateLimitExceededException;
 import com.duo.shared.RateLimiter;
 import com.duo.users.UserService;
@@ -47,6 +50,9 @@ class CouplePairingServiceImplTest {
 	CoupleMemberRepository coupleMembers;
 
 	@Autowired
+	CouplePairingStoryRepository stories;
+
+	@Autowired
 	UserRepository users;
 
 	Long initiatorId;
@@ -64,7 +70,7 @@ class CouplePairingServiceImplTest {
 
 	private CouplePairingServiceImpl serviceAt(Instant now, RateLimiter rateLimiter) {
 		return new CouplePairingServiceImpl(
-				pairings, coupleMembers, fakeUserService(), rateLimiter, Clock.fixed(now, ZoneOffset.UTC));
+				pairings, coupleMembers, stories, fakeUserService(), rateLimiter, Clock.fixed(now, ZoneOffset.UTC));
 	}
 
 	/**
@@ -265,5 +271,99 @@ class CouplePairingServiceImplTest {
 
 		assertThatThrownBy(() -> serviceAt(NOW, alwaysBlock()).inviteByHandle(initiatorId, "handle_b"))
 				.isInstanceOf(RateLimitExceededException.class);
+	}
+
+	private void writeFullStory(CouplePairingServiceImpl service, Long pairingId, Long userId) {
+		service.saveStoryDraft(pairingId, userId, StoryStep.HOW_WE_MET, "Nos conhecemos numa festa.");
+		service.saveStoryDraft(pairingId, userId, StoryStep.TIME_BEFORE_DATING, "Conversamos por meses.");
+		service.saveStoryDraft(pairingId, userId, StoryStep.WHAT_I_THOUGHT_THEN, "Achei engraçada.");
+		service.saveStoryDraft(pairingId, userId, StoryStep.WHAT_I_THINK_NOW, "Acho ainda mais hoje.");
+	}
+
+	@Test
+	void savingAStoryDraftNeverRequiresAllFourStepsAtOnce() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+
+		service.saveStoryDraft(pairing.id(), initiatorId, StoryStep.HOW_WE_MET, "Nos conhecemos numa festa.");
+
+		assertThat(service.isStoryComplete(pairing.id(), initiatorId)).isFalse();
+	}
+
+	@Test
+	void savingAStoryDraftDoesNotEnforceAMinimumLength() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+
+		service.saveStoryDraft(pairing.id(), initiatorId, StoryStep.HOW_WE_MET, "oi");
+		service.saveStoryDraft(pairing.id(), initiatorId, StoryStep.TIME_BEFORE_DATING, "oi");
+		service.saveStoryDraft(pairing.id(), initiatorId, StoryStep.WHAT_I_THOUGHT_THEN, "oi");
+		service.saveStoryDraft(pairing.id(), initiatorId, StoryStep.WHAT_I_THINK_NOW, "oi");
+
+		assertThat(service.isStoryComplete(pairing.id(), initiatorId)).isTrue();
+	}
+
+	@Test
+	void someoneOutsideThePairingCannotSaveOrReadAStoryInIt() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		Long outsider = users.save(new User("sub-cp-e", "cp-e@example.com", "E")).getId();
+
+		assertThatThrownBy(() -> service.saveStoryDraft(pairing.id(), outsider, StoryStep.HOW_WE_MET, "oi"))
+				.isInstanceOf(PairingNotFoundException.class);
+		assertThatThrownBy(() -> service.isStoryComplete(pairing.id(), outsider))
+				.isInstanceOf(PairingNotFoundException.class);
+	}
+
+	@Test
+	void requireStoryCompleteThrowsWhileAStepIsStillEmpty() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+
+		assertThatThrownBy(() -> service.requireStoryComplete(pairing.id(), initiatorId))
+				.isInstanceOf(StoryIncompleteException.class);
+	}
+
+	@Test
+	void requireStoryCompleteDoesNotThrowOnceAllFourStepsHaveText() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		writeFullStory(service, pairing.id(), initiatorId);
+
+		service.requireStoryComplete(pairing.id(), initiatorId);
+	}
+
+	@Test
+	void readPartnerStoryStaysEmptyWhileOnlyOneSideIsComplete() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		writeFullStory(service, pairing.id(), initiatorId);
+
+		assertThat(service.readPartnerStory(pairing.id(), inviteeId)).isEmpty();
+	}
+
+	@Test
+	void readPartnerStoryRevealsBothSidesOnceBothAreComplete() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		writeFullStory(service, pairing.id(), initiatorId);
+		writeFullStory(service, pairing.id(), inviteeId);
+
+		Optional<StorySummary> seenByInvitee = service.readPartnerStory(pairing.id(), inviteeId);
+		Optional<StorySummary> seenByInitiator = service.readPartnerStory(pairing.id(), initiatorId);
+
+		assertThat(seenByInvitee).isPresent();
+		assertThat(seenByInvitee.get().userId()).isEqualTo(initiatorId);
+		assertThat(seenByInitiator).isPresent();
+		assertThat(seenByInitiator.get().userId()).isEqualTo(inviteeId);
+	}
+
+	@Test
+	void readPartnerStoryIsEmptyForALinkInviteThatNobodyRedeemedYet() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		IssuedPairingInvite invite = service.inviteByLink(initiatorId);
+		writeFullStory(service, invite.pairingId(), initiatorId);
+
+		assertThat(service.readPartnerStory(invite.pairingId(), initiatorId)).isEmpty();
 	}
 }

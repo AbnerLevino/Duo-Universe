@@ -1,5 +1,7 @@
 package com.duo.relationships;
 
+import java.util.Optional;
+
 import com.duo.shared.RateLimitExceededException;
 
 /**
@@ -51,4 +53,32 @@ public interface CouplePairingService {
 	 * @throws PairingNotFoundException se não existir ou se {@code userId} não fizer parte dele
 	 */
 	PairingSummary find(Long pairingId, Long userId);
+
+	/**
+	 * Grava (ou atualiza) um dos 4 passos da história de {@code userId} (RN-25). Não valida tamanho nenhum —
+	 * o rascunho pode ficar incompleto enquanto a pessoa ainda está escrevendo.
+	 *
+	 * @throws PairingNotFoundException se o pareamento não existir ou {@code userId} não fizer parte dele
+	 */
+	void saveStoryDraft(Long pairingId, Long userId, StoryStep step, String text);
+
+	/** RN-25: true quando os 4 passos da história de {@code userId} têm texto (nenhum vazio). */
+	boolean isStoryComplete(Long pairingId, Long userId);
+
+	/**
+	 * A mesma checagem de {@link #isStoryComplete}, mas falhando alto — pensado para a Etapa 8 usar na hora
+	 * de "firmar" o vínculo.
+	 *
+	 * @throws StoryIncompleteException se algum dos 4 passos ainda estiver vazio
+	 */
+	void requireStoryComplete(Long pairingId, Long userId);
+
+	/**
+	 * A história do parceiro de {@code userId} neste pareamento — só devolvida quando **as duas** histórias
+	 * (a própria e a do parceiro) já estiverem completas (RN-26); antes disso, ou se ainda não há parceiro
+	 * (convite por link não usado), devolve vazio.
+	 *
+	 * @throws PairingNotFoundException se o pareamento não existir ou {@code userId} não fizer parte dele
+	 */
+	Optional<StorySummary> readPartnerStory(Long pairingId, Long userId);
 }

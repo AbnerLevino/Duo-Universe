@@ -30,7 +30,7 @@ guardar a história no Duo. O conceito do ritual continua sendo especial e pode 
 | Chat e "dar um tempo da rede" | Fase 2. Fora do MVP. | `DECIDIDO` |
 | Data de entrada no Duo | Gravada automaticamente (`created_at`) só para métricas. Não aparece para o casal. | `DECIDIDO` |
 | P1 — Convite | Caminho **padrão**: buscar a pessoa dentro do próprio Duo por um **@handle exato** (identificador único escolhido no cadastro, nunca nome ou e-mail) — reforça o Duo como rede social, sem depender de apps de terceiros. Link com código que expira em 7 dias, de uso único, continua existindo como **alternativa** (ex.: antes de saber o @handle do outro). Revisa o escopo de anti-enumeração do RA-07 **só para este fluxo de convite** (DEC-031, seção 19 do CLAUDE.md). | `DECIDIDO` |
-| P2 — Obrigatoriedade | Cada um dos 4 passos da história exige **no mínimo 20 caracteres** (depois de remover espaços) — não basta não estar vazio. | `DECIDIDO` |
+| P2 — Obrigatoriedade | Cada um dos 4 passos da história precisa de texto, **sem mínimo de caracteres** — só não pode ficar vazio depois de remover espaços. Revisa a decisão de 2026-11-04 (mínimo de 20 caracteres): o fundador avaliou que impor um tamanho mínimo pune quem responde curto e sincero, sem garantir uma resposta de verdade. | `DECIDIDO` (revisado em 2026-11-05) |
 | P3 — Consenso das datas | **Propor e aceitar:** um propõe as duas datas do casal, o outro aceita ou propõe outras, até concordarem; só depois disso o casal pode firmar (RN-27). | `DECIDIDO` |
 | P4 — O que levar | Estrutura modelada **já na Semana 3** (escopos `PERSONAL`, `ARCHIVED`, `MEMBER_SIDE` e regras, com itens fictícios nos testes); a tela real para escolher o que levar vem na Semana 4, junto das fotos (RN-09). | `DECIDIDO` |
 | P5 — Personal na pausa | O Personal Universe **volta durante a `PAUSED`**, em leitura **e em edição/postagem** — a pessoa decide livremente o que fazer com o próprio lado durante a pausa; o app não restringe (princípio da liberdade, seção 3). Revisa a DEC-002 (nova regra RN-13a). **Decidido em 2026-11-05.** O que postar/editar durante a pausa volta a pertencer ao `MEMBER_SIDE`/`ARCHIVED` normalmente ao retomar ou sair — não precisa de um terceiro estado. | `DECIDIDO` |
@@ -96,7 +96,8 @@ Couple:    ACTIVE ⇄ PAUSED
 RN-13 a RN-18 (seção 8 do CLAUDE.md).
 
 **Novas (a registrar na seção 8 após aprovação):**
-- **RN-25:** a história é obrigatória para o vínculo nascer; cada passo exige no mínimo 20 caracteres (P2).
+- **RN-25:** a história é obrigatória para o vínculo nascer; cada passo precisa de texto (não pode ficar vazio
+  depois de remover espaços) — **sem mínimo de caracteres** (P2, revisado em 2026-11-05).
 - **RN-26:** as duas histórias só ficam visíveis uma à outra depois que ambas foram concluídas.
 - **RN-27:** a data de conhecimento e a data de início do namoro são únicas por casal, propostas por um e aceitas
   pelo outro até concordarem (P3).
@@ -183,12 +184,15 @@ Consequência: o prazo (7 dias, a confirmar) também define quando os rascunhos 
 
 ### P2 — O que significa "obrigatório"?
 
-> **Resolvida:** opção B (mínimo de 20 caracteres).
+> **Resolvida em 2026-11-04** como opção B (mínimo de 20 caracteres); **revertida em 2026-11-05** para a opção A
+> (texto livre, só não vazio). O fundador concluiu que o mínimo de caracteres não garante uma resposta de
+> verdade (dá para escrever "asdfasdf asdfasdf") e, em troca, frustra quem responde curto e sincero — o risco
+> não compensava o ganho. A obrigatoriedade sozinha (não vazio) já garante o ritual.
 
 | Opção | Consequência |
 | --- | --- |
-| **A. Texto não vazio, depois de remover espaços (recomendada)** | Simples; cada passo precisa de alguma resposta. Quem quiser burlar escreve qualquer coisa. |
-| B. Tamanho mínimo (ex.: 20 caracteres) | Incentiva respostas de verdade, mas também "asdfasdf asdfasdf" e frustra quem responde curto e sincero. |
+| **A. Texto não vazio, depois de remover espaços (decidida em 2026-11-05)** | Simples; cada passo precisa de alguma resposta. Quem quiser burlar escreve qualquer coisa — aceito conscientemente, já que validar qualidade é impossível mesmo. |
+| ~~B. Tamanho mínimo (ex.: 20 caracteres)~~ | ~~Incentiva respostas de verdade~~ — na prática, incentiva textos preenchidos só para passar na validação, e frustra respostas curtas e sinceras. Abandonada. |
 
 Observação: validar a **qualidade** da história é impossível e contrariaria o princípio da maturidade. A
 obrigatoriedade garante o ritual, não o conteúdo.

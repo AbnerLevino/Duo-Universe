@@ -91,6 +91,28 @@ class CouplePairingTest {
 		assertThat(pairing.involves(2L)).isFalse();
 	}
 
+	@Test
+	void partnerOfReturnsTheOtherPerson() {
+		CouplePairing pairing = pending();
+
+		assertThat(pairing.partnerOf(1L)).isEqualTo(2L);
+		assertThat(pairing.partnerOf(2L)).isEqualTo(1L);
+	}
+
+	@Test
+	void partnerOfIsNullWhenThereIsNoInviteeYet() {
+		CouplePairing pairing = new CouplePairing(1L, null, Channel.LINK, NOW.plusSeconds(60));
+
+		assertThat(pairing.partnerOf(1L)).isNull();
+	}
+
+	@Test
+	void partnerOfRejectsSomeoneOutsideThePairing() {
+		CouplePairing pairing = pending();
+
+		assertThatThrownBy(() -> pairing.partnerOf(99L)).isInstanceOf(IllegalArgumentException.class);
+	}
+
 	private CouplePairing linkPairingWithoutInvitee() {
 		return new CouplePairing(1L, null, Channel.LINK, NOW.plusSeconds(60), "hash-do-codigo");
 	}

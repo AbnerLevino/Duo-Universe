@@ -127,6 +127,20 @@ public class CouplePairing {
 		return initiatorUserId.equals(userId) || (inviteeUserId != null && inviteeUserId.equals(userId));
 	}
 
+	/**
+	 * A outra pessoa do pareamento. Devolve {@code null} quando é um convite por link que ainda não foi
+	 * usado (sem convidado definido ainda) — não existe "parceiro" para ler a história nesse caso.
+	 */
+	public Long partnerOf(Long userId) {
+		if (initiatorUserId.equals(userId)) {
+			return inviteeUserId;
+		}
+		if (inviteeUserId != null && inviteeUserId.equals(userId)) {
+			return initiatorUserId;
+		}
+		throw new IllegalArgumentException("userId não participa deste pareamento");
+	}
+
 	/** RN-29: recusa, cancelamento e expiração levam ao mesmo estado final (ver a matriz em docs/epico-2-vinculo.md). */
 	public void cancel(Instant when) {
 		requireTransitionFrom(PairingState.CANCELLED);

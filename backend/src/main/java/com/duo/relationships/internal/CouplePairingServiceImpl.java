@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.Optional;
 
 import com.duo.relationships.Channel;
 import com.duo.relationships.CouplePairingService;
@@ -17,6 +18,9 @@ import com.duo.relationships.InviteCodeInvalidException;
 import com.duo.relationships.IssuedPairingInvite;
 import com.duo.relationships.PairingNotFoundException;
 import com.duo.relationships.PairingSummary;
+import com.duo.relationships.StoryIncompleteException;
+import com.duo.relationships.StoryStep;
+import com.duo.relationships.StorySummary;
 import com.duo.shared.RateLimiter;
 import com.duo.users.UserService;
 import com.duo.users.UserSummary;
@@ -42,14 +46,16 @@ class CouplePairingServiceImpl implements CouplePairingService {
 	private final SecureRandom random = new SecureRandom();
 	private final CouplePairingRepository pairings;
 	private final CoupleMemberRepository coupleMembers;
+	private final CouplePairingStoryRepository stories;
 	private final UserService users;
 	private final RateLimiter rateLimiter;
 	private final Clock clock;
 
 	CouplePairingServiceImpl(CouplePairingRepository pairings, CoupleMemberRepository coupleMembers,
-			UserService users, RateLimiter rateLimiter, Clock clock) {
+			CouplePairingStoryRepository stories, UserService users, RateLimiter rateLimiter, Clock clock) {
 		this.pairings = pairings;
 		this.coupleMembers = coupleMembers;
+		this.stories = stories;
 		this.users = users;
 		this.rateLimiter = rateLimiter;
 		this.clock = clock;
@@ -116,6 +122,50 @@ class CouplePairingServiceImpl implements CouplePairingService {
 		}
 		pairing.redeemLink(inviteeUserId, now);
 		return toSummary(pairing);
+	}
+
+	@Override
+	@Transactional
+	public void saveStoryDraft(Long pairingId, Long userId, StoryStep step, String text) {
+		findVisibleTo(pairingId, userId);
+		CouplePairingStory story = stories.findByPairingIdAndUserId(pairingId, userId)
+			.orElseGet(() -> stories.save(new CouplePairingStory(pairingId, userId)));
+		story.updateStep(step, text);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public boolean isStoryComplete(Long pairingId, Long userId) {
+		findVisibleTo(pairingId, userId);
+		return storyIsComplete(pairingId, userId);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public void requireStoryComplete(Long pairingId, Long userId) {
+		if (!isStoryComplete(pairingId, userId)) {
+			throw new StoryIncompleteException();
+		}
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Optional<StorySummary> readPartnerStory(Long pairingId, Long userId) {
+		CouplePairing pairing = findVisibleTo(pairingId, userId);
+		Long partnerId = pairing.partnerOf(userId);
+		if (partnerId == null || !storyIsComplete(pairingId, userId) || !storyIsComplete(pairingId, partnerId)) {
+			return Optional.empty();
+		}
+		return stories.findByPairingIdAndUserId(pairingId, partnerId).map(CouplePairingServiceImpl::toStorySummary);
+	}
+
+	private boolean storyIsComplete(Long pairingId, Long userId) {
+		return stories.findByPairingIdAndUserId(pairingId, userId).map(CouplePairingStory::isComplete).orElse(false);
+	}
+
+	private static StorySummary toStorySummary(CouplePairingStory story) {
+		return new StorySummary(story.getPairingId(), story.getUserId(), story.getHowWeMet(),
+				story.getTimeBeforeDating(), story.getWhatIThoughtThen(), story.getWhatIThinkNow());
 	}
 
 	private CouplePairing findVisibleTo(Long pairingId, Long userId) {
