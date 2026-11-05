@@ -88,7 +88,7 @@ class CouplePairingServiceImpl implements CouplePairingService {
 	@Override
 	@Transactional
 	public void cancel(Long pairingId, Long userId) {
-		findVisibleTo(pairingId, userId).cancel(clock.instant());
+		cancelAndEraseDrafts(findVisibleTo(pairingId, userId), clock.instant());
 	}
 
 	@Override
@@ -97,7 +97,7 @@ class CouplePairingServiceImpl implements CouplePairingService {
 		CouplePairing pairing = findVisibleTo(pairingId, userId);
 		Instant now = clock.instant();
 		if (pairing.isExpired(now)) {
-			pairing.cancel(now);
+			cancelAndEraseDrafts(pairing, now);
 		}
 		return toSummary(pairing);
 	}
@@ -120,7 +120,7 @@ class CouplePairingServiceImpl implements CouplePairingService {
 		CouplePairing pairing = pairings.findByInviteCodeHash(hash(code)).orElseThrow(InviteCodeInvalidException::new);
 		Instant now = clock.instant();
 		if (pairing.isExpired(now)) {
-			pairing.cancel(now);
+			cancelAndEraseDrafts(pairing, now);
 		}
 		pairing.redeemLink(inviteeUserId, now);
 		return toSummary(pairing);
@@ -194,6 +194,14 @@ class CouplePairingServiceImpl implements CouplePairingService {
 		if (!areDatesAccepted(pairingId, userId)) {
 			throw new DatesNotAcceptedException();
 		}
+	}
+
+	/** RN-29: cancelar, recusar ou vencer apaga os rascunhos — a proposta de datas vive na própria entidade
+	 * ({@link CouplePairing#cancel}), mas a história mora numa tabela separada (Etapa 6), por isso precisa
+	 * ser apagada por aqui também. */
+	private void cancelAndEraseDrafts(CouplePairing pairing, Instant when) {
+		pairing.cancel(when);
+		stories.deleteAllByPairingId(pairing.getId());
 	}
 
 	private CouplePairing findVisibleTo(Long pairingId, Long userId) {

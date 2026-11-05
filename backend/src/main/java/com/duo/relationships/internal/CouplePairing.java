@@ -159,6 +159,16 @@ public class CouplePairing {
 		requireTransitionFrom(PairingState.CANCELLED);
 		this.state = PairingState.CANCELLED;
 		this.decidedAt = when;
+		eraseDateProposal();
+	}
+
+	/** RN-29: um pareamento cancelado não guarda rascunho de data nenhum — a história (tabela separada) é
+	 * apagada por quem chama {@link #cancel}, não por esta entidade (ver CouplePairingServiceImpl). */
+	private void eraseDateProposal() {
+		this.dateProposedByUserId = null;
+		this.proposedKnownSinceDate = null;
+		this.proposedDatingSinceDate = null;
+		this.datesAcceptedAt = null;
 	}
 
 	/**

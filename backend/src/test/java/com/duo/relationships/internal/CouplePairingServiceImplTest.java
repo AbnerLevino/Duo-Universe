@@ -408,4 +408,41 @@ class CouplePairingServiceImplTest {
 		assertThatThrownBy(() -> service.acceptDates(pairing.id(), outsider))
 				.isInstanceOf(PairingNotFoundException.class);
 	}
+
+	@Test
+	void cancellingAPendingPairingErasesBothStories() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		writeFullStory(service, pairing.id(), initiatorId);
+		writeFullStory(service, pairing.id(), inviteeId);
+
+		service.cancel(pairing.id(), initiatorId);
+
+		assertThat(stories.findByPairingIdAndUserId(pairing.id(), initiatorId)).isEmpty();
+		assertThat(stories.findByPairingIdAndUserId(pairing.id(), inviteeId)).isEmpty();
+	}
+
+	@Test
+	void aPairingThatExpiresOnItsOwnAlsoErasesTheStories() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		writeFullStory(service, pairing.id(), initiatorId);
+		Instant afterExpiry = NOW.plus(CouplePairingServiceImpl.TTL).plusSeconds(1);
+
+		serviceAt(afterExpiry).find(pairing.id(), initiatorId);
+
+		assertThat(stories.findByPairingIdAndUserId(pairing.id(), initiatorId)).isEmpty();
+	}
+
+	@Test
+	void aPersonCanHaveMoreThanOnePendingPairingAtTheSameTime() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		Long anotherInvitee = users.save(new User("sub-cp-g", "cp-g@example.com", "G")).getId();
+
+		PairingSummary first = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		PairingSummary second = service.initiate(initiatorId, anotherInvitee, Channel.HANDLE);
+
+		assertThat(service.find(first.id(), initiatorId).state()).isEqualTo(PairingState.PENDING);
+		assertThat(service.find(second.id(), initiatorId).state()).isEqualTo(PairingState.PENDING);
+	}
 }

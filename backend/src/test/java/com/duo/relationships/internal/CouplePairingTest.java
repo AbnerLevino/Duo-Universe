@@ -177,6 +177,20 @@ class CouplePairingTest {
 		assertThatThrownBy(() -> pairing.acceptDates(2L, NOW)).isInstanceOf(IllegalStateException.class);
 	}
 
+	@Test
+	void cancellingErasesTheDateProposal() {
+		CouplePairing pairing = pending();
+		pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE);
+		pairing.acceptDates(2L, NOW);
+
+		pairing.cancel(NOW);
+
+		assertThat(pairing.getDateProposedByUserId()).isNull();
+		assertThat(pairing.getProposedKnownSinceDate()).isNull();
+		assertThat(pairing.getProposedDatingSinceDate()).isNull();
+		assertThat(pairing.areDatesAccepted()).isFalse();
+	}
+
 	private CouplePairing linkPairingWithoutInvitee() {
 		return new CouplePairing(1L, null, Channel.LINK, NOW.plusSeconds(60), "hash-do-codigo");
 	}

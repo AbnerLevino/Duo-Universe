@@ -335,3 +335,30 @@ isso só existe no `Service`, chamado pelos testes.
   `docs/epico-2-vinculo.md`. `canUsePersonal` é a RN-13a (decidida em 2026-11-05): só `true` durante `PAUSED`.
   Ainda não é chamada por ninguém "de verdade" — é a peça que fotos/memórias vão consultar mais adiante, para
   não reescrever essa tabela em cada módulo.
+
+**Etapa 12 — limpeza de rascunhos (concluída, RN-29):**
+- **O problema que faltava resolver:** desde a Etapa 2, `CouplePairing.cancel()` só trocava o estado para
+  `CANCELLED` — não apagava nada. Isso já bastava para o pareamento em si, mas duas etapas depois adicionaram
+  "rascunhos" presos a um pareamento: a Etapa 6 (história, numa **tabela separada**, `couple_pairing_stories`)
+  e a Etapa 7 (proposta de datas, em **colunas da própria** `couple_pairings`). RN-29 diz que cancelar, recusar
+  ou vencer apaga os dois — e isso não estava acontecendo.
+- `relationships/internal/CouplePairing.java`: `cancel()` agora também chama um método novo e privado,
+  `eraseDateProposal()`, que zera os 4 campos da negociação de data (quem propôs, as duas datas propostas,
+  quando foi aceito). Como são colunas da própria entidade, a própria entidade consegue limpar sozinha.
+- `relationships/internal/CouplePairingStoryRepository.java`: ganhou `deleteAllByPairingId(Long pairingId)` —
+  um **método derivado** do Spring Data: não escrevemos nenhuma query, o nome do método já diz o que fazer
+  ("apague tudo onde `pairing_id` for este"), e o Spring Data JPA gera o SQL sozinho a partir do nome.
+- `relationships/internal/CouplePairingServiceImpl.java`: como a história mora numa tabela separada, só a
+  entidade `CouplePairing` não alcança ela — por isso criamos `cancelAndEraseDrafts(pairing, when)`, que chama
+  `pairing.cancel(when)` e, na sequência, `stories.deleteAllByPairingId(...)`. Os três lugares do serviço que
+  cancelavam um pareamento direto (`cancel` público, a expiração "lazy" dentro de `find`, e a mesma expiração
+  dentro de `redeemByLink`) passaram a usar esse método novo, para nenhum deles esquecer de apagar a história.
+- **As outras duas decisões da Etapa 12 não pediram código:** a limpeza continua "lazy" (igual às Etapas 2/3 —
+  só confere quando alguém olha o pareamento, sem tarefa agendada rodando sozinha); e mais de um
+  `CouplePairing` `PENDING` por pessoa ao mesmo tempo já era permitido (nunca existiu um índice único
+  bloqueando isso) — só ganhou um teste de regressão para deixar a intenção registrada, em vez de ser um
+  comportamento "por acaso".
+- Testes novos (4): em `CouplePairingTest` (puro, sem banco), cancelar apaga a proposta de datas. Em
+  `CouplePairingServiceImplTest` (contra o `duo_test` real): cancelar um pareamento com histórias dos dois
+  lados apaga as duas; um pareamento que expira sozinho (via `find()`) também apaga a história; e a mesma
+  pessoa consegue ter dois pareamentos `PENDING` ao mesmo tempo, com convidados diferentes.

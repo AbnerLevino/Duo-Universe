@@ -717,6 +717,15 @@ no piloto) decididas em 2026-11-05; domínio próprio; termos de uso e política
     perguntas puras (`canViewCoupleCenter`, `canPostToCoupleCenter`, `canPostToOwnSide`, `canUsePersonal`).
     Ainda não é usada por ninguém — é a peça que fotos/memórias vão consultar depois.
   - Build verde, 128 testes no total (28 novos nesta sessão). Detalhe de cada etapa em `docs/MAPA.md`.
+- **Etapa 12 — concluída em 2026-11-05 (RN-29, rodou em paralelo a uma conversa sobre a Etapa 8).** O que
+  faltava de verdade: `CouplePairing.cancel()` só trocava o estado para `CANCELLED`, sem apagar nada. Agora
+  `cancel()` também zera a proposta de datas (Etapa 7) com um `eraseDateProposal()` novo, e
+  `CouplePairingServiceImpl` ganhou `cancelAndEraseDrafts(...)`, que além de cancelar também apaga as histórias
+  (Etapa 6, tabela separada) com `CouplePairingStoryRepository.deleteAllByPairingId(...)` — usado nos 3 pontos
+  que cancelavam um pareamento (`cancel` público e as duas expirações "lazy" em `find`/`redeemByLink`). As
+  outras duas decisões da etapa (limpeza lazy; múltiplos `PENDING` por pessoa permitidos) não pediram código —
+  só ganharam um teste de regressão. 4 testes novos, 132 no total, `./gradlew build` verde. Detalhe em
+  `docs/MAPA.md`.
 - **Próximo passo: Etapa 8 (firmar o vínculo e nascer o `Couple` — RN-06/08).** É a etapa mais delicada do
   épico (teste de concorrência real); fica para uma sessão com o fundador presente para decidir junto, como
   combinado. Pendência anterior, ainda sem mudança: identidade visual / protótipo da tela inicial — o fundador
