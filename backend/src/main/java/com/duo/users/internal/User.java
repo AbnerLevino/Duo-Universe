@@ -28,6 +28,9 @@ public class User {
 	@Column(name = "display_name", nullable = false, length = 100)
 	private String displayName;
 
+	@Column(length = 20)
+	private String handle;
+
 	private Instant emailVerifiedAt;
 
 	@CreationTimestamp
@@ -63,6 +66,14 @@ public class User {
 
 	public void setDisplayName(String displayName) {
 		this.displayName = displayName;
+	}
+
+	public String getHandle() {
+		return handle;
+	}
+
+	public void setHandle(String handle) {
+		this.handle = handle;
 	}
 
 	public Instant getEmailVerifiedAt() {

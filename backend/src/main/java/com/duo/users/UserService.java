@@ -18,4 +18,15 @@ public interface UserService {
 
 	/** Usado pela sessão: o token de acesso carrega o id do usuário, nunca o e-mail. */
 	Optional<UserSummary> findById(Long id);
+
+	/**
+	 * Escolhe o @handle desta pessoa (RN-30), usado para ser encontrada num convite de vínculo.
+	 * Comparação sem diferenciar maiúsculas, como o e-mail.
+	 *
+	 * @throws InvalidHandleException  se o formato não tiver 3 a 20 letras, números ou "_"
+	 * @throws HandleTakenException   se o handle já pertence a outra conta
+	 */
+	UserSummary chooseHandle(Long userId, String handle);
+
+	Optional<UserSummary> findByHandle(String handle);
 }

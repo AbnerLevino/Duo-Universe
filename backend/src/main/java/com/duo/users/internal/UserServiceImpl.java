@@ -2,8 +2,11 @@ package com.duo.users.internal;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import com.duo.users.EmailAlreadyLinkedException;
+import com.duo.users.HandleTakenException;
+import com.duo.users.InvalidHandleException;
 import com.duo.users.UserService;
 import com.duo.users.UserSummary;
 
@@ -15,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 class UserServiceImpl implements UserService {
 
 	private static final int MAX_DISPLAY_NAME = 100;
+
+	private static final Pattern HANDLE_FORMAT = Pattern.compile("^[A-Za-z0-9_]{3,20}$");
 
 	private final UserRepository userRepository;
 
@@ -58,6 +63,27 @@ class UserServiceImpl implements UserService {
 		return userRepository.findById(id).filter(user -> user.getDeletedAt() == null).map(UserServiceImpl::toSummary);
 	}
 
+	@Override
+	public UserSummary chooseHandle(Long userId, String handle) {
+		if (handle == null || !HANDLE_FORMAT.matcher(handle).matches()) {
+			throw new InvalidHandleException();
+		}
+		User user = userRepository.findById(userId).orElseThrow();
+		user.setHandle(handle);
+		try {
+			return toSummary(userRepository.saveAndFlush(user));
+		}
+		catch (DataIntegrityViolationException alreadyTaken) {
+			throw new HandleTakenException();
+		}
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Optional<UserSummary> findByHandle(String handle) {
+		return userRepository.findByHandleIgnoreCase(handle).map(UserServiceImpl::toSummary);
+	}
+
 	private static User newGoogleUser(String googleSub, String email, String displayName) {
 		User user = new User(googleSub, email, nameOrFallback(displayName, email));
 		user.markEmailVerified(Instant.now());
@@ -72,6 +98,6 @@ class UserServiceImpl implements UserService {
 	}
 
 	private static UserSummary toSummary(User user) {
-		return new UserSummary(user.getId(), user.getEmail(), user.getDisplayName());
+		return new UserSummary(user.getId(), user.getEmail(), user.getDisplayName(), user.getHandle());
 	}
 }

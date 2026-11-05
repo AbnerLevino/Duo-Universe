@@ -649,13 +649,21 @@ domínio próprio; termos de uso e política de privacidade revisados.
   13 testes novos (8 de máquina de estados pura, sem banco; 5 de serviço contra o `duo_test` real).
   **Confirmado nesta sessão:** `bootRun` aplica V1-V5 também no banco de desenvolvimento (`duo`), não só no
   de teste — verificado por um subagente, que **expôs a senha do `duo_app`** num log de depuração por engano
-  (ver aviso de segurança registrado na conversa; recomendado trocar a senha).
+  (ver aviso de segurança registrado na conversa). **Resolvido em 2026-11-05:** o fundador trocou a senha do
+  `duo_app` (e a variável `DUO_APP_DB_PASSWORD` correspondente).
 - **Etapa 3 (convite por link/código, alternativa — P1) — concluída em 2026-11-04.** `inviteByLink`/
   `redeemByLink` em `CouplePairingService`; código aleatório (`SecureRandom`, 32 bytes) com hash SHA-256
   guardado no banco (mesmo padrão do token de renovação, RA-09), nunca o código em texto puro; uso único;
   migration `V6` acrescenta `invite_code_hash` (índice único parcial). RA-08 (limite de tentativas) ainda não
   implementado — adiado para a Etapa 5 (@handle), onde o risco de força bruta é maior. 24 testes novos.
-- **Próximo passo:** Etapa 4 (coluna `handle` em `users`). Pendência anterior: identidade visual. O protótipo
+- **Etapa 4 (coluna `handle` em `users`) — concluída em 2026-11-05.** Decisões confirmadas pelo fundador:
+  formato `^[A-Za-z0-9_]{3,20}$` (igual ao recomendado), comparação sem diferenciar maiúsculas (`lower(handle)`,
+  mesmo padrão do e-mail); quem já tem conta vai ter uma **tela obrigatória no próximo login** para escolher
+  o handle (implementação dessa tela adiada para a Etapa 14 — frontend). Migration `V7`; `UserService` ganhou
+  `chooseHandle`/`findByHandle`; `HandleTakenException`/`InvalidHandleException`; `UserSummary` passou a
+  carregar o `handle`. 4 testes novos em `UserServiceImplTest`. `./gradlew build` verde.
+- **Próximo passo:** Etapa 5 (convite por @handle, caminho padrão — RN-30). Vai precisar decidir a ferramenta
+  de limite de tentativas (RA-08), ainda pendente. Pendência anterior: identidade visual. O protótipo
   da tela inicial (centro "Couple Universe", contador de tempo juntos, "Relembre como começou") depende do
   vínculo; idade e profissão exibidas no protótipo ainda não existem no modelo de dados (decidir junto com o
   perfil e a verificação de idade, DEC-010/011).
@@ -751,6 +759,7 @@ domínio próprio; termos de uso e política de privacidade revisados.
 | Sessão (passo 5) | **Decidido em 2026-11-04:** token de acesso JWT de 15 min (validado pela biblioteca `spring-boot-starter-security-oauth2-resource-server`, sem escrever criptografia na mão) + token de renovação **aleatório, não JWT**, guardado só como hash, em cookie `HttpOnly`/`Secure`/`SameSite=Strict`, rotacionado a cada uso; `family_id` é nosso (reuso de token antigo derruba toda a família). **Opção A:** após o login com Google o backend só define o cookie e redireciona ao front; o front chama `/api/auth/refresh` e recebe o token de acesso no JSON. Nenhum token vai em URL (RA-09). O cookie é definido em todo login com Google e a cada rotação. |
 | Docker | **Adiado para outra fase.** Ferramentas instaladas direto no Windows. Consequência: Testcontainers (DEC-018) fica fora por ora e os testes usam um Postgres local (`duo_test`). |
 | Git | Repositório privado `https://github.com/AbnerLevino/Duo-Universe.git`, branch `main`. **A cada requisição atendida: commit e push** (autorização durável só para este repositório). |
+| Etapa 4 (2026-11-05) | **Handle:** formato `3 a 20` caracteres, letras/números/`_` (`^[A-Za-z0-9_]{3,20}$`), comparado sem diferenciar maiúsculas. Quem já tem conta escolhe numa **tela obrigatória no próximo login** (navegação bloqueada até escolher) — essa tela entra na Etapa 14. |
 
 ### Princípios reafirmados pelo fundador
 - **Pressão e conflito** são assunto do casal: o app dá os meios (privar, excluir, editar) e o casal conversa.

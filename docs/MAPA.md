@@ -225,5 +225,21 @@ Especificação aprovada em `docs/epico-2-vinculo.md`; progresso etapa a etapa n
 - Testes: a máquina de estados do código (sem banco, em `CouplePairingTest`) e o fluxo completo contra o
   `duo_test` real (`CouplePairingServiceImplTest`), incluindo "o código nunca fica salvo em texto puro".
 
-Ainda não existe nenhum jeito de convidar alguém **pelo @handle** — isso é a Etapa 4 (a coluna `handle` em
-`users`) seguida da Etapa 5.
+**Etapa 4 — coluna `handle` em `users` (concluída):**
+- `db/migration/V7__add_handle_to_users.sql`: acrescenta `handle` a `users`, opcional (quem já tinha conta
+  ainda não escolheu o seu) com índice único *case-insensitive* (`lower(handle)`), igual ao que já existe
+  para `email` desde a `V1`.
+- `users/internal/User.java` ganhou o campo `handle` e `getHandle`/`setHandle`.
+- `users/HandleTakenException.java`, `InvalidHandleException.java`: os dois erros de negócio deste pedaço —
+  "já pertence a outra conta" e "não tem o formato certo" (3 a 20 letras, números ou `_`).
+- `users/UserService.java` (API pública) ganhou `chooseHandle` e `findByHandle`; `UserSummary` agora carrega
+  o `handle` (`null` para quem ainda não escolheu).
+- `users/internal/UserServiceImpl.java`: valida o formato antes de tocar no banco; se o handle já estiver em
+  uso, o índice único da migration recusa o `saveAndFlush` e o erro é traduzido para `HandleTakenException`
+  — mesmo padrão já usado para e-mail duplicado em `findOrCreateByGoogle`.
+- Testes novos em `UserServiceImplTest`: escolhe e encontra por handle ignorando maiúsculas, recusa handle já
+  usado por outra conta, recusa formato inválido.
+
+Ainda não existe nenhum jeito de convidar alguém **pelo @handle** (isso é a Etapa 5) nem tela para escolher o
+handle (isso fica para a Etapa 14, com a decisão de obrigar a escolha no próximo login para quem ainda não
+tem um).

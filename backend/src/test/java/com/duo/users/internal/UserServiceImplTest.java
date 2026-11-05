@@ -1,7 +1,10 @@
 package com.duo.users.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.duo.users.HandleTakenException;
+import com.duo.users.InvalidHandleException;
 import com.duo.users.UserSummary;
 
 import org.junit.jupiter.api.Test;
@@ -49,5 +52,34 @@ class UserServiceImplTest {
 		UserSummary created = userService.findOrCreateByGoogle("sub-gui", "gui@example.com", null);
 
 		assertThat(created.displayName()).isEqualTo("gui");
+	}
+
+	@Test
+	void choosesHandleAndFindsAccountByItIgnoringCase() {
+		UserSummary user = userService.findOrCreateByGoogle("sub-helo", "helo@example.com", "Helo");
+
+		userService.chooseHandle(user.id(), "Helo_123");
+
+		assertThat(userService.findByHandle("helo_123").orElseThrow().id()).isEqualTo(user.id());
+	}
+
+	@Test
+	void rejectsHandleAlreadyTakenByAnotherAccountIgnoringCase() {
+		UserSummary first = userService.findOrCreateByGoogle("sub-ines", "ines@example.com", "Ines");
+		UserSummary second = userService.findOrCreateByGoogle("sub-joao", "joao@example.com", "Joao");
+		userService.chooseHandle(first.id(), "mesmo_handle");
+
+		assertThatThrownBy(() -> userService.chooseHandle(second.id(), "Mesmo_Handle"))
+			.isInstanceOf(HandleTakenException.class);
+	}
+
+	@Test
+	void rejectsHandleWithInvalidFormat() {
+		UserSummary user = userService.findOrCreateByGoogle("sub-kat", "kat@example.com", "Kat");
+
+		assertThatThrownBy(() -> userService.chooseHandle(user.id(), "ok"))
+			.isInstanceOf(InvalidHandleException.class);
+		assertThatThrownBy(() -> userService.chooseHandle(user.id(), "tem espaço"))
+			.isInstanceOf(InvalidHandleException.class);
 	}
 }

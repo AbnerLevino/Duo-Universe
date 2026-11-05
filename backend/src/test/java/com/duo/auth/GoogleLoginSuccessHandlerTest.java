@@ -46,7 +46,7 @@ class GoogleLoginSuccessHandlerTest {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.getSession(true);
 		when(userService.findOrCreateByGoogle("sub-1", "ana@example.com", "Ana"))
-			.thenReturn(new UserSummary(7L, "ana@example.com", "Ana"));
+			.thenReturn(new UserSummary(7L, "ana@example.com", "Ana", null));
 		when(refreshTokens.issue(7L)).thenReturn(new IssuedRefreshToken(7L, "token-secreto", NOW.plusSeconds(60)));
 
 		handler.onAuthenticationSuccess(request, response, new TestingAuthenticationToken(googleUser(true), null));
