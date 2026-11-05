@@ -132,7 +132,12 @@ RN-13 a RN-18 (seção 8 do CLAUDE.md).
 - Os dois se chamam ao mesmo tempo.
 - Alguém já vinculado recebe um código.
 - O pareamento expira com um dos dois já tendo escrito a história.
-- A pessoa tem dois pareamentos pendentes e firma os dois.
+- **A pessoa tem dois pareamentos pendentes e firma os dois** — resolvido em 2026-11-05: **permitido** ter
+  mais de um `CouplePairing` `PENDING` ao mesmo tempo (ver `docs/IDEIAS.md`, "pedido de namoro para quem está
+  solteiro no Duo" — o fundador quer deixar essa porta aberta para um fluxo futuro). RN-06 (um vínculo por
+  pessoa) só é verificada na hora de **firmar** (Etapa 8): se a pessoa confirmar os dois, o primeiro cria o
+  `Couple` normalmente; o segundo esbarra no índice único do banco e falha com `AlreadyInRelationshipException`
+  — a confirmação em si fica registrada, só o nascimento do segundo `Couple` é que é recusado.
 - Os dois discordam das datas (a tela de consenso precisa de uma saída definida).
 - Alguém tenta uma transição ilegal (`ENDED` para `ACTIVE`).
 - Alguém sai enquanto o outro edita.

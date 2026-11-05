@@ -702,13 +702,26 @@ no piloto) decididas em 2026-11-05; domínio próprio; termos de uso e política
   própria na tabela de decisões abaixo e `docs/epico-2-vinculo.md`); e a etapa ficou **só no backend**, sem
   tela nova (demonstração pelos testes; a tela real é a Etapa 14). 17 testes novos, `./gradlew build` verde.
   Detalhe em `docs/MAPA.md`.
-- **Próximo passo:** Etapa 7 (datas do casal: propor e aceitar, P3/RN-27). Pendência anterior: identidade
-  visual. O protótipo da tela inicial (centro "Couple Universe", contador de tempo juntos, "Relembre como
-  começou") depende do vínculo; idade e profissão exibidas no protótipo ainda não existem no modelo de dados
-  (decidir junto com o perfil e a verificação de idade, DEC-010/011). Nesta sessão, o fundador trouxe um
-  esboço visual da tela inicial (`~/Downloads/DUO Universe.png`) só como referência de direção visual — ainda
-  não virou protótipo nem código; se quiser, posso transformá-lo num protótipo visual avulso (fora do
-  repositório) quando for útil, sem comprometer a Etapa 14.
+- **Etapas 7, 9, 10 e 11 — concluídas em 2026-11-05, numa única sessão (o fundador decidiu os 3 pontos em
+  aberto de antemão e pediu para eu codar as quatro em sequência, sem pausa a cada uma — só a Etapa 8 continua
+  reservada por causa do teste de concorrência).**
+  - **Etapa 7 (P3/RN-27):** `CouplePairing` ganhou `proposeDates`/`acceptDates` — um propõe, o outro aceita
+    (nunca quem propôs); uma nova proposta sempre reabre o consenso. Migration `V10`.
+  - **Etapa 9 (P4/RN-09):** `Scope` (`PERSONAL`/`ARCHIVED`/`MEMBER_SIDE`/`COUPLE_CENTER`) criado em `shared`,
+    como decidido. Só a estrutura — sem tabela, sem endpoint.
+  - **Etapa 10 (RN-13 a 18):** `Couple` ganhou `pause`/`resume`/`end`; `CoupleService`/`CoupleServiceImpl`
+    novos (`find`/`pause`/`resume`/`leave`). `leave`, no MVP de 2 membros, termina o vínculo inteiro para os
+    dois (bulk update de `left_at`). **Refatoração:** o enum de estado do `Couple` saiu de dentro da classe e
+    virou `CoupleState` (mesmo padrão de `PairingState`), para a nova exceção pública poder citá-lo.
+  - **Etapa 11 (RN-11/12/12a/13a):** `CouplePermissions` — a matriz de permissões por estado, como 4
+    perguntas puras (`canViewCoupleCenter`, `canPostToCoupleCenter`, `canPostToOwnSide`, `canUsePersonal`).
+    Ainda não é usada por ninguém — é a peça que fotos/memórias vão consultar depois.
+  - Build verde, 128 testes no total (28 novos nesta sessão). Detalhe de cada etapa em `docs/MAPA.md`.
+- **Próximo passo: Etapa 8 (firmar o vínculo e nascer o `Couple` — RN-06/08).** É a etapa mais delicada do
+  épico (teste de concorrência real); fica para uma sessão com o fundador presente para decidir junto, como
+  combinado. Pendência anterior, ainda sem mudança: identidade visual / protótipo da tela inicial — o fundador
+  trouxe um esboço (`~/Downloads/DUO Universe.png`) só como referência visual; ainda não virou protótipo nem
+  código.
 
 ### Roteiro restante do Épico 2 (Etapas 4 a 18 — plano aprovado em 2026-11-04)
 
@@ -805,6 +818,9 @@ no piloto) decididas em 2026-11-05; domínio próprio; termos de uso e política
 | Organização/idioma (2026-11-05) | Reorganizar pastas por camada técnica (`exception/`/`model/`/`repository/`/`service/`) e traduzir o código para português foram as duas propostas do fundador; as duas ficaram **sem aplicar** — optou por reforçar `docs/GLOSSARIO-TECNICO.md`/`docs/MAPA.md` em vez disso. DEC-028 (código em inglês) continua valendo. |
 | RN-25 (2026-11-05) | **Mínimo de 20 caracteres revertido.** Os 4 passos da história exigem só texto não vazio (depois de remover espaços), sem tamanho mínimo — revisa P2/DEC-031 (2026-11-04), ver `docs/epico-2-vinculo.md`. Motivo do fundador: o mínimo de caracteres não garante resposta de verdade e pune quem responde curto e sincero; a obrigatoriedade sozinha já garante o ritual. |
 | Etapa 6 (2026-11-05) | **Demonstração simples, sem tela nova.** A Etapa 6 (história em 4 passos) fica só no backend — lógica funcionando, testes provando; apresentação em texto corrido (sem UI), já que a tela real do vínculo é a Etapa 14. Telas elaboradas ficam para depois de o fluxo todo avançar. |
+| Etapa 9 (2026-11-05) | **`Scope` (`PERSONAL`/`ARCHIVED`/`MEMBER_SIDE`/`COUPLE_CENTER`, P4/RN-09) mora em `shared` desde já** — não é regra do vínculo, é algo que fotos (Semana 4) e memórias (Semana 5) também vão usar. |
+| Etapa 12 (2026-11-05) | **Limpeza de rascunho continua lazy** (sem `@Scheduled`). **Mais de um `CouplePairing` `PENDING` por pessoa, ao mesmo tempo: permitido**, sem índice único bloqueando — o fundador quer deixar essa porta aberta para um fluxo futuro ("pedido de namoro" entre pessoas Personal que se conheceram organicamente dentro do Duo, registrado em `docs/IDEIAS.md`; fora do MVP). RN-06 continua valendo — só é verificada na hora de **firmar** (Etapa 8), não na hora de convidar; ver "casos de borda" em `docs/epico-2-vinculo.md`. |
+| Etapa 8 (2026-11-05) | **Esclarecimento, sem mudar o desenho da etapa:** o vínculo de hoje (DEC-012) não é um "pedido de namoro" — pressupõe que o casal já namora. Um fluxo de pedido de namoro de verdade (gesto fofo, para perto ou longe) é ideia para depois, registrada em `docs/IDEIAS.md`, não faz parte do MVP. |
 
 ### Princípios reafirmados pelo fundador
 - **Pressão e conflito** são assunto do casal: o app dá os meios (privar, excluir, editar) e o casal conversa.

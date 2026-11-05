@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 import com.duo.relationships.Channel;
 import com.duo.relationships.IllegalPairingTransitionException;
@@ -111,6 +112,69 @@ class CouplePairingTest {
 		CouplePairing pairing = pending();
 
 		assertThatThrownBy(() -> pairing.partnerOf(99L)).isInstanceOf(IllegalArgumentException.class);
+	}
+
+	private static final LocalDate KNOWN_SINCE = LocalDate.of(2023, 5, 1);
+	private static final LocalDate DATING_SINCE = LocalDate.of(2023, 8, 12);
+
+	@Test
+	void proposeDatesRecordsTheProposerAndTheDates() {
+		CouplePairing pairing = pending();
+
+		pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE);
+
+		assertThat(pairing.getDateProposedByUserId()).isEqualTo(1L);
+		assertThat(pairing.getProposedKnownSinceDate()).isEqualTo(KNOWN_SINCE);
+		assertThat(pairing.getProposedDatingSinceDate()).isEqualTo(DATING_SINCE);
+		assertThat(pairing.areDatesAccepted()).isFalse();
+	}
+
+	@Test
+	void acceptDatesRequiresAPriorProposal() {
+		CouplePairing pairing = pending();
+
+		assertThatThrownBy(() -> pairing.acceptDates(2L, NOW)).isInstanceOf(IllegalStateException.class);
+	}
+
+	@Test
+	void theProposerCannotAcceptTheirOwnProposal() {
+		CouplePairing pairing = pending();
+		pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE);
+
+		assertThatThrownBy(() -> pairing.acceptDates(1L, NOW)).isInstanceOf(IllegalStateException.class);
+	}
+
+	@Test
+	void theOtherPersonAcceptingMarksTheDatesAsAccepted() {
+		CouplePairing pairing = pending();
+		pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE);
+
+		pairing.acceptDates(2L, NOW);
+
+		assertThat(pairing.areDatesAccepted()).isTrue();
+		assertThat(pairing.getDatesAcceptedAt()).isEqualTo(NOW);
+	}
+
+	@Test
+	void aNewProposalReopensConsensusAndDiscardsAPreviousAcceptance() {
+		CouplePairing pairing = pending();
+		pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE);
+		pairing.acceptDates(2L, NOW);
+
+		pairing.proposeDates(2L, KNOWN_SINCE.plusDays(1), DATING_SINCE);
+
+		assertThat(pairing.areDatesAccepted()).isFalse();
+		assertThat(pairing.getDateProposedByUserId()).isEqualTo(2L);
+	}
+
+	@Test
+	void cannotProposeOrAcceptDatesOnceThePairingIsDecided() {
+		CouplePairing pairing = pending();
+		pairing.cancel(NOW);
+
+		assertThatThrownBy(() -> pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE))
+				.isInstanceOf(IllegalStateException.class);
+		assertThatThrownBy(() -> pairing.acceptDates(2L, NOW)).isInstanceOf(IllegalStateException.class);
 	}
 
 	private CouplePairing linkPairingWithoutInvitee() {

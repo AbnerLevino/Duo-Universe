@@ -5,6 +5,9 @@ import java.time.LocalDate;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.duo.relationships.CoupleState;
+import com.duo.relationships.IllegalCoupleTransitionException;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,9 +18,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * O Couple Universe (RN-06 a RN-08). Nesta etapa só o esqueleto do estado e das datas do casal; as
- * transições ({@code ACTIVE}→{@code PAUSED}→{@code ENDED}) e o nascimento a partir de um vínculo confirmado
- * chegam nas Etapas 8 e 10 (ver `docs/epico-2-vinculo.md`).
+ * O Couple Universe (RN-06 a RN-08, RN-13 a RN-18). O nascimento a partir de um vínculo confirmado chega na
+ * Etapa 8 (ver `docs/epico-2-vinculo.md`); pausar/retomar/sair (Etapa 10) já estão aqui.
  */
 @Entity
 @Table(name = "couples")
@@ -29,7 +31,7 @@ public class Couple {
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 10)
-	private State state;
+	private CoupleState state;
 
 	@Column(name = "known_since_date")
 	private LocalDate knownSinceDate;
@@ -50,7 +52,7 @@ public class Couple {
 	protected Couple() {
 	}
 
-	public Couple(State state) {
+	public Couple(CoupleState state) {
 		this.state = state;
 	}
 
@@ -58,7 +60,7 @@ public class Couple {
 		return id;
 	}
 
-	public State getState() {
+	public CoupleState getState() {
 		return state;
 	}
 
@@ -82,8 +84,33 @@ public class Couple {
 		return endedAt;
 	}
 
-	/** RN-07: MVP com exatamente 2 membros por casal. */
-	public enum State {
-		ACTIVE, PAUSED, ENDED
+	/** RN-13: qualquer membro pausa sozinho; nada é apagado — só o estado muda. */
+	public void pause(Instant when) {
+		requireCurrentState(CoupleState.ACTIVE, CoupleState.PAUSED);
+		this.state = CoupleState.PAUSED;
+		this.pausedAt = when;
+	}
+
+	/** Retomar só funciona a partir de PAUSED (matriz em `docs/epico-2-vinculo.md`). */
+	public void resume(Instant when) {
+		requireCurrentState(CoupleState.PAUSED, CoupleState.ACTIVE);
+		this.state = CoupleState.ACTIVE;
+		this.pausedAt = null;
+	}
+
+	/** RN-14/17/18: termina o vínculo (de ACTIVE ou PAUSED); o centro do casal em si nunca é apagado, só o
+	 * estado muda para ENDED (final — RN-17a cuida da visão de cada ex-membro, não desta classe). */
+	public void end(Instant when) {
+		if (state == CoupleState.ENDED) {
+			throw new IllegalCoupleTransitionException(state, CoupleState.ENDED);
+		}
+		this.state = CoupleState.ENDED;
+		this.endedAt = when;
+	}
+
+	private void requireCurrentState(CoupleState expected, CoupleState attemptedTarget) {
+		if (state != expected) {
+			throw new IllegalCoupleTransitionException(state, attemptedTarget);
+		}
 	}
 }

@@ -1,6 +1,7 @@
 package com.duo.relationships.internal;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -59,6 +60,18 @@ public class CouplePairing {
 
 	@Column(name = "invite_code_hash", length = 64, updatable = false)
 	private String inviteCodeHash;
+
+	@Column(name = "date_proposed_by_user_id")
+	private Long dateProposedByUserId;
+
+	@Column(name = "proposed_known_since_date")
+	private LocalDate proposedKnownSinceDate;
+
+	@Column(name = "proposed_dating_since_date")
+	private LocalDate proposedDatingSinceDate;
+
+	@Column(name = "dates_accepted_at")
+	private Instant datesAcceptedAt;
 
 	protected CouplePairing() {
 	}
@@ -172,6 +185,56 @@ public class CouplePairing {
 	private void requireTransitionFrom(PairingState target) {
 		if (state != PairingState.PENDING) {
 			throw new IllegalPairingTransitionException(state, target);
+		}
+	}
+
+	/**
+	 * P3/RN-27: propõe as duas datas do casal. Qualquer proposta nova — inclusive uma contraproposta da outra
+	 * pessoa — reabre o consenso: uma aceitação anterior é descartada.
+	 */
+	public void proposeDates(Long proposedByUserId, LocalDate knownSinceDate, LocalDate datingSinceDate) {
+		requireStillPending();
+		this.dateProposedByUserId = proposedByUserId;
+		this.proposedKnownSinceDate = knownSinceDate;
+		this.proposedDatingSinceDate = datingSinceDate;
+		this.datesAcceptedAt = null;
+	}
+
+	/** Só a outra pessoa pode aceitar — nunca quem propôs — e só existe algo para aceitar depois de uma proposta. */
+	public void acceptDates(Long acceptingUserId, Instant when) {
+		requireStillPending();
+		if (dateProposedByUserId == null) {
+			throw new IllegalStateException("Ninguém propôs datas ainda.");
+		}
+		if (dateProposedByUserId.equals(acceptingUserId)) {
+			throw new IllegalStateException("Quem propôs as datas não pode aceitar a própria proposta.");
+		}
+		this.datesAcceptedAt = when;
+	}
+
+	public boolean areDatesAccepted() {
+		return datesAcceptedAt != null;
+	}
+
+	public Long getDateProposedByUserId() {
+		return dateProposedByUserId;
+	}
+
+	public LocalDate getProposedKnownSinceDate() {
+		return proposedKnownSinceDate;
+	}
+
+	public LocalDate getProposedDatingSinceDate() {
+		return proposedDatingSinceDate;
+	}
+
+	public Instant getDatesAcceptedAt() {
+		return datesAcceptedAt;
+	}
+
+	private void requireStillPending() {
+		if (state != PairingState.PENDING) {
+			throw new IllegalStateException("O pareamento já foi decidido; não dá para propor ou aceitar datas.");
 		}
 	}
 }

@@ -55,6 +55,24 @@ ofereceria jogos interativos com perguntas "vergonha alheia", picantes etc.
   Detalhar moderação e faixa de conteúdo quando este item for priorizado.
 - **Fora do MVP mínimo e completo** (seção 11): não implementar agora.
 
+## "Pedido de namoro" para quem está solteiro no Duo (2026-11-05)
+
+Hoje o vínculo (DEC-012) assume que o casal **já namora na vida real** — é um ritual de formalizar a relação
+no Duo, não um convite para começar a namorar. O fundador trouxe uma ideia para o futuro, ao decidir a Etapa
+12/RN-29 (seção 19 do `CLAUDE.md`): alguém no Personal Universe que está conversando organicamente com outra
+pessoa dentro do próprio Duo — já tem um convívio natural, "se conheceu ali" — poderia enviar um pedido de
+namoro de verdade, como um gesto fofo (para gente perto ou longe). Isso seria um fluxo **diferente** do
+momento do vínculo de hoje.
+
+- **Depende de:** alguma forma de pessoas Personal se conhecerem e conversarem dentro do Duo — hoje isso não
+  existe (Épicos 1/2 não têm isso); conecta com a ideia de "rede social" de longo prazo, acima.
+- **Só vale para quem está Personal:** alguém que já é Couple não precisa disso — só pode ter um vínculo
+  ativo por pessoa (RN-06).
+- **Relaciona-se com a Etapa 12:** é parte do motivo de permitirmos, desde já, mais de um `CouplePairing`
+  `PENDING` por pessoa ao mesmo tempo — não custa nada deixar aberto, e evita bloquear esse caso de uso futuro
+  sem necessidade real agora.
+- **Fora do MVP mínimo e completo** (seção 11): não implementar agora.
+
 ## Fora de questão
 
 - **Cards e compartilhamento para o Instagram:** o fundador quer se distanciar dele. Não fazer.

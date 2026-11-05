@@ -291,3 +291,47 @@ isso só existe no `Service`, chamado pelos testes.
   com as duas completas, e vazio para convite por link ainda não usado).
 - **Sem tela nova nesta etapa** (decisão do fundador, 2026-11-05): a demonstração é só pelos testes — a tela
   real do vínculo é a Etapa 14, quando já houver dados reais (casal, fotos) para ligar nela.
+
+**Etapa 7 — as duas datas do casal, por consenso (concluída, P3/RN-27):**
+- `relationships/internal/CouplePairing.java` ganhou `proposeDates`/`acceptDates`: um propõe, o outro aceita
+  (nunca quem propôs) — e qualquer proposta nova (inclusive uma contraproposta) **reabre o consenso**,
+  descartando uma aceitação anterior. Guardas simples (`IllegalStateException`) impedem propor/aceitar fora de
+  `PENDING`, aceitar sem proposta, ou aceitar a própria proposta — são erros de uso, não de regra de negócio
+  (por isso não ganharam uma exceção própria, diferente da `DatesNotAcceptedException`).
+- `relationships/DatesNotAcceptedException.java`: para quando algo exigir as datas aceitas e elas ainda não
+  estiverem (a Etapa 8 vai reusar isso na hora de "firmar").
+- `relationships/CouplePairingService.java`/`internal/CouplePairingServiceImpl.java` ganharam
+  `proposeDates`/`acceptDates`/`areDatesAccepted`/`requireDatesAccepted`.
+- `db/migration/V10__add_dates_to_pairings.sql`: acrescenta a `couple_pairings` as colunas da negociação
+  (quem propôs, as duas datas propostas, quando foi aceito). As datas **finais** do casal só existem em
+  `couples` depois que ele nascer (Etapa 8) — aqui é só a negociação.
+
+**Etapa 9 — "o que levar": só a estrutura (concluída, P4/RN-09):**
+- `shared/Scope.java`: os 4 "lugares" onde algo pode morar (`PERSONAL`, `ARCHIVED`, `MEMBER_SIDE`,
+  `COUPLE_CENTER`) — decisão do fundador: mora em `shared`, não em `relationships`, porque fotos (Semana 4) e
+  memórias (Semana 5) também vão precisar dele. Tem um método, `isVisibleToPartner()` (RN-09/RN-12a).
+- `shared/Scopeable.java`: o contrato que uma entidade real (futura) vai implementar para "ter um Scope".
+- Nenhuma tabela, nenhum endpoint — só a estrutura, testada com um objeto fictício (`ScopeTest`).
+
+**Etapa 10 — pausar, retomar, sair (concluída, RN-13 a RN-18):**
+- **Refatoração:** o enum `State` que morava dentro de `Couple` virou `relationships/CoupleState.java`, um
+  tipo próprio no nível do módulo — mesmo padrão que `PairingState` já usava para `CouplePairing`. Motivo:
+  `IllegalCoupleTransitionException` (nova) precisa citar o estado num erro público, e isso só é possível se o
+  tipo não estiver escondido dentro de `internal` (regra do ArchUnit).
+- `relationships/internal/Couple.java` ganhou `pause`/`resume`/`end`: só valem a partir do estado certo
+  (`ACTIVE`→`PAUSED`, `PAUSED`→`ACTIVE`, e de qualquer um dos dois para `ENDED`, que é final).
+- `relationships/CoupleService.java` (API pública) + `internal/CoupleServiceImpl.java`: `find`/`pause`/
+  `resume`/`leave`. `leave` é a peça mais específica do Duo aqui: no MVP (RN-07, 2 membros), uma pessoa sair
+  **termina o vínculo inteiro** — por isso busca todo mundo ainda "dentro" do casal
+  (`findByCoupleIdAndLeftAtIsNull`) e marca a saída de todos de uma vez, não só de quem pediu.
+- `relationships/CoupleNotFoundException.java`: mesma ideia do `PairingNotFoundException` — só membros atuais
+  enxergam o casal (RN-12); depois que o vínculo termina, ninguém mais "encontra" esse casal por aqui.
+- Testes novos: `CoupleTest` (a máquina de estados pura) e `CoupleServiceImplTest` (contra o `duo_test` real,
+  incluindo "depois de sair, nenhum dos dois vê mais o casal").
+
+**Etapa 11 — a matriz de permissões por estado (concluída, RN-11/12/12a/13a):**
+- `relationships/CouplePermissions.java`: 4 perguntas puras sobre um `CoupleState` —
+  `canViewCoupleCenter`/`canPostToCoupleCenter`/`canPostToOwnSide`/`canUsePersonal` — exatamente a tabela do
+  `docs/epico-2-vinculo.md`. `canUsePersonal` é a RN-13a (decidida em 2026-11-05): só `true` durante `PAUSED`.
+  Ainda não é chamada por ninguém "de verdade" — é a peça que fotos/memórias vão consultar mais adiante, para
+  não reescrever essa tabela em cada módulo.

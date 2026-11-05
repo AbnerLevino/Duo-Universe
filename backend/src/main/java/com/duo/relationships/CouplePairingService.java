@@ -1,5 +1,6 @@
 package com.duo.relationships;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import com.duo.shared.RateLimitExceededException;
@@ -81,4 +82,30 @@ public interface CouplePairingService {
 	 * @throws PairingNotFoundException se o pareamento não existir ou {@code userId} não fizer parte dele
 	 */
 	Optional<StorySummary> readPartnerStory(Long pairingId, Long userId);
+
+	/**
+	 * Propõe as duas datas do casal (quando se conheceram, quando começaram a namorar) — P3/RN-27. Qualquer
+	 * proposta nova (inclusive uma contraproposta) reabre o consenso: descarta uma aceitação anterior.
+	 *
+	 * @throws PairingNotFoundException se o pareamento não existir ou {@code userId} não fizer parte dele
+	 */
+	void proposeDates(Long pairingId, Long userId, LocalDate knownSinceDate, LocalDate datingSinceDate);
+
+	/**
+	 * A outra pessoa (nunca quem propôs) aceita a proposta de datas em vigor.
+	 *
+	 * @throws PairingNotFoundException se o pareamento não existir ou {@code userId} não fizer parte dele
+	 */
+	void acceptDates(Long pairingId, Long userId);
+
+	/** RN-27: true quando as duas datas do casal já foram aceitas. */
+	boolean areDatesAccepted(Long pairingId, Long userId);
+
+	/**
+	 * A mesma checagem de {@link #areDatesAccepted}, mas falhando alto — pensado para a Etapa 8 usar na hora
+	 * de "firmar" o vínculo.
+	 *
+	 * @throws DatesNotAcceptedException se as datas ainda não tiverem sido aceitas
+	 */
+	void requireDatesAccepted(Long pairingId, Long userId);
 }

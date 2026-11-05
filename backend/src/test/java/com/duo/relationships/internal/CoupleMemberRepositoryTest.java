@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
 
+import com.duo.relationships.CoupleState;
 import com.duo.users.internal.User;
 import com.duo.users.internal.UserRepository;
 
@@ -36,7 +37,7 @@ class CoupleMemberRepositoryTest {
 	@Test
 	void savesAndFindsTheActiveMembershipOfAPerson() {
 		Long userId = newUserId("a");
-		Couple couple = couples.save(new Couple(Couple.State.ACTIVE));
+		Couple couple = couples.save(new Couple(CoupleState.ACTIVE));
 
 		members.save(new CoupleMember(couple.getId(), userId));
 
@@ -46,8 +47,8 @@ class CoupleMemberRepositoryTest {
 	@Test
 	void rejectsASecondActiveMembershipForTheSamePerson() {
 		Long userId = newUserId("b");
-		Couple first = couples.save(new Couple(Couple.State.ACTIVE));
-		Couple second = couples.save(new Couple(Couple.State.ACTIVE));
+		Couple first = couples.save(new Couple(CoupleState.ACTIVE));
+		Couple second = couples.save(new Couple(CoupleState.ACTIVE));
 		members.saveAndFlush(new CoupleMember(first.getId(), userId));
 
 		assertThatThrownBy(() -> members.saveAndFlush(new CoupleMember(second.getId(), userId)))
@@ -57,12 +58,12 @@ class CoupleMemberRepositoryTest {
 	@Test
 	void allowsANewActiveMembershipAfterLeavingTheFirstOne() {
 		Long userId = newUserId("c");
-		Couple first = couples.save(new Couple(Couple.State.ENDED));
+		Couple first = couples.save(new Couple(CoupleState.ENDED));
 		CoupleMember membership = members.saveAndFlush(new CoupleMember(first.getId(), userId));
 		membership.leave(Instant.now());
 		members.saveAndFlush(membership);
 
-		Couple second = couples.save(new Couple(Couple.State.ACTIVE));
+		Couple second = couples.save(new Couple(CoupleState.ACTIVE));
 		members.saveAndFlush(new CoupleMember(second.getId(), userId));
 
 		assertThat(members.findByUserIdAndLeftAtIsNull(userId)).isPresent();

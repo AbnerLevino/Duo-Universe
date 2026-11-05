@@ -5,10 +5,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Optional;
 
 import com.duo.relationships.Channel;
+import com.duo.relationships.CoupleState;
+import com.duo.relationships.DatesNotAcceptedException;
 import com.duo.relationships.HandleNotInvitableException;
 import com.duo.relationships.InviteCodeInvalidException;
 import com.duo.relationships.IssuedPairingInvite;
@@ -258,7 +261,7 @@ class CouplePairingServiceImplTest {
 	@Test
 	void inviteByHandleRejectsSomeoneAlreadyInARelationship() {
 		giveHandle(inviteeId, "handle_b");
-		Couple couple = couples.save(new Couple(Couple.State.ACTIVE));
+		Couple couple = couples.save(new Couple(CoupleState.ACTIVE));
 		coupleMembers.save(new CoupleMember(couple.getId(), inviteeId));
 
 		assertThatThrownBy(() -> serviceAt(NOW).inviteByHandle(initiatorId, "handle_b"))
@@ -365,5 +368,44 @@ class CouplePairingServiceImplTest {
 		writeFullStory(service, invite.pairingId(), initiatorId);
 
 		assertThat(service.readPartnerStory(invite.pairingId(), initiatorId)).isEmpty();
+	}
+
+	private static final LocalDate KNOWN_SINCE = LocalDate.of(2023, 5, 1);
+	private static final LocalDate DATING_SINCE = LocalDate.of(2023, 8, 12);
+
+	@Test
+	void datesAreNotAcceptedUntilTheOtherPersonAccepts() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+
+		service.proposeDates(pairing.id(), initiatorId, KNOWN_SINCE, DATING_SINCE);
+
+		assertThat(service.areDatesAccepted(pairing.id(), initiatorId)).isFalse();
+		assertThatThrownBy(() -> service.requireDatesAccepted(pairing.id(), initiatorId))
+				.isInstanceOf(DatesNotAcceptedException.class);
+	}
+
+	@Test
+	void theOtherPersonAcceptingTheProposalSatisfiesRequireDatesAccepted() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		service.proposeDates(pairing.id(), initiatorId, KNOWN_SINCE, DATING_SINCE);
+
+		service.acceptDates(pairing.id(), inviteeId);
+
+		assertThat(service.areDatesAccepted(pairing.id(), initiatorId)).isTrue();
+		service.requireDatesAccepted(pairing.id(), initiatorId);
+	}
+
+	@Test
+	void someoneOutsideThePairingCannotProposeOrAcceptDates() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		Long outsider = users.save(new User("sub-cp-f", "cp-f@example.com", "F")).getId();
+
+		assertThatThrownBy(() -> service.proposeDates(pairing.id(), outsider, KNOWN_SINCE, DATING_SINCE))
+				.isInstanceOf(PairingNotFoundException.class);
+		assertThatThrownBy(() -> service.acceptDates(pairing.id(), outsider))
+				.isInstanceOf(PairingNotFoundException.class);
 	}
 }

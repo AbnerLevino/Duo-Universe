@@ -7,12 +7,14 @@ import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.Optional;
 
 import com.duo.relationships.Channel;
 import com.duo.relationships.CouplePairingService;
+import com.duo.relationships.DatesNotAcceptedException;
 import com.duo.relationships.HandleNotInvitableException;
 import com.duo.relationships.InviteCodeInvalidException;
 import com.duo.relationships.IssuedPairingInvite;
@@ -166,6 +168,32 @@ class CouplePairingServiceImpl implements CouplePairingService {
 	private static StorySummary toStorySummary(CouplePairingStory story) {
 		return new StorySummary(story.getPairingId(), story.getUserId(), story.getHowWeMet(),
 				story.getTimeBeforeDating(), story.getWhatIThoughtThen(), story.getWhatIThinkNow());
+	}
+
+	@Override
+	@Transactional
+	public void proposeDates(Long pairingId, Long userId, LocalDate knownSinceDate, LocalDate datingSinceDate) {
+		findVisibleTo(pairingId, userId).proposeDates(userId, knownSinceDate, datingSinceDate);
+	}
+
+	@Override
+	@Transactional
+	public void acceptDates(Long pairingId, Long userId) {
+		findVisibleTo(pairingId, userId).acceptDates(userId, clock.instant());
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public boolean areDatesAccepted(Long pairingId, Long userId) {
+		return findVisibleTo(pairingId, userId).areDatesAccepted();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public void requireDatesAccepted(Long pairingId, Long userId) {
+		if (!areDatesAccepted(pairingId, userId)) {
+			throw new DatesNotAcceptedException();
+		}
 	}
 
 	private CouplePairing findVisibleTo(Long pairingId, Long userId) {
