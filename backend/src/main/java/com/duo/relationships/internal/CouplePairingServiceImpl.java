@@ -263,7 +263,9 @@ class CouplePairingServiceImpl implements CouplePairingService {
 	private static PairingSummary toSummary(CouplePairing pairing) {
 		return new PairingSummary(pairing.getId(), pairing.getInitiatorUserId(), pairing.getInviteeUserId(),
 				pairing.getChannel(), pairing.getState(), pairing.getExpiresAt(), pairing.getCreatedAt(),
-				pairing.getCoupleId());
+				pairing.getCoupleId(), pairing.getInitiatorConfirmedAt(), pairing.getInviteeConfirmedAt(),
+				pairing.getDateProposedByUserId(), pairing.getProposedKnownSinceDate(),
+				pairing.getProposedDatingSinceDate(), pairing.getDatesAcceptedAt());
 	}
 
 	static String hash(String raw) {

@@ -6,10 +6,19 @@ import { clearSession } from './session'
 const jsonResponse = (status: number, body?: unknown) =>
   new Response(body === undefined ? null : JSON.stringify(body), { status })
 
-const ME = { id: 1, email: 'ana@example.com', displayName: 'Ana' }
+const ME = { id: 1, email: 'ana@example.com', displayName: 'Ana', handle: 'ana' }
 const TOKEN = { accessToken: 'jwt', expiresInSeconds: 900 }
+const COUPLE = {
+  id: 1,
+  state: 'ACTIVE',
+  knownSinceDate: null,
+  datingSinceDate: null,
+  pausedAt: null,
+  endedAt: null,
+}
 
-/** Simula o backend: o que cada rota responde. */
+/** Simula o backend: o que cada rota responde. Sessão com casal ativo (o caminho mais comum nos testes
+ * abaixo) chega direto na CoupleHomeScreen, que também mostra o nome da pessoa. */
 function mockBackend(routes: Record<string, () => Response>) {
   const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const key = `${init?.method ?? 'GET'} ${String(input)}`
@@ -18,6 +27,11 @@ function mockBackend(routes: Record<string, () => Response>) {
   })
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
+}
+
+const withCouple = {
+  'GET /api/couples/mine': () => jsonResponse(200, COUPLE),
+  'GET /api/pairings/mine': () => jsonResponse(200, []),
 }
 
 describe('App', () => {
@@ -35,14 +49,37 @@ describe('App', () => {
     expect(link).toHaveAttribute('href', expect.stringContaining('/oauth2/authorization/google'))
   })
 
-  it('com sessão mostra o nome da pessoa', async () => {
+  it('com sessão e casal ativo mostra o nome da pessoa', async () => {
     mockBackend({
       'POST /api/auth/refresh': () => jsonResponse(200, TOKEN),
       'GET /api/me': () => jsonResponse(200, ME),
+      ...withCouple,
     })
     render(<App />)
 
     expect(await screen.findByRole('heading', { name: 'Ana' })).toBeInTheDocument()
+  })
+
+  it('sem @handle escolhido, manda para a tela de escolher um antes de qualquer outra coisa', async () => {
+    mockBackend({
+      'POST /api/auth/refresh': () => jsonResponse(200, TOKEN),
+      'GET /api/me': () => jsonResponse(200, { ...ME, handle: null }),
+    })
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: 'Escolha seu @handle' })).toBeInTheDocument()
+  })
+
+  it('sem casal e sem convite pendente, oferece convidar alguém', async () => {
+    mockBackend({
+      'POST /api/auth/refresh': () => jsonResponse(200, TOKEN),
+      'GET /api/me': () => jsonResponse(200, ME),
+      'GET /api/couples/mine': () => jsonResponse(204),
+      'GET /api/pairings/mine': () => jsonResponse(200, []),
+    })
+    render(<App />)
+
+    expect(await screen.findByRole('heading', { name: 'Chame a sua pessoa' })).toBeInTheDocument()
   })
 
   it('mostra o motivo quando o backend recusa o login', async () => {
@@ -58,6 +95,7 @@ describe('App', () => {
     const fetchMock = mockBackend({
       'POST /api/auth/refresh': () => jsonResponse(200, TOKEN),
       'GET /api/me': () => jsonResponse(200, ME),
+      ...withCouple,
       'POST /api/auth/logout': () => jsonResponse(204),
     })
     render(<App />)
@@ -72,6 +110,7 @@ describe('App', () => {
     const fetchMock = mockBackend({
       'POST /api/auth/refresh': () => jsonResponse(200, TOKEN),
       'GET /api/me': () => jsonResponse(200, ME),
+      ...withCouple,
       'POST /api/auth/logout-all': () => jsonResponse(204),
     })
     render(<App />)
@@ -87,6 +126,7 @@ describe('App', () => {
     const fetchMock = mockBackend({
       'POST /api/auth/refresh': () => jsonResponse(200, TOKEN),
       'GET /api/me': () => jsonResponse(200, ME),
+      ...withCouple,
     })
     render(
       <StrictMode>

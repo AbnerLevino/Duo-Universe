@@ -2,7 +2,7 @@
 // O token de acesso (JWT de 15 min) vive só na memória: nunca em localStorage nem em cookie legível.
 // O token de renovação fica num cookie HttpOnly que o JavaScript não enxerga; só o backend o usa.
 
-export type User = { id: number; email: string; displayName: string }
+export type User = { id: number; email: string; displayName: string; handle: string | null }
 
 // Em desenvolvimento o login com Google precisa começar no backend (é lá que está o redirect cadastrado
 // no Google); em produção front e back dividem a origem.

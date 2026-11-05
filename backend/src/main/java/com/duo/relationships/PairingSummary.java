@@ -1,9 +1,9 @@
 package com.duo.relationships;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
-/** O que outros módulos (e, mais adiante, os controllers) podem saber sobre um convite, sem acessar a
- * entidade JPA direto. */
+/** O que outros módulos (e os controllers) podem saber sobre um convite, sem acessar a entidade JPA direto. */
 public record PairingSummary(
 		Long id,
 		Long initiatorUserId,
@@ -12,5 +12,11 @@ public record PairingSummary(
 		PairingState state,
 		Instant expiresAt,
 		Instant createdAt,
-		Long coupleId) {
+		Long coupleId,
+		Instant initiatorConfirmedAt,
+		Instant inviteeConfirmedAt,
+		Long dateProposedByUserId,
+		LocalDate proposedKnownSinceDate,
+		LocalDate proposedDatingSinceDate,
+		Instant datesAcceptedAt) {
 }

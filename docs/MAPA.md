@@ -164,6 +164,46 @@ frontend → GET /api/me (Bearer) → quem sou eu
 JWT venceu (401) → refresh de novo → repete a chamada
 ```
 
+## Épico 2 — frontend (Etapa 14)
+
+- `src/api.ts` (novo): todas as chamadas HTTP do vínculo (convidar, firmar, história, datas, pausar/sair),
+  mais os tipos TypeScript espelhando os DTOs do backend (`Pairing`, `Couple`, `Story`). Uma função central,
+  `call<T>`, cuida de três coisas: usa sempre `authedFetch` (nunca `fetch` direto, pra não perder o token);
+  trata `204 No Content` como `null` (é assim que `/api/couples/mine` diz "você não tem casal ainda"); e
+  traduz qualquer erro HTTP num `ApiError` (com a mensagem que o `GlobalExceptionHandler` do backend mandou),
+  pra cada tela mostrar algo sensato em vez de travar.
+- `src/session.ts`: o tipo `User` ganhou `handle: string | null` — o `/api/me` já devolvia isso, só faltava
+  o frontend saber.
+- **`react-router-dom` (nova dependência):** antes, `App.tsx` só trocava de tela com `useState`. Isso não dá
+  conta de um link de convite de verdade (`/convite/ABC123`, mandado por fora do app, que precisa abrir numa
+  tela específica) sem reinventar parte de um roteador na mão. Zero custo (biblioteca de código aberto,
+  padrão em apps React).
+- **As telas novas, uma por arquivo** (`HandleSetupScreen`, `InviteScreen`, `AcceptInviteScreen`,
+  `ConfirmScreen`, `StoryScreen`, `DateConsensusScreen`, `CoupleHomeScreen` — substitui a antiga
+  `HomeScreen.tsx`, removida) e `Dashboard.tsx`: a peça que decide pra onde mandar a pessoa ao abrir o app,
+  sem ela saber nenhum id de antemão — consulta `/api/couples/mine` e `/api/pairings/mine` e navega pro
+  lugar certo (sem @handle → escolher um; com casal → `/casal`; com convite pendente → a tela de firmar; nada
+  disso → convidar alguém).
+- `App.tsx`: continua decidindo só *loading/anônimo/autenticado* (como antes); uma vez autenticado, quem
+  decide a tela certa dentro do vínculo é o roteador (`<Routes>`), não mais um `useState` só.
+- **Limitação conhecida, documentada no código** (`AcceptInviteScreen.tsx`): se alguém clica num link de
+  convite sem estar logado, ou logado mas sem @handle ainda, o link se perde depois do login/da escolha do
+  handle (o app não guarda "pra onde eu ia antes de parar"). Aceitável para o piloto; resolver isso de verdade
+  precisaria de mais uma peça (guardar o destino, repassar pelo redirect do Google) — não implementado agora,
+  pra não aumentar o escopo sem necessidade real ainda.
+- **Sem tempo real ainda** (combinado, é o Bloco D mais pra frente): `ConfirmScreen` não avisa sozinha quando
+  a outra pessoa confirma — a pessoa atualiza manualmente.
+- `src/App.test.tsx`: reescrito — autenticar agora passa pelo `Dashboard` antes de chegar numa tela, então os
+  testes existentes precisaram de mocks novos (`/api/couples/mine`, `/api/pairings/mine`). Dois testes novos:
+  sem @handle vai pra tela de escolher um; sem casal e sem convite vai pra tela de convidar.
+- `src/api.test.ts` (novo): o `call()` central — sucesso, `204 → null`, erro traduzido com a mensagem do
+  backend, erro sem corpo não quebra.
+- **Cobertura que ficou de fora, por tempo:** não há testes dedicados para `AcceptInviteScreen`,
+  `ConfirmScreen`, `StoryScreen`, `DateConsensusScreen` ou `CoupleHomeScreen` isoladas — só o caminho
+  principal, via `App.test.tsx`. Vale voltar aqui quando o fluxo estiver sendo usado de verdade.
+- **Não rodei `npm install`/`npm test`/`npm run build` nesta sessão** — este ambiente não tem Node.js
+  instalado (diferente do backend, que tem o JDK baixado pelo Gradle). Precisa confirmar no seu terminal.
+
 ## Épico 2 — o vínculo (módulo `relationships`, em andamento)
 
 Especificação aprovada em `docs/epico-2-vinculo.md`; progresso etapa a etapa na seção 19 do `CLAUDE.md`.
