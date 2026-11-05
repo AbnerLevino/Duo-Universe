@@ -84,6 +84,15 @@ public class Couple {
 		return endedAt;
 	}
 
+	/**
+	 * RN-28: o Couple nasce sem datas (Etapa 8) — elas só existem depois que o pareamento de origem tem as
+	 * duas aceitas (Etapa 7, já com o vínculo firmado). Chamado por {@code CouplePairingServiceImpl.acceptDates}.
+	 */
+	public void recordDates(LocalDate knownSinceDate, LocalDate datingSinceDate) {
+		this.knownSinceDate = knownSinceDate;
+		this.datingSinceDate = datingSinceDate;
+	}
+
 	/** RN-13: qualquer membro pausa sozinho; nada é apagado — só o estado muda. */
 	public void pause(Instant when) {
 		requireCurrentState(CoupleState.ACTIVE, CoupleState.PAUSED);

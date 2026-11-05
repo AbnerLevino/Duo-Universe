@@ -22,6 +22,15 @@ class CouplePairingTest {
 		return new CouplePairing(1L, 2L, Channel.HANDLE, NOW.plusSeconds(60));
 	}
 
+	/** As duas pessoas já confirmaram (RN-08) — estado em que história e datas passam a ser permitidas. */
+	private CouplePairing confirmed() {
+		CouplePairing pairing = pending();
+		pairing.recordConfirmation(1L, NOW);
+		pairing.recordConfirmation(2L, NOW);
+		pairing.markConfirmed(NOW, 42L);
+		return pairing;
+	}
+
 	@Test
 	void startsAsPending() {
 		assertThat(pending().getState()).isEqualTo(PairingState.PENDING);
@@ -61,6 +70,44 @@ class CouplePairingTest {
 		pairing.cancel(NOW);
 
 		assertThatThrownBy(() -> pairing.markConfirmed(NOW, 42L))
+				.isInstanceOf(IllegalPairingTransitionException.class);
+	}
+
+	@Test
+	void recordConfirmationIsNotEnoughAloneToBeFullyConfirmed() {
+		CouplePairing pairing = pending();
+
+		pairing.recordConfirmation(1L, NOW);
+
+		assertThat(pairing.getInitiatorConfirmedAt()).isEqualTo(NOW);
+		assertThat(pairing.getInviteeConfirmedAt()).isNull();
+		assertThat(pairing.isFullyConfirmed()).isFalse();
+	}
+
+	@Test
+	void isFullyConfirmedOnlyOnceBothSidesRecorded() {
+		CouplePairing pairing = pending();
+
+		pairing.recordConfirmation(2L, NOW);
+		assertThat(pairing.isFullyConfirmed()).isFalse();
+
+		pairing.recordConfirmation(1L, NOW);
+		assertThat(pairing.isFullyConfirmed()).isTrue();
+	}
+
+	@Test
+	void recordConfirmationRejectsSomeoneOutsideThePairing() {
+		CouplePairing pairing = pending();
+
+		assertThatThrownBy(() -> pairing.recordConfirmation(99L, NOW)).isInstanceOf(IllegalArgumentException.class);
+	}
+
+	@Test
+	void cannotRecordConfirmationOnceThePairingIsDecided() {
+		CouplePairing pairing = pending();
+		pairing.cancel(NOW);
+
+		assertThatThrownBy(() -> pairing.recordConfirmation(1L, NOW))
 				.isInstanceOf(IllegalPairingTransitionException.class);
 	}
 
@@ -118,8 +165,23 @@ class CouplePairingTest {
 	private static final LocalDate DATING_SINCE = LocalDate.of(2023, 8, 12);
 
 	@Test
-	void proposeDatesRecordsTheProposerAndTheDates() {
+	void proposeDatesRequiresThePairingToBeConfirmedFirst() {
 		CouplePairing pairing = pending();
+
+		assertThatThrownBy(() -> pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE))
+				.isInstanceOf(IllegalStateException.class);
+	}
+
+	@Test
+	void acceptDatesAlsoRequiresThePairingToBeConfirmedFirst() {
+		CouplePairing pairing = pending();
+
+		assertThatThrownBy(() -> pairing.acceptDates(2L, NOW)).isInstanceOf(IllegalStateException.class);
+	}
+
+	@Test
+	void proposeDatesRecordsTheProposerAndTheDates() {
+		CouplePairing pairing = confirmed();
 
 		pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE);
 
@@ -131,14 +193,14 @@ class CouplePairingTest {
 
 	@Test
 	void acceptDatesRequiresAPriorProposal() {
-		CouplePairing pairing = pending();
+		CouplePairing pairing = confirmed();
 
 		assertThatThrownBy(() -> pairing.acceptDates(2L, NOW)).isInstanceOf(IllegalStateException.class);
 	}
 
 	@Test
 	void theProposerCannotAcceptTheirOwnProposal() {
-		CouplePairing pairing = pending();
+		CouplePairing pairing = confirmed();
 		pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE);
 
 		assertThatThrownBy(() -> pairing.acceptDates(1L, NOW)).isInstanceOf(IllegalStateException.class);
@@ -146,7 +208,7 @@ class CouplePairingTest {
 
 	@Test
 	void theOtherPersonAcceptingMarksTheDatesAsAccepted() {
-		CouplePairing pairing = pending();
+		CouplePairing pairing = confirmed();
 		pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE);
 
 		pairing.acceptDates(2L, NOW);
@@ -157,7 +219,7 @@ class CouplePairingTest {
 
 	@Test
 	void aNewProposalReopensConsensusAndDiscardsAPreviousAcceptance() {
-		CouplePairing pairing = pending();
+		CouplePairing pairing = confirmed();
 		pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE);
 		pairing.acceptDates(2L, NOW);
 
@@ -177,19 +239,9 @@ class CouplePairingTest {
 		assertThatThrownBy(() -> pairing.acceptDates(2L, NOW)).isInstanceOf(IllegalStateException.class);
 	}
 
-	@Test
-	void cancellingErasesTheDateProposal() {
-		CouplePairing pairing = pending();
-		pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE);
-		pairing.acceptDates(2L, NOW);
-
-		pairing.cancel(NOW);
-
-		assertThat(pairing.getDateProposedByUserId()).isNull();
-		assertThat(pairing.getProposedKnownSinceDate()).isNull();
-		assertThat(pairing.getProposedDatingSinceDate()).isNull();
-		assertThat(pairing.areDatesAccepted()).isFalse();
-	}
+	// Não existe mais um teste "cancelar apaga a proposta de datas": pela ordem nova (firmar primeiro),
+	// propor datas exige CONFIRMED e cancelar exige PENDING — os dois nunca acontecem com o mesmo pareamento,
+	// então esse cenário não é mais alcançável pela API pública (ver o comentário em CouplePairing.cancel).
 
 	private CouplePairing linkPairingWithoutInvitee() {
 		return new CouplePairing(1L, null, Channel.LINK, NOW.plusSeconds(60), "hash-do-codigo");

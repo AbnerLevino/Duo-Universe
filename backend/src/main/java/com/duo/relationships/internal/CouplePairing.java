@@ -73,6 +73,12 @@ public class CouplePairing {
 	@Column(name = "dates_accepted_at")
 	private Instant datesAcceptedAt;
 
+	@Column(name = "initiator_confirmed_at")
+	private Instant initiatorConfirmedAt;
+
+	@Column(name = "invitee_confirmed_at")
+	private Instant inviteeConfirmedAt;
+
 	protected CouplePairing() {
 	}
 
@@ -154,7 +160,13 @@ public class CouplePairing {
 		throw new IllegalArgumentException("userId não participa deste pareamento");
 	}
 
-	/** RN-29: recusa, cancelamento e expiração levam ao mesmo estado final (ver a matriz em docs/epico-2-vinculo.md). */
+	/**
+	 * RN-29: recusa, cancelamento e expiração levam ao mesmo estado final (ver a matriz em docs/epico-2-vinculo.md).
+	 * Só é possível a partir de {@code PENDING} — e, pela ordem nova (firmar primeiro, história e datas
+	 * depois), só existe rascunho de data para apagar aqui num cenário que a própria máquina de estados já
+	 * não deixa mais acontecer (propor data exige {@code CONFIRMED}, e um pareamento {@code CONFIRMED} não
+	 * cancela mais). Mantido mesmo assim, como limpeza defensiva, sem custo.
+	 */
 	public void cancel(Instant when) {
 		requireTransitionFrom(PairingState.CANCELLED);
 		this.state = PairingState.CANCELLED;
@@ -162,8 +174,6 @@ public class CouplePairing {
 		eraseDateProposal();
 	}
 
-	/** RN-29: um pareamento cancelado não guarda rascunho de data nenhum — a história (tabela separada) é
-	 * apagada por quem chama {@link #cancel}, não por esta entidade (ver CouplePairingServiceImpl). */
 	private void eraseDateProposal() {
 		this.dateProposedByUserId = null;
 		this.proposedKnownSinceDate = null;
@@ -184,12 +194,44 @@ public class CouplePairing {
 		this.inviteeUserId = inviteeUserId;
 	}
 
-	/** Usado pela Etapa 8, quando os dois lados já confirmaram e o Couple nasceu. */
+	/** Chamado quando os dois lados já confirmaram e o Couple acabou de nascer (ver CouplePairingServiceImpl.confirm). */
 	public void markConfirmed(Instant when, Long coupleId) {
 		requireTransitionFrom(PairingState.CONFIRMED);
 		this.state = PairingState.CONFIRMED;
 		this.decidedAt = when;
 		this.coupleId = coupleId;
+	}
+
+	/**
+	 * RN-08: cada pessoa confirma a sua parte; o pareamento só muda para {@code CONFIRMED} quando
+	 * {@link #isFullyConfirmed()} for true e {@link #markConfirmed} for chamado (decisão de
+	 * CouplePairingServiceImpl, não desta entidade — ela só registra "esta pessoa já confirmou").
+	 */
+	public void recordConfirmation(Long userId, Instant when) {
+		if (state != PairingState.PENDING) {
+			throw new IllegalPairingTransitionException(state, PairingState.CONFIRMED);
+		}
+		if (initiatorUserId.equals(userId)) {
+			this.initiatorConfirmedAt = when;
+		}
+		else if (inviteeUserId != null && inviteeUserId.equals(userId)) {
+			this.inviteeConfirmedAt = when;
+		}
+		else {
+			throw new IllegalArgumentException("userId não participa deste pareamento");
+		}
+	}
+
+	public boolean isFullyConfirmed() {
+		return initiatorConfirmedAt != null && inviteeConfirmedAt != null;
+	}
+
+	public Instant getInitiatorConfirmedAt() {
+		return initiatorConfirmedAt;
+	}
+
+	public Instant getInviteeConfirmedAt() {
+		return inviteeConfirmedAt;
 	}
 
 	private void requireTransitionFrom(PairingState target) {
@@ -200,10 +242,12 @@ public class CouplePairing {
 
 	/**
 	 * P3/RN-27: propõe as duas datas do casal. Qualquer proposta nova — inclusive uma contraproposta da outra
-	 * pessoa — reabre o consenso: uma aceitação anterior é descartada.
+	 * pessoa — reabre o consenso: uma aceitação anterior é descartada. Só funciona depois de {@code CONFIRMED}
+	 * (decisão do fundador em 2026-11-05: o vínculo firma primeiro, história e datas vêm depois, já dentro do
+	 * Couple Universe nascido).
 	 */
 	public void proposeDates(Long proposedByUserId, LocalDate knownSinceDate, LocalDate datingSinceDate) {
-		requireStillPending();
+		requireConfirmed();
 		this.dateProposedByUserId = proposedByUserId;
 		this.proposedKnownSinceDate = knownSinceDate;
 		this.proposedDatingSinceDate = datingSinceDate;
@@ -212,7 +256,7 @@ public class CouplePairing {
 
 	/** Só a outra pessoa pode aceitar — nunca quem propôs — e só existe algo para aceitar depois de uma proposta. */
 	public void acceptDates(Long acceptingUserId, Instant when) {
-		requireStillPending();
+		requireConfirmed();
 		if (dateProposedByUserId == null) {
 			throw new IllegalStateException("Ninguém propôs datas ainda.");
 		}
@@ -242,9 +286,14 @@ public class CouplePairing {
 		return datesAcceptedAt;
 	}
 
-	private void requireStillPending() {
-		if (state != PairingState.PENDING) {
-			throw new IllegalStateException("O pareamento já foi decidido; não dá para propor ou aceitar datas.");
+	/**
+	 * Visível ao pacote (não só a esta classe) de propósito: {@code CouplePairingServiceImpl} reusa esta
+	 * mesma checagem antes de deixar gravar um passo da história (RN-25) — é a mesma regra, "só depois de
+	 * firmado", só que a história mora numa tabela separada (ver docs/MAPA.md, Etapa 6).
+	 */
+	void requireConfirmed() {
+		if (state != PairingState.CONFIRMED) {
+			throw new IllegalStateException("O vínculo ainda não foi firmado.");
 		}
 	}
 }

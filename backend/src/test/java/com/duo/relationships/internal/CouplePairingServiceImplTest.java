@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Optional;
 
+import com.duo.relationships.AlreadyInRelationshipException;
 import com.duo.relationships.Channel;
 import com.duo.relationships.CoupleState;
 import com.duo.relationships.DatesNotAcceptedException;
@@ -72,8 +73,15 @@ class CouplePairingServiceImplTest {
 	}
 
 	private CouplePairingServiceImpl serviceAt(Instant now, RateLimiter rateLimiter) {
-		return new CouplePairingServiceImpl(
-				pairings, coupleMembers, stories, fakeUserService(), rateLimiter, Clock.fixed(now, ZoneOffset.UTC));
+		return new CouplePairingServiceImpl(pairings, couples, coupleMembers, stories, fakeUserService(),
+				rateLimiter, new CoupleFactory(couples, coupleMembers), Clock.fixed(now, ZoneOffset.UTC));
+	}
+
+	/** As duas pessoas já confirmaram (RN-08) — o Couple nasceu, vazio; história e datas já podem ser escritas. */
+	private PairingSummary confirmedPairing(CouplePairingServiceImpl service) {
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		service.confirm(pairing.id(), initiatorId);
+		return service.confirm(pairing.id(), inviteeId);
 	}
 
 	/**
@@ -284,9 +292,19 @@ class CouplePairingServiceImplTest {
 	}
 
 	@Test
-	void savingAStoryDraftNeverRequiresAllFourStepsAtOnce() {
+	void savingAStoryDraftRequiresTheBondToBeFirmedFirst() {
 		CouplePairingServiceImpl service = serviceAt(NOW);
 		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+
+		assertThatThrownBy(
+				() -> service.saveStoryDraft(pairing.id(), initiatorId, StoryStep.HOW_WE_MET, "Nos conhecemos."))
+				.isInstanceOf(IllegalStateException.class);
+	}
+
+	@Test
+	void savingAStoryDraftNeverRequiresAllFourStepsAtOnce() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = confirmedPairing(service);
 
 		service.saveStoryDraft(pairing.id(), initiatorId, StoryStep.HOW_WE_MET, "Nos conhecemos numa festa.");
 
@@ -296,7 +314,7 @@ class CouplePairingServiceImplTest {
 	@Test
 	void savingAStoryDraftDoesNotEnforceAMinimumLength() {
 		CouplePairingServiceImpl service = serviceAt(NOW);
-		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		PairingSummary pairing = confirmedPairing(service);
 
 		service.saveStoryDraft(pairing.id(), initiatorId, StoryStep.HOW_WE_MET, "oi");
 		service.saveStoryDraft(pairing.id(), initiatorId, StoryStep.TIME_BEFORE_DATING, "oi");
@@ -330,7 +348,7 @@ class CouplePairingServiceImplTest {
 	@Test
 	void requireStoryCompleteDoesNotThrowOnceAllFourStepsHaveText() {
 		CouplePairingServiceImpl service = serviceAt(NOW);
-		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		PairingSummary pairing = confirmedPairing(service);
 		writeFullStory(service, pairing.id(), initiatorId);
 
 		service.requireStoryComplete(pairing.id(), initiatorId);
@@ -339,7 +357,7 @@ class CouplePairingServiceImplTest {
 	@Test
 	void readPartnerStoryStaysEmptyWhileOnlyOneSideIsComplete() {
 		CouplePairingServiceImpl service = serviceAt(NOW);
-		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		PairingSummary pairing = confirmedPairing(service);
 		writeFullStory(service, pairing.id(), initiatorId);
 
 		assertThat(service.readPartnerStory(pairing.id(), inviteeId)).isEmpty();
@@ -348,7 +366,7 @@ class CouplePairingServiceImplTest {
 	@Test
 	void readPartnerStoryRevealsBothSidesOnceBothAreComplete() {
 		CouplePairingServiceImpl service = serviceAt(NOW);
-		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		PairingSummary pairing = confirmedPairing(service);
 		writeFullStory(service, pairing.id(), initiatorId);
 		writeFullStory(service, pairing.id(), inviteeId);
 
@@ -363,9 +381,10 @@ class CouplePairingServiceImplTest {
 
 	@Test
 	void readPartnerStoryIsEmptyForALinkInviteThatNobodyRedeemedYet() {
+		// Sem convidado, o pareamento nunca fica CONFIRMED (isFullyConfirmed exige os dois lados) — então
+		// nem dá pra escrever a própria história ainda; só resta confirmar que não existe parceiro nenhum.
 		CouplePairingServiceImpl service = serviceAt(NOW);
 		IssuedPairingInvite invite = service.inviteByLink(initiatorId);
-		writeFullStory(service, invite.pairingId(), initiatorId);
 
 		assertThat(service.readPartnerStory(invite.pairingId(), initiatorId)).isEmpty();
 	}
@@ -374,9 +393,18 @@ class CouplePairingServiceImplTest {
 	private static final LocalDate DATING_SINCE = LocalDate.of(2023, 8, 12);
 
 	@Test
-	void datesAreNotAcceptedUntilTheOtherPersonAccepts() {
+	void proposingDatesRequiresTheBondToBeFirmedFirst() {
 		CouplePairingServiceImpl service = serviceAt(NOW);
 		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+
+		assertThatThrownBy(() -> service.proposeDates(pairing.id(), initiatorId, KNOWN_SINCE, DATING_SINCE))
+				.isInstanceOf(IllegalStateException.class);
+	}
+
+	@Test
+	void datesAreNotAcceptedUntilTheOtherPersonAccepts() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = confirmedPairing(service);
 
 		service.proposeDates(pairing.id(), initiatorId, KNOWN_SINCE, DATING_SINCE);
 
@@ -388,13 +416,27 @@ class CouplePairingServiceImplTest {
 	@Test
 	void theOtherPersonAcceptingTheProposalSatisfiesRequireDatesAccepted() {
 		CouplePairingServiceImpl service = serviceAt(NOW);
-		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		PairingSummary pairing = confirmedPairing(service);
 		service.proposeDates(pairing.id(), initiatorId, KNOWN_SINCE, DATING_SINCE);
 
 		service.acceptDates(pairing.id(), inviteeId);
 
 		assertThat(service.areDatesAccepted(pairing.id(), initiatorId)).isTrue();
 		service.requireDatesAccepted(pairing.id(), initiatorId);
+	}
+
+	@Test
+	void acceptingDatesCopiesThemOntoTheAlreadyBornCouple() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = confirmedPairing(service);
+		service.proposeDates(pairing.id(), initiatorId, KNOWN_SINCE, DATING_SINCE);
+
+		service.acceptDates(pairing.id(), inviteeId);
+
+		Long coupleId = pairings.findById(pairing.id()).orElseThrow().getCoupleId();
+		Couple couple = couples.findById(coupleId).orElseThrow();
+		assertThat(couple.getKnownSinceDate()).isEqualTo(KNOWN_SINCE);
+		assertThat(couple.getDatingSinceDate()).isEqualTo(DATING_SINCE);
 	}
 
 	@Test
@@ -409,29 +451,91 @@ class CouplePairingServiceImplTest {
 				.isInstanceOf(PairingNotFoundException.class);
 	}
 
+	// Os testes "cancelar/expirar apaga a história" (RN-29, Etapa 12) não são mais alcançáveis pela API
+	// pública: escrever história exige CONFIRMED, e cancelar/expirar só acontece a partir de PENDING — os
+	// dois nunca coexistem no mesmo pareamento. O código de limpeza (cancelAndEraseDrafts) continua ali,
+	// defensivo e inofensivo, mesma situação da proposta de datas (ver CouplePairing.cancel).
+
 	@Test
-	void cancellingAPendingPairingErasesBothStories() {
+	void confirmRecordsOneSideWithoutBirthingTheCoupleYet() {
 		CouplePairingServiceImpl service = serviceAt(NOW);
 		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
-		writeFullStory(service, pairing.id(), initiatorId);
-		writeFullStory(service, pairing.id(), inviteeId);
 
-		service.cancel(pairing.id(), initiatorId);
+		PairingSummary afterOneConfirmation = service.confirm(pairing.id(), initiatorId);
 
-		assertThat(stories.findByPairingIdAndUserId(pairing.id(), initiatorId)).isEmpty();
-		assertThat(stories.findByPairingIdAndUserId(pairing.id(), inviteeId)).isEmpty();
+		assertThat(afterOneConfirmation.state()).isEqualTo(PairingState.PENDING);
+		assertThat(pairings.findById(pairing.id()).orElseThrow().getCoupleId()).isNull();
 	}
 
 	@Test
-	void aPairingThatExpiresOnItsOwnAlsoErasesTheStories() {
+	void confirmBirthsAnEmptyCoupleOnceBothSidesHaveConfirmed() {
 		CouplePairingServiceImpl service = serviceAt(NOW);
 		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
-		writeFullStory(service, pairing.id(), initiatorId);
+		service.confirm(pairing.id(), initiatorId);
+
+		PairingSummary afterBothConfirmed = service.confirm(pairing.id(), inviteeId);
+
+		assertThat(afterBothConfirmed.state()).isEqualTo(PairingState.CONFIRMED);
+		Long coupleId = pairings.findById(pairing.id()).orElseThrow().getCoupleId();
+		assertThat(coupleId).isNotNull();
+		Couple couple = couples.findById(coupleId).orElseThrow();
+		assertThat(couple.getState()).isEqualTo(CoupleState.ACTIVE);
+		assertThat(couple.getKnownSinceDate()).isNull();
+		assertThat(coupleMembers.findByCoupleIdAndLeftAtIsNull(coupleId)).hasSize(2);
+	}
+
+	@Test
+	void confirmOnAnExpiredPairingCancelsItInsteadOfConfirming() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
 		Instant afterExpiry = NOW.plus(CouplePairingServiceImpl.TTL).plusSeconds(1);
 
-		serviceAt(afterExpiry).find(pairing.id(), initiatorId);
+		PairingSummary result = serviceAt(afterExpiry).confirm(pairing.id(), initiatorId);
 
-		assertThat(stories.findByPairingIdAndUserId(pairing.id(), initiatorId)).isEmpty();
+		assertThat(result.state()).isEqualTo(PairingState.CANCELLED);
+	}
+
+	@Test
+	void someoneOutsideThePairingCannotConfirmIt() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		Long outsider = users.save(new User("sub-cp-h", "cp-h@example.com", "H")).getId();
+
+		assertThatThrownBy(() -> service.confirm(pairing.id(), outsider)).isInstanceOf(PairingNotFoundException.class);
+	}
+
+	@Test
+	void confirmingAgainOnAnAlreadyConfirmedPairingIsAnIllegalTransition() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		PairingSummary pairing = confirmedPairing(service);
+
+		assertThatThrownBy(() -> service.confirm(pairing.id(), initiatorId))
+				.isInstanceOf(com.duo.relationships.IllegalPairingTransitionException.class);
+	}
+
+	/**
+	 * RN-06, a segunda corrida: a mesma pessoa confirma dois pareamentos diferentes. O índice único do banco
+	 * (desde a Etapa 1) recusa o segundo CoupleMember; o {@code REQUIRES_NEW} do CoupleFactory garante que só
+	 * o nascimento do segundo Couple desfaz — a confirmação em si (gravada por fora) continua valendo.
+	 */
+	@Test
+	void confirmingASecondPairingForSomeoneAlreadyInARelationshipFailsButKeepsTheConfirmation() {
+		CouplePairingServiceImpl service = serviceAt(NOW);
+		Long otherPartner = users.save(new User("sub-cp-i", "cp-i@example.com", "I")).getId();
+		PairingSummary firstPairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
+		service.confirm(firstPairing.id(), initiatorId);
+		service.confirm(firstPairing.id(), inviteeId);
+		PairingSummary secondPairing = service.initiate(initiatorId, otherPartner, Channel.HANDLE);
+		service.confirm(secondPairing.id(), initiatorId);
+
+		assertThatThrownBy(() -> service.confirm(secondPairing.id(), otherPartner))
+				.isInstanceOf(AlreadyInRelationshipException.class);
+
+		CouplePairing stored = pairings.findById(secondPairing.id()).orElseThrow();
+		assertThat(stored.getInitiatorConfirmedAt()).isNotNull();
+		assertThat(stored.getInviteeConfirmedAt()).isNotNull();
+		assertThat(stored.isFullyConfirmed()).isTrue();
+		assertThat(stored.getState()).isEqualTo(PairingState.PENDING);
 	}
 
 	@Test

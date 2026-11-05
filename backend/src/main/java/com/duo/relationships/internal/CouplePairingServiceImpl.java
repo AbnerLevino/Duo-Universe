@@ -12,6 +12,7 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.Optional;
 
+import com.duo.relationships.AlreadyInRelationshipException;
 import com.duo.relationships.Channel;
 import com.duo.relationships.CouplePairingService;
 import com.duo.relationships.DatesNotAcceptedException;
@@ -47,19 +48,24 @@ class CouplePairingServiceImpl implements CouplePairingService {
 
 	private final SecureRandom random = new SecureRandom();
 	private final CouplePairingRepository pairings;
+	private final CoupleRepository couples;
 	private final CoupleMemberRepository coupleMembers;
 	private final CouplePairingStoryRepository stories;
 	private final UserService users;
 	private final RateLimiter rateLimiter;
+	private final CoupleFactory coupleFactory;
 	private final Clock clock;
 
-	CouplePairingServiceImpl(CouplePairingRepository pairings, CoupleMemberRepository coupleMembers,
-			CouplePairingStoryRepository stories, UserService users, RateLimiter rateLimiter, Clock clock) {
+	CouplePairingServiceImpl(CouplePairingRepository pairings, CoupleRepository couples,
+			CoupleMemberRepository coupleMembers, CouplePairingStoryRepository stories, UserService users,
+			RateLimiter rateLimiter, CoupleFactory coupleFactory, Clock clock) {
 		this.pairings = pairings;
+		this.couples = couples;
 		this.coupleMembers = coupleMembers;
 		this.stories = stories;
 		this.users = users;
 		this.rateLimiter = rateLimiter;
+		this.coupleFactory = coupleFactory;
 		this.clock = clock;
 	}
 
@@ -126,10 +132,39 @@ class CouplePairingServiceImpl implements CouplePairingService {
 		return toSummary(pairing);
 	}
 
+	/**
+	 * RN-08: trava a linha do pareamento ({@code findByIdForUpdate}) para que as duas confirmações do mesmo
+	 * pareamento nunca sejam processadas "ao mesmo tempo" — sem isso, as duas poderiam ler o dado antes da
+	 * outra escrever, e uma confirmação legítima se perderia (um "lost update" clássico).
+	 *
+	 * <p>{@code noRollbackFor}: se {@link CoupleFactory#createFrom} falhar porque a pessoa já está em outro
+	 * vínculo (RN-06), a exceção escapa até aqui — mas sem essa anotação, o Spring desfaria esta transação
+	 * inteira, inclusive a confirmação (gravada por {@code recordConfirmation}, logo abaixo) que é legítima e
+	 * deve continuar valendo.
+	 */
+	@Override
+	@Transactional(noRollbackFor = AlreadyInRelationshipException.class)
+	public PairingSummary confirm(Long pairingId, Long userId) {
+		CouplePairing pairing = pairings.findByIdForUpdate(pairingId)
+			.filter(p -> p.involves(userId))
+			.orElseThrow(PairingNotFoundException::new);
+		Instant now = clock.instant();
+		if (pairing.isExpired(now)) {
+			cancelAndEraseDrafts(pairing, now);
+			return toSummary(pairing);
+		}
+		pairing.recordConfirmation(userId, now);
+		if (pairing.isFullyConfirmed()) {
+			Long coupleId = coupleFactory.createFrom(pairing.getInitiatorUserId(), pairing.getInviteeUserId());
+			pairing.markConfirmed(now, coupleId);
+		}
+		return toSummary(pairing);
+	}
+
 	@Override
 	@Transactional
 	public void saveStoryDraft(Long pairingId, Long userId, StoryStep step, String text) {
-		findVisibleTo(pairingId, userId);
+		findVisibleTo(pairingId, userId).requireConfirmed();
 		CouplePairingStory story = stories.findByPairingIdAndUserId(pairingId, userId)
 			.orElseGet(() -> stories.save(new CouplePairingStory(pairingId, userId)));
 		story.updateStep(step, text);
@@ -179,7 +214,12 @@ class CouplePairingServiceImpl implements CouplePairingService {
 	@Override
 	@Transactional
 	public void acceptDates(Long pairingId, Long userId) {
-		findVisibleTo(pairingId, userId).acceptDates(userId, clock.instant());
+		CouplePairing pairing = findVisibleTo(pairingId, userId);
+		pairing.acceptDates(userId, clock.instant());
+		// RN-28: o Couple nasceu vazio (Etapa 8); agora que as duas datas foram aceitas, copiamos para ele —
+		// coupleId nunca é nulo aqui, porque acceptDates só funciona com o pareamento já CONFIRMED.
+		Couple couple = couples.findById(pairing.getCoupleId()).orElseThrow();
+		couple.recordDates(pairing.getProposedKnownSinceDate(), pairing.getProposedDatingSinceDate());
 	}
 
 	@Override

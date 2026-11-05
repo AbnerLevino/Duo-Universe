@@ -50,16 +50,25 @@ guardar a história no Duo. O conceito do ritual continua sendo especial e pode 
 
 ## O fluxo
 
+> **Revisado em 2026-11-05 (decisão do fundador, Etapa 8):** o vínculo firma **primeiro** — logo depois do
+> convite aceito, sem precisar de história nem de datas prontas. História e datas só existem **depois**, já
+> dentro do Couple Universe nascido. A ordem antiga (escrever a história antes de firmar) foi abandonada: o
+> `CouplePairing`, uma vez `CONFIRMED`, vira o registro permanente de origem do casal (é por isso que ele já
+> carrega `couple_id` desde a Etapa 1) — história e datas continuam nele, só que preenchidas depois.
+
 1. A inicia e busca B pelo **@handle exato** dentro do Duo (padrão) ou gera um **link com código** para enviar por
    fora (alternativa, ex.: B ainda não tem conta ou A não sabe o @handle). O sistema cria um `CouplePairing`
    `PENDING`; o convite por link também carrega um código que expira em 7 dias e vale uma única vez.
 2. B aceita o convite recebido no próprio Duo, ou entra com o código/link (já logado com Google em ambos os casos).
-3. Cada um escreve a sua história em **passos curtos**, tudo obrigatório, com rascunho salvo.
-4. Os dois combinam as duas datas do casal (V4).
-5. Cada um confirma ("firmar"). Só com os dois confirmados o `Couple` nasce como `ACTIVE` (RN-08).
-6. As duas histórias são reveladas **ao mesmo tempo**.
+3. Cada um confirma ("firmar"). Só com os dois confirmados o `Couple` nasce **vazio** como `ACTIVE` (RN-08).
+4. Já dentro do Couple Universe nascido: cada um escreve a sua história em **passos curtos**, tudo obrigatório,
+   com rascunho salvo (RN-25).
+5. Os dois combinam as duas datas do casal (RN-27) — assim que aceitas, são copiadas para o `Couple` (RN-28).
+6. As duas histórias são reveladas **ao mesmo tempo**, assim que as duas estiverem completas (RN-26).
 
-Se o pareamento expira ou alguém desiste, os rascunhos são **apagados** (minimização de dados, LGPD).
+Se o pareamento expira ou é cancelado **antes de firmar** (único momento em que isso pode acontecer, já que um
+pareamento `CONFIRMED` não cancela mais), nenhum rascunho existe ainda para apagar — a limpeza de RN-29 segue
+no código, por segurança, mas não tem mais nada para fazer na prática (ver `docs/MAPA.md`, Etapa 8).
 
 ### Como cada um conta a sua história (passos)
 

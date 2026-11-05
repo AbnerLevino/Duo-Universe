@@ -329,6 +329,53 @@ isso só existe no `Service`, chamado pelos testes.
 - Testes novos: `CoupleTest` (a máquina de estados pura) e `CoupleServiceImplTest` (contra o `duo_test` real,
   incluindo "depois de sair, nenhum dos dois vê mais o casal").
 
+**Etapa 8 — firmar o vínculo e nascer o `Couple` (concluída, RN-06/RN-08):**
+- **Mudança de plano, decidida pelo fundador nesta etapa:** o vínculo firma **primeiro**; história e datas só
+  existem depois, já dentro do Couple Universe nascido (antes era o contrário). Isso simplificou o `confirm`
+  (não precisa mais checar história/data antes de firmar) e mudou a trava de `proposeDates`/`saveStoryDraft`
+  de "enquanto `PENDING`" para "só depois de `CONFIRMED`" — ver `docs/epico-2-vinculo.md` para o fluxo novo.
+- `relationships/internal/CouplePairing.java` ganhou `recordConfirmation`/`isFullyConfirmed` (cada pessoa
+  confirma a sua parte; só quando as duas confirmaram é que o `Couple` nasce) e um `requireConfirmed()`
+  (visível ao pacote) que `proposeDates`/`acceptDates` e o `saveStoryDraft` do serviço passaram a usar.
+- `relationships/internal/Couple.java` ganhou `recordDates(...)`: o `Couple` nasce vazio (sem data de
+  conhecer/namorar); essas datas só chegam depois, quando as duas são aceitas no `CouplePairing` (RN-28).
+- `relationships/internal/CouplePairingRepository.java` ganhou `findByIdForUpdate`, com
+  `@Lock(PESSIMISTIC_WRITE)` — trava a linha do pareamento até a transação terminar, mesmo truque do
+  `RefreshTokenRepository`. **Por quê:** sem isso, as duas confirmações do mesmo pareamento (uma de cada
+  pessoa) poderiam ler o banco "ao mesmo tempo" e uma delas se perderia (um "lost update" clássico) — foi
+  provado com um teste (abaixo) que falha, de forma consistente, sem a trava.
+- `relationships/internal/CoupleFactory.java` (novo, `@Component` próprio — precisa ser uma classe separada
+  porque o Spring só aplica `@Transactional` através de um proxy em volta do *bean*, e uma chamada de um
+  método para outro **dentro da mesma classe** não passa por esse proxy): cria o `Couple` + os 2
+  `CoupleMember` numa transação **própria e independente** (`@Transactional(propagation = REQUIRES_NEW)`).
+  Se o índice único de RN-06 recusar (a pessoa já está em outro vínculo), só essa transação de dentro desfaz
+  — vira `AlreadyInRelationshipException` (novo, em `relationships`).
+- `relationships/internal/CouplePairingServiceImpl.java` ganhou `confirm(pairingId, userId)`:
+  trava a linha, confere se já venceu (cancela e sai, se sim), grava a confirmação, e — só quando as duas já
+  confirmaram — chama o `CoupleFactory` e marca o pareamento `CONFIRMED`. Anotado com
+  `@Transactional(noRollbackFor = AlreadyInRelationshipException.class)`: sem isso, se o nascimento do
+  `Couple` falhar (a segunda corrida, abaixo), o Spring desfaria a transação inteira — inclusive a
+  confirmação legítima que acabou de ser gravada.
+- **Duas corridas, duas peças diferentes:**
+  1. **Os dois membros do mesmo pareamento confirmando ao mesmo tempo** — resolvida pela trava
+     (`findByIdForUpdate`) acima.
+  2. **A mesma pessoa confirmando dois pareamentos diferentes ao mesmo tempo** — a trava de um pareamento não
+     protege o outro (são linhas diferentes); quem impede a pessoa de ficar em dois vínculos é o índice único
+     do banco (RN-06, desde a Etapa 1). A peça nova aqui não é uma trava, é a **reação correta** à recusa do
+     banco: `REQUIRES_NEW` + `noRollbackFor` (acima) garantem que só o nascimento do segundo `Couple` falha —
+     a confirmação da pessoa continua valendo, o pareamento "perdedor" fica com as duas confirmações
+     gravadas mas sem `Couple` nenhum (um limbo raro, aceitável para o MVP).
+- `relationships/internal/CouplePairingConcurrencyTest.java` (novo, **primeiro teste do tipo no projeto**):
+  prova as duas corridas acima com threads de verdade (`ExecutorService` + `CountDownLatch`, sincronizadas
+  para disparar "ao mesmo tempo"). Usa `@SpringBootTest` em vez do `@DataJpaTest` do resto do módulo: um
+  objeto criado com `new CouplePairingServiceImpl(...)` nunca passa pelo proxy que o Spring usa para aplicar
+  `@Transactional`/`@Lock` — fora do Spring essas anotações não fazem nada. Precisa do bean de verdade,
+  gerenciado pelo Spring, para a trava e a transação separada funcionarem de verdade. Sem a transação de
+  teste que os outros têm (que desfaz tudo sozinha no final), cada teste limpa manualmente o que criou.
+  **Verificado à mão nesta sessão:** tirando a trava de propósito, o primeiro teste falha de forma
+  consistente (5 de 5 execuções) — prova de que o teste realmente pega o problema, não só que "não dá erro".
+- 18 testes novos (entre a entidade, o serviço e a concorrência), 146 no total. `./gradlew build` verde.
+
 **Etapa 11 — a matriz de permissões por estado (concluída, RN-11/12/12a/13a):**
 - `relationships/CouplePermissions.java`: 4 perguntas puras sobre um `CoupleState` —
   `canViewCoupleCenter`/`canPostToCoupleCenter`/`canPostToOwnSide`/`canUsePersonal` — exatamente a tabela do

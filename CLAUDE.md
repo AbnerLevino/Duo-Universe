@@ -726,11 +726,32 @@ no piloto) decididas em 2026-11-05; domínio próprio; termos de uso e política
   outras duas decisões da etapa (limpeza lazy; múltiplos `PENDING` por pessoa permitidos) não pediram código —
   só ganharam um teste de regressão. 4 testes novos, 132 no total, `./gradlew build` verde. Detalhe em
   `docs/MAPA.md`.
-- **Próximo passo: Etapa 8 (firmar o vínculo e nascer o `Couple` — RN-06/08).** É a etapa mais delicada do
-  épico (teste de concorrência real); fica para uma sessão com o fundador presente para decidir junto, como
-  combinado. Pendência anterior, ainda sem mudança: identidade visual / protótipo da tela inicial — o fundador
-  trouxe um esboço (`~/Downloads/DUO Universe.png`) só como referência visual; ainda não virou protótipo nem
-  código.
+- **Etapa 8 — concluída em 2026-11-05, com o fundador presente (RN-06/RN-08).**
+  - **Mudança de plano decidida pelo fundador nesta etapa:** o vínculo firma **primeiro** (logo depois do
+    convite aceito, sem exigir história nem datas prontas); história e datas só existem **depois**, já dentro
+    do Couple Universe nascido. Isso revisa a ordem antiga do fluxo (`docs/epico-2-vinculo.md`, atualizado) e
+    simplificou o `confirm()` (não checa mais história/data como pré-requisito).
+  - `CouplePairing` ganhou `recordConfirmation`/`isFullyConfirmed`; a trava de `proposeDates`/`acceptDates`/
+    `saveStoryDraft` virou "só depois de `CONFIRMED`" (antes era "enquanto `PENDING`"). `Couple` ganhou
+    `recordDates(...)` (nasce vazio; as datas chegam depois, copiadas do `CouplePairing` quando aceitas).
+  - **Duas corridas resolvidas com peças diferentes:** (1) os dois membros do mesmo pareamento confirmando ao
+    mesmo tempo — resolvida com `@Lock(PESSIMISTIC_WRITE)` em `findByIdForUpdate` (mesmo padrão do
+    `RefreshToken`); (2) a mesma pessoa confirmando dois pareamentos diferentes ao mesmo tempo — resolvida
+    pelo índice único do banco (RN-06, já existia desde a Etapa 1) mais `CoupleFactory` (novo `@Component`)
+    rodando em transação própria (`REQUIRES_NEW`) com `noRollbackFor`, para que só o nascimento do segundo
+    `Couple` desfaça — a confirmação legítima da pessoa continua gravada. Nova exceção:
+    `AlreadyInRelationshipException`.
+  - **Primeiro teste de concorrência real do projeto** (`CouplePairingConcurrencyTest`, threads de verdade via
+    `ExecutorService`+`CountDownLatch`, `@SpringBootTest` em vez de `@DataJpaTest` — um objeto criado com
+    `new` nunca passa pelo proxy do Spring que aplica `@Transactional`/`@Lock`). **Verificado nesta sessão:**
+    tirando a trava de propósito, o teste da primeira corrida falha de forma consistente (5 de 5) — prova de
+    que o teste realmente pega o bug, não só "não dá erro".
+  - 18 testes novos, 146 no total. `./gradlew build` verde. Detalhe completo em `docs/MAPA.md`.
+- **Próximo passo: Etapa 12 já está feita (ver acima) — falta a Etapa 13 (exposição HTTP:
+  `CouplePairingController`/`CoupleController`) e a Etapa 14 (telas do vínculo no frontend).** Antes da Etapa
+  13: decisão pendente sobre `try/catch` manual por controller vs. `@RestControllerAdvice` central (regra 8).
+  Pendência anterior, ainda sem mudança: identidade visual / protótipo da tela inicial — o fundador trouxe um
+  esboço (`~/Downloads/DUO Universe.png`) só como referência visual; ainda não virou protótipo nem código.
 
 ### Roteiro restante do Épico 2 (Etapas 4 a 18 — plano aprovado em 2026-11-04)
 
@@ -830,6 +851,7 @@ no piloto) decididas em 2026-11-05; domínio próprio; termos de uso e política
 | Etapa 9 (2026-11-05) | **`Scope` (`PERSONAL`/`ARCHIVED`/`MEMBER_SIDE`/`COUPLE_CENTER`, P4/RN-09) mora em `shared` desde já** — não é regra do vínculo, é algo que fotos (Semana 4) e memórias (Semana 5) também vão usar. |
 | Etapa 12 (2026-11-05) | **Limpeza de rascunho continua lazy** (sem `@Scheduled`). **Mais de um `CouplePairing` `PENDING` por pessoa, ao mesmo tempo: permitido**, sem índice único bloqueando — o fundador quer deixar essa porta aberta para um fluxo futuro ("pedido de namoro" entre pessoas Personal que se conheceram organicamente dentro do Duo, registrado em `docs/IDEIAS.md`; fora do MVP). RN-06 continua valendo — só é verificada na hora de **firmar** (Etapa 8), não na hora de convidar; ver "casos de borda" em `docs/epico-2-vinculo.md`. |
 | Etapa 8 (2026-11-05) | **Esclarecimento, sem mudar o desenho da etapa:** o vínculo de hoje (DEC-012) não é um "pedido de namoro" — pressupõe que o casal já namora. Um fluxo de pedido de namoro de verdade (gesto fofo, para perto ou longe) é ideia para depois, registrada em `docs/IDEIAS.md`, não faz parte do MVP. |
+| Etapa 8 — ordem do fluxo (2026-11-05) | **O vínculo firma primeiro; história e datas vêm depois.** Revisa a ordem original do fluxo (`docs/epico-2-vinculo.md`): antes a história/datas eram pré-requisito para firmar; agora firmar é o primeiro passo depois do convite aceito, e o `Couple` nasce vazio — história e datas são atividades de dentro do Couple Universe já nascido. Motivo do fundador: a história é "sobre nós", só faz sentido perguntar depois que o vínculo existe de verdade. |
 
 ### Princípios reafirmados pelo fundador
 - **Pressão e conflito** são assunto do casal: o app dá os meios (privar, excluir, editar) e o casal conversa.

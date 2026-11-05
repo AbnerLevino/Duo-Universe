@@ -108,4 +108,17 @@ public interface CouplePairingService {
 	 * @throws DatesNotAcceptedException se as datas ainda não tiverem sido aceitas
 	 */
 	void requireDatesAccepted(Long pairingId, Long userId);
+
+	/**
+	 * RN-08: {@code userId} confirma a sua parte do vínculo ("firmar"). Quando as duas pessoas já
+	 * confirmaram, o {@code Couple} nasce (vazio — RN-06/RN-07) e o pareamento vira {@code CONFIRMED}; só
+	 * depois disso é que história ({@link #saveStoryDraft}) e datas ({@link #proposeDates}) podem ser
+	 * escritas (decisão de 2026-11-05: firmar primeiro, perguntas depois).
+	 *
+	 * @throws PairingNotFoundException se o pareamento não existir ou {@code userId} não fizer parte dele
+	 * @throws AlreadyInRelationshipException se {@code userId} já estiver em outro vínculo ACTIVE/PAUSED
+	 *         (RN-06) no instante em que o Couple tentar nascer — a confirmação de {@code userId} continua
+	 *         registrada mesmo assim
+	 */
+	PairingSummary confirm(Long pairingId, Long userId);
 }
