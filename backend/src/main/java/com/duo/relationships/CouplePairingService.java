@@ -1,6 +1,7 @@
 package com.duo.relationships;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import com.duo.shared.RateLimitExceededException;
@@ -121,4 +122,8 @@ public interface CouplePairingService {
 	 *         registrada mesmo assim
 	 */
 	PairingSummary confirm(Long pairingId, Long userId);
+
+	/** Etapa 13: os pareamentos ainda {@code PENDING} onde {@code userId} participa — é o que o app consulta
+	 * ao abrir, para saber se há um convite esperando resposta. */
+	List<PairingSummary> findPendingForUser(Long userId);
 }

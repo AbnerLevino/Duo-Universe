@@ -14,6 +14,7 @@ import com.duo.relationships.Channel;
 import com.duo.relationships.CoupleState;
 import com.duo.relationships.DatesNotAcceptedException;
 import com.duo.relationships.HandleNotInvitableException;
+import com.duo.relationships.IllegalPairingOperationException;
 import com.duo.relationships.InviteCodeInvalidException;
 import com.duo.relationships.IssuedPairingInvite;
 import com.duo.relationships.PairingNotFoundException;
@@ -298,7 +299,7 @@ class CouplePairingServiceImplTest {
 
 		assertThatThrownBy(
 				() -> service.saveStoryDraft(pairing.id(), initiatorId, StoryStep.HOW_WE_MET, "Nos conhecemos."))
-				.isInstanceOf(IllegalStateException.class);
+				.isInstanceOf(IllegalPairingOperationException.class);
 	}
 
 	@Test
@@ -398,7 +399,7 @@ class CouplePairingServiceImplTest {
 		PairingSummary pairing = service.initiate(initiatorId, inviteeId, Channel.HANDLE);
 
 		assertThatThrownBy(() -> service.proposeDates(pairing.id(), initiatorId, KNOWN_SINCE, DATING_SINCE))
-				.isInstanceOf(IllegalStateException.class);
+				.isInstanceOf(IllegalPairingOperationException.class);
 	}
 
 	@Test

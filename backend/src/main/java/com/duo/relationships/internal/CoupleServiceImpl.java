@@ -3,6 +3,7 @@ package com.duo.relationships.internal;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import com.duo.relationships.CoupleNotFoundException;
 import com.duo.relationships.CoupleService;
@@ -28,6 +29,14 @@ class CoupleServiceImpl implements CoupleService {
 	@Transactional(readOnly = true)
 	public CoupleSummary find(Long coupleId, Long userId) {
 		return toSummary(findVisibleTo(coupleId, userId));
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Optional<CoupleSummary> findActiveForUser(Long userId) {
+		return members.findByUserIdAndLeftAtIsNull(userId)
+			.flatMap(member -> couples.findById(member.getCoupleId()))
+			.map(CoupleServiceImpl::toSummary);
 	}
 
 	@Override

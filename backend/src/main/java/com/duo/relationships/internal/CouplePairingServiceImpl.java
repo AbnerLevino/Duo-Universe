@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Optional;
 
 import com.duo.relationships.AlreadyInRelationshipException;
@@ -20,6 +21,7 @@ import com.duo.relationships.HandleNotInvitableException;
 import com.duo.relationships.InviteCodeInvalidException;
 import com.duo.relationships.IssuedPairingInvite;
 import com.duo.relationships.PairingNotFoundException;
+import com.duo.relationships.PairingState;
 import com.duo.relationships.PairingSummary;
 import com.duo.relationships.StoryIncompleteException;
 import com.duo.relationships.StoryStep;
@@ -244,6 +246,14 @@ class CouplePairingServiceImpl implements CouplePairingService {
 		stories.deleteAllByPairingId(pairing.getId());
 	}
 
+	@Override
+	@Transactional(readOnly = true)
+	public List<PairingSummary> findPendingForUser(Long userId) {
+		return pairings.findByUserIdAndState(userId, PairingState.PENDING).stream()
+			.map(CouplePairingServiceImpl::toSummary)
+			.toList();
+	}
+
 	private CouplePairing findVisibleTo(Long pairingId, Long userId) {
 		return pairings.findById(pairingId)
 			.filter(pairing -> pairing.involves(userId))
@@ -252,7 +262,8 @@ class CouplePairingServiceImpl implements CouplePairingService {
 
 	private static PairingSummary toSummary(CouplePairing pairing) {
 		return new PairingSummary(pairing.getId(), pairing.getInitiatorUserId(), pairing.getInviteeUserId(),
-				pairing.getChannel(), pairing.getState(), pairing.getExpiresAt(), pairing.getCreatedAt());
+				pairing.getChannel(), pairing.getState(), pairing.getExpiresAt(), pairing.getCreatedAt(),
+				pairing.getCoupleId());
 	}
 
 	static String hash(String raw) {

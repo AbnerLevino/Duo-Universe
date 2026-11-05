@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 import com.duo.relationships.Channel;
+import com.duo.relationships.IllegalPairingOperationException;
 import com.duo.relationships.IllegalPairingTransitionException;
 import com.duo.relationships.InviteCodeInvalidException;
 import com.duo.relationships.PairingState;
@@ -169,14 +170,14 @@ class CouplePairingTest {
 		CouplePairing pairing = pending();
 
 		assertThatThrownBy(() -> pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE))
-				.isInstanceOf(IllegalStateException.class);
+				.isInstanceOf(IllegalPairingOperationException.class);
 	}
 
 	@Test
 	void acceptDatesAlsoRequiresThePairingToBeConfirmedFirst() {
 		CouplePairing pairing = pending();
 
-		assertThatThrownBy(() -> pairing.acceptDates(2L, NOW)).isInstanceOf(IllegalStateException.class);
+		assertThatThrownBy(() -> pairing.acceptDates(2L, NOW)).isInstanceOf(IllegalPairingOperationException.class);
 	}
 
 	@Test
@@ -195,7 +196,7 @@ class CouplePairingTest {
 	void acceptDatesRequiresAPriorProposal() {
 		CouplePairing pairing = confirmed();
 
-		assertThatThrownBy(() -> pairing.acceptDates(2L, NOW)).isInstanceOf(IllegalStateException.class);
+		assertThatThrownBy(() -> pairing.acceptDates(2L, NOW)).isInstanceOf(IllegalPairingOperationException.class);
 	}
 
 	@Test
@@ -203,7 +204,7 @@ class CouplePairingTest {
 		CouplePairing pairing = confirmed();
 		pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE);
 
-		assertThatThrownBy(() -> pairing.acceptDates(1L, NOW)).isInstanceOf(IllegalStateException.class);
+		assertThatThrownBy(() -> pairing.acceptDates(1L, NOW)).isInstanceOf(IllegalPairingOperationException.class);
 	}
 
 	@Test
@@ -235,8 +236,8 @@ class CouplePairingTest {
 		pairing.cancel(NOW);
 
 		assertThatThrownBy(() -> pairing.proposeDates(1L, KNOWN_SINCE, DATING_SINCE))
-				.isInstanceOf(IllegalStateException.class);
-		assertThatThrownBy(() -> pairing.acceptDates(2L, NOW)).isInstanceOf(IllegalStateException.class);
+				.isInstanceOf(IllegalPairingOperationException.class);
+		assertThatThrownBy(() -> pairing.acceptDates(2L, NOW)).isInstanceOf(IllegalPairingOperationException.class);
 	}
 
 	// Não existe mais um teste "cancelar apaga a proposta de datas": pela ordem nova (firmar primeiro),

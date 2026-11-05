@@ -1,9 +1,13 @@
 package com.duo.relationships;
 
+import com.duo.shared.DuoHttpException;
+
+import org.springframework.http.HttpStatus;
+
 /** RN-25: pelo menos um dos 4 passos da história ainda está vazio. */
-public class StoryIncompleteException extends RuntimeException {
+public class StoryIncompleteException extends DuoHttpException {
 
 	public StoryIncompleteException() {
-		super("A história ainda não está completa.");
+		super(HttpStatus.CONFLICT, "A história ainda não está completa.");
 	}
 }

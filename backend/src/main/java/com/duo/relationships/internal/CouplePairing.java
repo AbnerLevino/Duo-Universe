@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.duo.relationships.Channel;
+import com.duo.relationships.IllegalPairingOperationException;
 import com.duo.relationships.IllegalPairingTransitionException;
 import com.duo.relationships.InviteCodeInvalidException;
 import com.duo.relationships.PairingState;
@@ -258,10 +259,10 @@ public class CouplePairing {
 	public void acceptDates(Long acceptingUserId, Instant when) {
 		requireConfirmed();
 		if (dateProposedByUserId == null) {
-			throw new IllegalStateException("Ninguém propôs datas ainda.");
+			throw new IllegalPairingOperationException("Ninguém propôs datas ainda.");
 		}
 		if (dateProposedByUserId.equals(acceptingUserId)) {
-			throw new IllegalStateException("Quem propôs as datas não pode aceitar a própria proposta.");
+			throw new IllegalPairingOperationException("Quem propôs as datas não pode aceitar a própria proposta.");
 		}
 		this.datesAcceptedAt = when;
 	}
@@ -293,7 +294,7 @@ public class CouplePairing {
 	 */
 	void requireConfirmed() {
 		if (state != PairingState.CONFIRMED) {
-			throw new IllegalStateException("O vínculo ainda não foi firmado.");
+			throw new IllegalPairingOperationException("O vínculo ainda não foi firmado.");
 		}
 	}
 }

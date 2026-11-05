@@ -1,10 +1,14 @@
 package com.duo.relationships;
 
+import com.duo.shared.DuoHttpException;
+
+import org.springframework.http.HttpStatus;
+
 /** RN-27: as duas datas do casal (quando se conheceram, quando começaram a namorar) ainda não foram aceitas
  * pelos dois — falta alguém propor, ou falta a outra pessoa aceitar. */
-public class DatesNotAcceptedException extends RuntimeException {
+public class DatesNotAcceptedException extends DuoHttpException {
 
 	public DatesNotAcceptedException() {
-		super("As datas do casal ainda não foram aceitas pelos dois.");
+		super(HttpStatus.CONFLICT, "As datas do casal ainda não foram aceitas pelos dois.");
 	}
 }

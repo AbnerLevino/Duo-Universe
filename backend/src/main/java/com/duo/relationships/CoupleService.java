@@ -1,5 +1,7 @@
 package com.duo.relationships;
 
+import java.util.Optional;
+
 /**
  * API pública do Couple Universe depois de nascido: pausar, retomar e sair (RN-13 a RN-18). O nascimento em
  * si (a partir de um {@code CouplePairing} confirmado) chega na Etapa 8, por {@code CouplePairingService}.
@@ -12,6 +14,10 @@ public interface CoupleService {
 	 * @throws CoupleNotFoundException se não existir ou se {@code userId} não for membro ativo dele
 	 */
 	CoupleSummary find(Long coupleId, Long userId);
+
+	/** Etapa 13: o casal ativo de {@code userId}, se tiver — é o que o app consulta ao abrir, sem saber o id
+	 * de nada ainda. Vazio tanto para quem está Personal quanto, por ora, para quem já foi membro e saiu. */
+	Optional<CoupleSummary> findActiveForUser(Long userId);
 
 	/**
 	 * RN-13: qualquer membro pausa sozinho; nada é apagado. Só funciona a partir de {@code ACTIVE}.

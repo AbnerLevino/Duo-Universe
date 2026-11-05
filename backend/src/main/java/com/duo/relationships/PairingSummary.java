@@ -11,5 +11,6 @@ public record PairingSummary(
 		Channel channel,
 		PairingState state,
 		Instant expiresAt,
-		Instant createdAt) {
+		Instant createdAt,
+		Long coupleId) {
 }

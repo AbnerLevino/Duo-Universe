@@ -376,6 +376,46 @@ isso só existe no `Service`, chamado pelos testes.
   consistente (5 de 5 execuções) — prova de que o teste realmente pega o problema, não só que "não dá erro".
 - 18 testes novos (entre a entidade, o serviço e a concorrência), 146 no total. `./gradlew build` verde.
 
+**Etapa 13 — exposição HTTP (concluída):**
+- `shared/DuoHttpException.java` (novo): classe-base para exceções de negócio que viram resposta HTTP direto
+  — cada exceção já sabe o próprio status (`httpStatus()`). Criada porque a primeira tentativa (o
+  `GlobalExceptionHandler` importando cada exceção de `relationships`/`users` direto) criou um **ciclo de
+  módulos** (`shared` dependendo de volta de quem já depende de `shared`) — o `ArchitectureTest` pegou isso.
+  Com a base em `shared`, a dependência só vai num sentido: os módulos dependem de `shared`, nunca o
+  contrário. Todas as exceções de negócio do projeto (`PairingNotFoundException`, `CoupleNotFoundException`,
+  `HandleTakenException`, `RateLimitExceededException` etc.) agora estendem essa classe em vez de
+  `RuntimeException` direto.
+- `shared/GlobalExceptionHandler.java` (novo, `@RestControllerAdvice`): um método só, que pega qualquer
+  `DuoHttpException` e devolve um `ProblemDetail` (formato de erro HTTP padronizado, já incluso no Spring —
+  não é dependência nova) com o status que a própria exceção definiu.
+- `relationships/IllegalPairingOperationException.java` (novo): peguei dois `IllegalStateException` que
+  existiam dentro de `CouplePairing` (ex.: tentar escrever a história antes de firmar) e troquei por essa
+  exceção própria — sem isso, o `GlobalExceptionHandler` não sabia traduzi-los e a API devolvia 500 em vez
+  de 409.
+- `shared/SecurityConfig.java`: o parâmetro do `@Bean securityFilterChain` trocou de
+  `GoogleLoginSuccessHandler` (tipo concreto, de `auth`) para `AuthenticationSuccessHandler` (a interface do
+  próprio Spring Security) — mesma causa raiz do ciclo acima: `shared` dependia de `auth`, que depende de
+  `users`, que (com o `DuoHttpException`) passou a depender de `shared`. Dependendo da interface, o Spring
+  ainda encontra e injeta o mesmo bean, mas o `ArchUnit` não vê mais a ligação `shared → auth`.
+- `relationships/CouplePairingController.java` e `relationships/CoupleController.java` (novos): só chamam o
+  `Service` — nunca repositório direto (regra verificada pelo `ArchitectureTest`). A pessoa autenticada vem
+  sempre do token (`@AuthenticationPrincipal Jwt`), nunca de um id do pedido (RN-20).
+- `users/UserController.java` (novo): só `PUT /api/me/handle` — a Etapa 14 (`HandleSetupScreen`) usa isso.
+- `relationships/CouplePairingService.java`/`CoupleService.java` ganharam `findPendingForUser`/
+  `findActiveForUser` — sem isso, o app não teria como saber, ao abrir, se a pessoa tem um convite esperando
+  ou um casal ativo (não dá pra perguntar "me mostra o pareamento X" sem saber o id de X primeiro).
+- `relationships/PairingSummary.java` ganhou o campo `coupleId` — faltava, e o frontend precisa saber pra
+  onde navegar assim que o vínculo firma.
+- `relationships/RelationshipsHttpTest.java` (novo, testes de ponta a ponta via `MockMvc`): o fluxo inteiro
+  (convidar → firmar → escrever história → ver o casal) passando pelos controllers de verdade, mais os
+  testes de acesso cruzado (RN-12/RN-20: quem não participa nunca enxerga, sempre 404). **Sem
+  `@Transactional` de propósito** (diferente do `SessionFlowTest`) — mesma razão do `CouplePairingConcurrencyTest`
+  (Etapa 8): o `CoupleFactory` roda numa transação própria (`REQUIRES_NEW`), que usa uma conexão separada e
+  não enxergaria usuários ainda não commitados por uma transação de teste em volta de tudo. A limpeza manual
+  no `@AfterEach` usa um `TransactionTemplate` explícito, porque `@Transactional` posto direto num método de
+  `@AfterEach` não é interceptado pelo Spring (esse mecanismo só olha o método de `@Test`).
+- 7 testes novos, 151 no total. `./gradlew build` verde.
+
 **Etapa 11 — a matriz de permissões por estado (concluída, RN-11/12/12a/13a):**
 - `relationships/CouplePermissions.java`: 4 perguntas puras sobre um `CoupleState` —
   `canViewCoupleCenter`/`canPostToCoupleCenter`/`canPostToOwnSide`/`canUsePersonal` — exatamente a tabela do

@@ -747,11 +747,19 @@ no piloto) decididas em 2026-11-05; domínio próprio; termos de uso e política
     tirando a trava de propósito, o teste da primeira corrida falha de forma consistente (5 de 5) — prova de
     que o teste realmente pega o bug, não só "não dá erro".
   - 18 testes novos, 146 no total. `./gradlew build` verde. Detalhe completo em `docs/MAPA.md`.
-- **Próximo passo: Etapa 12 já está feita (ver acima) — falta a Etapa 13 (exposição HTTP:
-  `CouplePairingController`/`CoupleController`) e a Etapa 14 (telas do vínculo no frontend).** Antes da Etapa
-  13: decisão pendente sobre `try/catch` manual por controller vs. `@RestControllerAdvice` central (regra 8).
-  Pendência anterior, ainda sem mudança: identidade visual / protótipo da tela inicial — o fundador trouxe um
-  esboço (`~/Downloads/DUO Universe.png`) só como referência visual; ainda não virou protótipo nem código.
+- **Etapa 13 — concluída em 2026-11-05 (exposição HTTP).** Decisão do fundador: `@RestControllerAdvice`
+  central (não `try/catch` por controller). `CouplePairingController`/`CoupleController`/`UserController`
+  novos; `ProblemDetail` (do próprio Spring) para o formato de erro. **Efeito colateral descoberto no
+  caminho:** a primeira versão do `GlobalExceptionHandler` (importando cada exceção de `relationships`/`users`
+  direto) criou um ciclo de módulos — resolvido com uma classe-base `DuoHttpException` em `shared` (os
+  módulos dependem dela, nunca o contrário) e trocando `SecurityConfig`'s dependência de `GoogleLoginSuccessHandler`
+  (tipo concreto) pela interface `AuthenticationSuccessHandler` do Spring Security. 7 testes novos
+  (`RelationshipsHttpTest`, via `MockMvc`, incluindo acesso cruzado RN-12/RN-20), 151 no total, build verde.
+  Detalhe completo em `docs/MAPA.md`.
+- **Próximo passo: Etapa 14 (telas do vínculo no frontend) — em andamento.** `react-router` confirmado pelo
+  fundador. Pendência anterior, ainda sem mudança: identidade visual / protótipo da tela inicial — o fundador
+  trouxe um esboço (`~/Downloads/DUO Universe.png`) só como referência visual; ainda não virou protótipo nem
+  código.
 
 ### Roteiro restante do Épico 2 (Etapas 4 a 18 — plano aprovado em 2026-11-04)
 

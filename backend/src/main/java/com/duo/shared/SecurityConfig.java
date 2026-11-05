@@ -1,7 +1,5 @@
 package com.duo.shared;
 
-import com.duo.auth.GoogleLoginSuccessHandler;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -10,6 +8,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
 /**
@@ -21,8 +20,15 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 @Configuration
 public class SecurityConfig {
 
+	/**
+	 * O parâmetro é a interface do próprio Spring Security, não {@code GoogleLoginSuccessHandler} direto: se
+	 * fosse o tipo concreto, {@code shared} passaria a depender de {@code auth} — e {@code auth} já depende
+	 * de {@code users}, que (Etapa 13) passou a depender de {@code shared} para o {@code DuoHttpException} —
+	 * fechando um ciclo entre os três módulos. Dependendo da interface, o Spring ainda encontra e injeta o
+	 * único bean que a implementa ({@code GoogleLoginSuccessHandler}), mas o ArchUnit não vê mais a ligação.
+	 */
 	@Bean
-	SecurityFilterChain securityFilterChain(HttpSecurity http, GoogleLoginSuccessHandler googleLoginSuccessHandler)
+	SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationSuccessHandler googleLoginSuccessHandler)
 			throws Exception {
 		http
 			.csrf(AbstractHttpConfigurer::disable)
