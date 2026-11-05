@@ -1,5 +1,7 @@
 package com.duo.relationships;
 
+import com.duo.shared.RateLimitExceededException;
+
 /**
  * API pública do convite para o vínculo (DEC-012). Nesta etapa: só nascer, cancelar e expirar — o convite de
  * verdade por @handle/link chega nas Etapas 3 e 5; confirmar os dois lados e nascer o {@code Couple} chega na
@@ -12,6 +14,16 @@ public interface CouplePairingService {
 	 * quando o convite ainda não tem destinatário certo (ex.: por link, antes de ser usado — Etapa 3).
 	 */
 	PairingSummary initiate(Long initiatorUserId, Long inviteeUserId, Channel channel);
+
+	/**
+	 * Convite pelo caminho padrão: busca B por um @handle exato (RN-30). Handle inexistente, handle da
+	 * própria pessoa que está convidando, e handle de alguém já em vínculo ACTIVE/PAUSED caem na mesma
+	 * exceção genérica (RA-07/DEC-031) — não revela qual dos três motivos é o real.
+	 *
+	 * @throws HandleNotInvitableException se o handle não puder ser convidado agora
+	 * @throws RateLimitExceededException se {@code initiatorUserId} excedeu as tentativas permitidas (RA-08)
+	 */
+	PairingSummary inviteByHandle(Long initiatorUserId, String handle);
 
 	/** Qualquer uma das duas pessoas pode desistir, a qualquer momento, enquanto o pareamento está PENDING. */
 	void cancel(Long pairingId, Long userId);

@@ -145,8 +145,10 @@ A comunicação destaca o vínculo e o casal, nunca "um lugar para guardar fotos
   - **Lado de cada um:** onde cada pessoa posta os próprios momentos; o parceiro vê, porque é um só universo.
 - **No momento do vínculo, cada pessoa escolhe o que leva** da vida de solteira para o seu lado (diploma, viagens,
   família). O que não for levado fica guardado, privado e invisível, e volta para ela se sair do vínculo.
-- **No término:** o que cada um postou no próprio lado e o que estava guardado volta para a pessoa.
-  O destino do centro do casal está em aberto (Q-17).
+- **No término:** o que cada um postou no próprio lado e o que estava guardado volta para a pessoa. O centro
+  do casal nunca é apagado (RN-17/RN-18); cada ex-membro escolhe, individualmente, esconder o centro do casal
+  da própria visão — a escolha de um não afeta o que o outro vê, e qualquer um pode desfazer depois (Q-17,
+  decidido em 2026-11-05).
 
 ### Princípios
 
@@ -197,7 +199,7 @@ Convenção decidida: **código e banco em inglês; interface em português.**
 | C-02 "Convites" | **Resolvido:** a experiência nunca é de "convite"; backend genérico (DEC-012) |
 | C-03 Edição livre vs. proteção | **Encaminhado:** edição livre + lixeira; prazo e exclusão em massa em aberto (Q-04, Q-19) |
 | C-04 Personal permanente | **Resolvido:** modelo "eu → nós" (DEC-002) |
-| C-05 Término e memórias | **Parcial:** lado de cada um e arquivados voltam à pessoa; centro do casal em aberto (Q-17) |
+| C-05 Término e memórias | **Resolvido:** lado de cada um e arquivados voltam à pessoa; centro do casal nunca é apagado, cada ex-membro pode esconder da própria visão (Q-17) |
 | C-06 Custo do armazenamento | **Encaminhado:** fotos comprimidas sem vídeo no gratuito; cotas em aberto (Q-20) |
 | C-07 Hospedagem sem custo | **Resolvido:** Oracle Cloud Always Free (DEC-025) — **revisto na seção 19: o fundador não tem cartão** |
 | C-08 Escopo do MVP | **Encaminhado:** seção 11 |
@@ -333,7 +335,8 @@ O Duo não arbitra relacionamentos nem vigia conteúdo privado, mas é responsá
 **Cadastro e idade**
 - **RN-01:** só pessoas com 18 anos ou mais.
 - **RN-02:** idade comprovada pelo CPF em camadas (dígitos → data de nascimento → cruzamento com nome e data).
-- **RN-03:** bloqueio temporário após 2 tentativas que não batem (duração: Q-07).
+- **RN-03:** bloqueio de 1 hora após 2 tentativas que não batem; passado esse tempo, uma nova tentativa é
+  liberada (Q-07, decidido em 2026-11-05).
 - **RN-04:** um CPF por conta.
 - **RN-05:** CPF guardado apenas como HMAC-SHA256 com segredo do servidor.
 - **RN-05a:** se a consulta falhar, a verificação fica pendente, nunca aprovada.
@@ -347,7 +350,13 @@ O Duo não arbitra relacionamentos nem vigia conteúdo privado, mas é responsá
 - **RN-10:** a data do vínculo é o primeiro evento da linha do tempo.
 
 **Universo do casal**
-- **RN-11:** qualquer membro edita o conteúdo do casal; exclusões vão para a lixeira (Q-04).
+- **RN-11:** qualquer membro edita o conteúdo do casal; exclusões vão para a lixeira por 30 dias, depois
+  apagadas de vez (Q-04, decidido em 2026-11-05; o job de limpeza automática é detalhe de implementação,
+  a decidir na Semana 4).
+- **RN-11a:** exclusão em massa (vários itens de uma vez) no centro do casal exige consentimento explícito
+  dos dois membros, dado nas duas contas — não é uma ação solo (Q-19, decidido em 2026-11-05). Motivo do
+  fundador: assuntos de relacionamento sempre têm conversa, saudade, diálogo que muda as coisas; o app não
+  resolve isso, só acolhe.
 - **RN-12:** só membros atuais acessam o Couple Universe.
 - **RN-12a:** o lado de cada um é visível ao parceiro; só o dono posta e apaga no próprio lado.
 
@@ -357,6 +366,9 @@ O Duo não arbitra relacionamentos nem vigia conteúdo privado, mas é responsá
 - **RN-15:** ao sair, a pessoa volta ao Personal Universe com o que postou no próprio lado e o que estava guardado.
 - **RN-16:** sem alardes ou notificações públicas sobre pausa ou término.
 - **RN-17:** o término nunca apaga as memórias de ninguém.
+- **RN-17a:** após o término, cada ex-membro escolhe, individualmente, esconder o centro do casal da própria
+  visão (e desfazer depois, se quiser); essa escolha é pessoal e não afeta o que o ex-parceiro vê — o dado
+  em si nunca é apagado, só a visualização muda (Q-17, decidido em 2026-11-05).
 - **RN-18:** ninguém apaga sozinho o espaço inteiro do casal.
 
 **Duo Cloud**
@@ -588,14 +600,18 @@ Semana 3; Personal Universe volta em leitura durante a pausa, revisando a DEC-00
 na Semana 3). Especificação **aprovada** em `docs/epico-2-vinculo.md`. Ainda aberta: identidade visual e design
 system mínimo.
 
-**Antes da semana 4:** Q-04 prazo da lixeira; Q-17 destino do centro do casal no término; Q-19 exclusão em massa;
-Q-20 cotas, tamanho máximo e compressão das fotos.
+**Antes da semana 4:** ~~Q-04~~, ~~Q-19~~, ~~Q-17~~ decididas em 2026-11-05 (seção 19, RN-17a); Q-20 cotas,
+tamanho máximo e compressão das fotos (o fundador quer pensar junto quando chegarmos ao módulo de storage,
+por causa da monetização).
 
-**Antes da semana 5:** Q-11 quem escreve as perguntas do dia, se a resposta do par aparece antes de responder e se dá
-para responder atrasado; Q-12 temas sensíveis nas perguntas; datas especiais no MVP mínimo ou completo.
+**Antes da semana 5:** Q-11/Q-12 decididas em 2026-11-05 (detalhe na seção 19): o app cuida da pergunta do dia;
+a resposta do parceiro aparece assim que ele responder, mesmo que eu ainda não tenha respondido a minha; a
+pergunta nunca expira (sem marca de "atrasada" — um contador de dias ainda a detalhar na Semana 5); perguntas
+de um para o outro com jogos interativos ficam para a Fase 2 (`docs/IDEIAS.md`). Falta só: datas especiais no
+MVP mínimo ou completo.
 
-**Antes de abrir ao público:** Q-07 duração do bloqueio da verificação; Q-21 verificação de idade antes do piloto;
-domínio próprio; termos de uso e política de privacidade revisados.
+**Antes de abrir ao público:** ~~Q-07~~ (bloqueio de 1h) e ~~Q-21~~ (verificação de idade só antes do público, não
+no piloto) decididas em 2026-11-05; domínio próprio; termos de uso e política de privacidade revisados.
 
 ---
 
@@ -662,8 +678,22 @@ domínio próprio; termos de uso e política de privacidade revisados.
   o handle (implementação dessa tela adiada para a Etapa 14 — frontend). Migration `V7`; `UserService` ganhou
   `chooseHandle`/`findByHandle`; `HandleTakenException`/`InvalidHandleException`; `UserSummary` passou a
   carregar o `handle`. 4 testes novos em `UserServiceImplTest`. `./gradlew build` verde.
-- **Próximo passo:** Etapa 5 (convite por @handle, caminho padrão — RN-30). Vai precisar decidir a ferramenta
-  de limite de tentativas (RA-08), ainda pendente. Pendência anterior: identidade visual. O protótipo
+- **Etapa 5 (convite por @handle, caminho padrão) — concluída em 2026-11-05.** `inviteByHandle` em
+  `CouplePairingService`/`Impl`; `HandleNotInvitableException` (mensagem genérica para handle inexistente,
+  próprio ou já vinculado — RN-30/RA-07). RA-08 implementado: módulo novo `shared` ganhou `RateLimiter`
+  (interface pública) + `RateLimiterImpl` (tabela `rate_limit_attempts`, migration `V8`, mesmo truque de
+  travar a linha — `PESSIMISTIC_WRITE` — já usado no `RefreshToken`); por ora limita só por conta (o IP só
+  existe quando houver um controller HTTP, Etapa 13; o `RateLimiter` já nasce genérico para isso). Limite
+  escolhido (ajustável): 20 tentativas por hora. 10 testes novos (`CouplePairingServiceImplTest`,
+  `RateLimiterImplTest`). `./gradlew build` verde.
+- **Decisão de organização (2026-11-05):** o fundador propôs separar as pastas por camada técnica
+  (`exception/`, `model/`, `repository/`, `service/`) e, depois, considerou traduzir os nomes do código para
+  português temporariamente. As duas ficaram **sem aplicar por agora**: o fundador decidiu reforçar
+  `docs/GLOSSARIO-TECNICO.md` (novo "dicionário rápido: classe → o que ela é") e `docs/MAPA.md` em vez disso,
+  mantendo a estrutura de pastas e o código em inglês como estão (DEC-028 continua `DECIDIDO`, sem mudança).
+  Se a necessidade de reorganizar por camada voltar, o desenho já discutido (nested dentro de `internal/`,
+  sem precisar tocar no `ArchitectureTest`) fica registrado aqui para não refazer a análise.
+- **Próximo passo:** Etapa 6 (história em 4 passos, RN-25/26). Pendência anterior: identidade visual. O protótipo
   da tela inicial (centro "Couple Universe", contador de tempo juntos, "Relembre como começou") depende do
   vínculo; idade e profissão exibidas no protótipo ainda não existem no modelo de dados (decidir junto com o
   perfil e a verificação de idade, DEC-010/011).
@@ -684,10 +714,7 @@ domínio próprio; termos de uso e política de privacidade revisados.
   `HandleTakenException`. Decisões a confirmar: formato do handle (regex, tamanho); quando/como quem já tem
   conta (Épico 1) escolhe o handle (bloquear navegação no próximo login vs. tela opcional vs. gerar
   automático).
-- **Etapa 5 — convite por @handle, caminho padrão (P1/RN-30).** `inviteByHandle` busca exata via
-  `UserService.findByHandle`; handle inexistente e handle de alguém já vinculado devolvem a mesma mensagem
-  genérica (anti-enumeração). Decisão a confirmar: RA-08 (limite de tentativas) — tabela própria vs.
-  biblioteca de rate limiting vs. adiar de novo.
+- ~~Etapa 5~~ **concluída em 2026-11-05** — ver seção "Onde paramos" acima para o resumo da implementação.
 - **Etapa 6 — história em 4 passos (RN-25/26).** `V8__create_pairing_stories.sql`; `saveStoryDraft` (sem
   validar tamanho, rascunho pode ficar incompleto); `isStoryComplete` (4 passos, ≥20 caracteres);
   `readPartnerStory` (só devolve quando **ambas** completas); `StoryTooShortException`.
@@ -710,8 +737,8 @@ domínio próprio; termos de uso e política de privacidade revisados.
 - **Etapa 10 — pausar/retomar/sair (RN-13 a 18).** `CoupleService.pause/resume/leave`; `leave` com 2 membros
   termina o casal inteiro (bulk update de `left_at`); `IllegalCoupleTransitionException`.
 - **Etapa 11 — matriz de permissões por estado (RN-11/12/12a/13a).** Guard `canView`/`canPostToCouple`/
-  `canPostToOwnSide`. RN-13a (Personal em leitura durante `PAUSED`) só modela a parte já decidida; postar/
-  editar na pausa continua em aberto, não implementar.
+  `canPostToOwnSide`/`canPostToPersonal`. RN-13a já está totalmente decidida (2026-11-05): durante `PAUSED`,
+  a pessoa também pode postar/editar no Personal, por livre escolha — modelar os dois (leitura e edição).
 - **Etapa 12 — limpeza de rascunhos (RN-29) e casos de borda restantes.** Decisão a confirmar: `@Scheduled`
   vs. lazy (recomendado) para limpeza proativa; decidir se dois pareamentos `PENDING` simultâneos entre as
   mesmas duas pessoas são permitidos ou bloqueados (a spec lista o caso, não dá a regra).
@@ -749,7 +776,7 @@ domínio próprio; termos de uso e política de privacidade revisados.
 | Código | Decisão |
 | --- | --- |
 | Épico 2 (2026-11-04) | **Vínculo:** cada um conta a sua história, obrigatória, revelada ao mesmo tempo (DEC-012 revisada); perto ou longe é o mesmo fluxo; nome na interface "Couple Universe"; matriz de estados aprovada; contador de tempo juntos parte das datas do relacionamento, e o casal precisa de consenso sobre a data em que se conheceram e a em que começaram a namorar; sem prévia da história antes de os dois terminarem; tudo editável pelo dono; **sem Instagram** (sem cards nem compartilhamento externo); chat e "dar um tempo da rede" na Fase 2; universo de estrelas e planetas como ideia (`docs/IDEIAS.md`). Especificação **aprovada**: `docs/epico-2-vinculo.md` (**sem código ainda**). |
-| P1-P6 / DEC-031 (2026-11-04) | **Perguntas do Épico 2 respondidas:** convite por **@handle exato** dentro do Duo como caminho padrão (reforça o Duo como rede social própria), link com código de 7 dias como alternativa — revisa o escopo do RA-07 só para este fluxo de convite (DEC-031, RN-30); história com mínimo de **20 caracteres** por passo (não só "não vazio"); consenso das datas do casal por **propor e aceitar**; "o que levar" (RN-09) modelado já na Semana 3, tela na Semana 4; Personal Universe volta em **leitura** durante a `PAUSED` (revisa DEC-002, RN-13a — falta decidir se dá para postar/editar na pausa); gesto de celebração entra **já na Semana 3, em tempo real** (contra a recomendação — o fundador assumiu a peça técnica extra de presença online/WebSocket dentro das 3h/semana). Detalhe de cada pergunta: `docs/epico-2-vinculo.md`. |
+| P1-P6 / DEC-031 (2026-11-04) | **Perguntas do Épico 2 respondidas:** convite por **@handle exato** dentro do Duo como caminho padrão (reforça o Duo como rede social própria), link com código de 7 dias como alternativa — revisa o escopo do RA-07 só para este fluxo de convite (DEC-031, RN-30); história com mínimo de **20 caracteres** por passo (não só "não vazio"); consenso das datas do casal por **propor e aceitar**; "o que levar" (RN-09) modelado já na Semana 3, tela na Semana 4; Personal Universe volta em **leitura e edição/postagem** durante a `PAUSED` (revisa DEC-002, RN-13a — decidido por completo em 2026-11-05, por livre escolha da pessoa); gesto de celebração entra **já na Semana 3, em tempo real** (contra a recomendação — o fundador assumiu a peça técnica extra de presença online/WebSocket dentro das 3h/semana). Detalhe de cada pergunta: `docs/epico-2-vinculo.md`. |
 | Q-22 | **Gradle (Kotlin DSL).** |
 | Q-15 | **Cloudflare R2** para as mídias (exige meio de pagamento na ativação; ver Q-14). |
 | Q-16 | **Confirmada:** passkeys + código de 6 dígitos por e-mail, sem senha (DEC-026 agora `DECIDIDO`). |
@@ -760,6 +787,10 @@ domínio próprio; termos de uso e política de privacidade revisados.
 | Docker | **Adiado para outra fase.** Ferramentas instaladas direto no Windows. Consequência: Testcontainers (DEC-018) fica fora por ora e os testes usam um Postgres local (`duo_test`). |
 | Git | Repositório privado `https://github.com/AbnerLevino/Duo-Universe.git`, branch `main`. **A cada requisição atendida: commit e push** (autorização durável só para este repositório). |
 | Etapa 4 (2026-11-05) | **Handle:** formato `3 a 20` caracteres, letras/números/`_` (`^[A-Za-z0-9_]{3,20}$`), comparado sem diferenciar maiúsculas. Quem já tem conta escolhe numa **tela obrigatória no próximo login** (navegação bloqueada até escolher) — essa tela entra na Etapa 14. |
+| Q-17 (2026-11-05) | **Centro do casal no término:** nunca é apagado (RN-17/18 inalteradas); cada ex-membro escolhe individualmente esconder da própria visão, podendo desfazer depois; a escolha de um não afeta o outro (RN-17a). |
+| Q-11/Q-12 (2026-11-05) | **Pergunta do dia:** o app escolhe as perguntas (curadoria própria); a resposta do parceiro aparece assim que ele responder, **sem** esperar os dois (ao contrário do formato da história do vínculo, DEC-012); a pergunta **nunca expira** — sem marca de "atrasada", só um contador de dias (mecânica exata a detalhar na Semana 5). Perguntas entre o casal com jogos interativos ficam para a Fase 2 (`docs/IDEIAS.md`). |
+| RA-08 (2026-11-05) | **Limite de tentativas:** tabela própria no Postgres (padrão de `email_login_codes.attempts`), a implementar na Etapa 5. Esclarecido: diferente da RN-30 (busca só por @handle exato — nunca há lista de resultados a paginar); RA-08 limita quantas tentativas por período, não o que a busca devolve. |
+| Organização/idioma (2026-11-05) | Reorganizar pastas por camada técnica (`exception/`/`model/`/`repository/`/`service/`) e traduzir o código para português foram as duas propostas do fundador; as duas ficaram **sem aplicar** — optou por reforçar `docs/GLOSSARIO-TECNICO.md`/`docs/MAPA.md` em vez disso. DEC-028 (código em inglês) continua valendo. |
 
 ### Princípios reafirmados pelo fundador
 - **Pressão e conflito** são assunto do casal: o app dá os meios (privar, excluir, editar) e o casal conversa.
@@ -834,8 +865,9 @@ custo zero, a decidir perto do lançamento.
   ESLint 10, Prettier, Vitest 5. PWA com `vite-plugin-pwa` (manifest + service worker **sem cache da API**), proxy
   `/api` → `localhost:8080` no dev, ícones **provisórios**. Node 26 local e no CI. `npm audit` acusa falhas só em
   ferramentas de build (workbox/ESLint); não aplicar `--force` (faz downgrade). Reavaliar depois.
-- CI (`.github/workflows/ci.yml`): jobs `backend` (Postgres como service) e `frontend`. **Ainda não confirmado verde no
-  GitHub** (o `gh` não está instalado; conferir na aba Actions).
+- CI (`.github/workflows/ci.yml`): jobs `backend` (Postgres como service) e `frontend`. `gh` instalado e
+  autenticado pelo fundador em 2026-11-05; ainda falta um deste lado conferir a aba Actions para o verde
+  (meu shell não alcança o `gh` do sistema real — ver "Pendências abertas").
 - `gradlew` versionado com permissão de execução (runner Linux).
 - Notas técnicas do Boot 4: starters renomeados (`spring-boot-starter-webmvc`, `-flyway`); em testes, um
   `application.properties` em `src/test/resources` **substitui** o principal, por isso usamos `application-test.properties`
@@ -846,6 +878,11 @@ custo zero, a decidir perto do lançamento.
   passo 1 — CRUD básico, implementado direto sem modo acompanhamento, acordo de 2026-11-03). `UserRepositoryTest`
   (`@DataJpaTest`) roda contra o `duo_test` real. Build completo (`./gradlew build`) passando: 10/10 testes,
   Spotless e ArchUnit ok.
+- **Este bloco está defasado desde a Semana 1** (contagem de testes e lista de módulos); para o estado atual,
+  ver "Onde paramos / próximo passo" no topo desta seção 19. **Atualização rápida de 2026-11-05:** build verde
+  com 83 testes; migrations até `V8`; módulo novo `shared` (além de `ClockConfig`/`SecurityConfig`, agora tem
+  `RateLimiter`); convenção `internal` (linha acima, "decisão aguardando confirmação") está **confirmada** e
+  em uso em todo módulo desde o Épico 2.
 
 ### Plano ajustado
 1. **Semana 1: CONCLUÍDA** (etapas 1 e 2: backend, módulos, ArchUnit, Spotless, Springdoc, frontend PWA, CI). Falta só
@@ -867,10 +904,24 @@ custo zero, a decidir perto do lançamento.
 ### Pendências abertas
 - ~~Q-23~~ resolvida: DEC-030 (só Google).
 - Ok para **ArchUnit** e **Spotless**; ok para o **Mailpit** (desnecessário com a DEC-030).
-- **Q-18:** serviço de e-mail transacional gratuito (pesquisar quando o envio real for necessário).
-- **Q-17 e exclusão de conta:** o que acontece com o centro do casal e com fotos que mostram o parceiro quando uma
-  pessoa exclui a conta (conflito entre LGPD e RN-17/RN-18).
+- **Q-18:** serviço de e-mail transacional gratuito (pesquisar quando o envio real for necessário). "Transacional"
+  aqui é termo do mercado para e-mail automático disparado por uma ação do sistema (código de login, confirmação),
+  diferente de "transação" no sentido de banco de dados/concorrência (DEC-005, Etapa 8) — os dois usos convivem
+  no projeto, sem relação entre si.
+- ~~Q-17~~ resolvida em 2026-11-05: ver RN-17a (seção 8). Cada ex-membro esconde o centro do casal só da
+  própria visão; o dado nunca é apagado.
 - **Q-06:** matriz de permissões por estado do vínculo (o que cada pessoa pode fazer em `ACTIVE`, `PAUSED`, `ENDED`);
-  confirmar se a pausa é do vínculo do casal, do Personal Universe ou de ambos.
-- **Confirmar o CI verde no GitHub** (aba Actions do repositório) — ainda não verificado nesta máquina (sem `gh`
-  instalado).
+  confirmar se a pausa é do vínculo do casal, do Personal Universe ou de ambos. **Atualização 2026-11-05:** a parte
+  do Personal já foi respondida (RN-13a, acima); falta só o resto da matriz, que a Etapa 11 do Épico 2 cobre.
+- ~~RA-08~~ resolvida em 2026-11-05: tabela própria no Postgres (mesmo padrão de `email_login_codes.attempts`),
+  a implementar quando chegarmos na Etapa 5. Esclarecido ao fundador: RA-08 (limite de tentativas) e RN-30
+  (busca só por @handle exato, sem listagem) são regras diferentes — RN-30 decide o que a busca pode devolver
+  (nunca uma lista), RA-08 decide quantas vezes alguém pode tentar por período.
+- ~~Q-11/Q-12~~ decididas em 2026-11-05 (ver seção 18): pergunta do dia sem ocultar a resposta do parceiro
+  (aparece assim que ele responder) e sem expiração (contador de dias, não "atrasada"). O desenho exato do
+  contador de dias fica para o detalhamento da Semana 5.
+- **Q-20** (cotas de armazenamento): o fundador quer decidir junto quando chegarmos ao módulo de storage
+  (Semana 4), por causa do impacto na monetização futura (DEC-022) — não é uma pendência esquecida, é intencional.
+- **CI do GitHub:** o fundador se autenticou no `gh` em 2026-11-05. Ainda não confirmado **verde** na aba Actions
+  — meu shell roda num sandbox isolado sem acesso ao `gh` instalado no sistema real; preciso que o fundador rode
+  o `gh` pelo prefixo `!` no terminal do Claude Code, ou confirme manualmente pela aba Actions do repositório.

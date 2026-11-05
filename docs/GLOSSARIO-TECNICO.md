@@ -3,6 +3,29 @@
 > Cada termo técnico novo que aparecer no código, explicado em 1-2 frases com um exemplo do próprio Duo.
 > Exigido pela regra "Modo acompanhamento" do `CLAUDE.md`. **Acrescente um termo aqui sempre que ele
 > aparecer pela primeira vez no código** — não precisa reler os antigos.
+>
+> **Atualização de 2026-11-05:** o fundador pediu reforço deste arquivo e do `docs/MAPA.md` em vez de
+> traduzir o código para português (decisão registrada na seção 19 do `CLAUDE.md` — DEC-028 continua
+> valendo). A seção "Dicionário rápido: classe → o que ela é" abaixo é a peça nova dessa reforço.
+
+## Dicionário rápido: classe → o que ela é
+
+> Cada classe importante do backend, numa frase simples. Para "o que cada arquivo faz" com mais contexto
+> (de onde vem, pra onde vai), veja `docs/MAPA.md` — este dicionário é só para "eu vi esse nome, o que é?".
+
+| Classe (inglês) | O que ela é, em português simples |
+| --- | --- |
+| `User` | A pessoa: conta, e-mail, nome, @handle. |
+| `UserService` / `UserServiceImpl` | Quem sabe criar e achar contas — a "porta de entrada" do módulo `users`. |
+| `Couple` | O Couple Universe em si: estado (`ACTIVE`/`PAUSED`/`ENDED`) e as datas do casal. |
+| `CoupleMember` | O elo entre uma pessoa e um `Couple` — "Ana está dentro deste casal desde tal dia". |
+| `CouplePairing` | O convite/momento do vínculo, antes de virar um `Couple` de verdade. |
+| `CouplePairingService` / `Impl` | Quem toca o convite do início ao fim: convidar, aceitar, cancelar, vencer. |
+| `RefreshTokenService` / `Impl` | Quem decide se você continua logado — emite, renova e revoga a "chave" de 30 dias. |
+| `AccessTokenService` / `Impl` | Quem fabrica e confere o "crachá" de 15 minutos (o JWT) usado em cada chamada. |
+| `RateLimiter` / `RateLimiterImpl` | O freio de mão contra alguém tentando mil vezes por minuto (RA-08). |
+| `SecurityConfig` | A "portaria" da API: decide quais rotas pedem login. |
+| `*Exception` (qualquer uma) | Um motivo específico de erro — sempre com uma frase explicando a regra de negócio por trás. |
 
 ### Build e projeto
 
@@ -202,3 +225,23 @@
   Duo: `CouplePairingServiceImpl.find`, para os 7 dias do convite (RN-29). Mais simples, sem infraestrutura
   nova; o custo é que um convite vencido "sem ninguém olhar" fica tecnicamente pendente no banco até alguém
   acessá-lo — aceitável por ora (revisitar se a Etapa 12 precisar de limpeza proativa).
+
+### Etapa 5 — convite por @handle e limite de tentativas (RN-30, RA-08)
+
+- **Anti-enumeração:** a técnica de nunca deixar alguém descobrir, por tentativa e erro, quem tem conta ou
+  quem está em um relacionamento. No Duo: `inviteByHandle` devolve a **mesma** `HandleNotInvitableException`
+  para três motivos bem diferentes (handle não existe, é o seu próprio, ou já pertence a alguém vinculado) —
+  se cada motivo tivesse uma mensagem diferente, alguém testando handles ao acaso conseguiria "ler" essas
+  respostas e mapear quem usa o Duo.
+- **Rate limiting (limite de tentativas, RA-08):** contar quantas vezes "alguém" (aqui, uma conta) tentou
+  uma ação num período, e bloquear depois de um número máximo — a defesa contra um script tentando milhares
+  de handles por minuto. No Duo: tabela `rate_limit_attempts`, uma linha por `(scope, attempt_key)`; o
+  `scope` é a rota (`"pairing_invite_by_handle"`), o `attempt_key` é quem está tentando.
+- **Janela de tempo (window):** o período em que as tentativas contam juntas (ex.: 1 hora). Passada a
+  janela, o contador reseta — é diferente de "vencer" (como o convite de 7 dias), porque aqui o contador
+  **volta a zero**, não fica bloqueado para sempre.
+- **Dublê de teste (test double):** um objeto escrito à mão que faz o papel de uma dependência só para o
+  teste, sem precisar da implementação real nem de uma biblioteca de mock (Mockito). No Duo:
+  `CouplePairingServiceImplTest.fakeUserService()` devolve um `UserService` que só sabe responder
+  `findByHandle` (os outros métodos nem são usados neste teste) — útil quando a dependência real está em
+  outro módulo e não dá para importar a classe escondida (`internal`) de fora dele.

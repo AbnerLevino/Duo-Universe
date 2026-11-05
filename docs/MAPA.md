@@ -240,6 +240,23 @@ Especificação aprovada em `docs/epico-2-vinculo.md`; progresso etapa a etapa n
 - Testes novos em `UserServiceImplTest`: escolhe e encontra por handle ignorando maiúsculas, recusa handle já
   usado por outra conta, recusa formato inválido.
 
-Ainda não existe nenhum jeito de convidar alguém **pelo @handle** (isso é a Etapa 5) nem tela para escolher o
-handle (isso fica para a Etapa 14, com a decisão de obrigar a escolha no próximo login para quem ainda não
-tem um).
+**Etapa 5 — convite por @handle, caminho padrão (concluída):**
+- `relationships/HandleNotInvitableException.java`: o erro genérico de "não posso convidar esse @handle" —
+  junta três motivos (não existe, é seu, já está vinculado) numa mensagem só, de propósito (anti-enumeração,
+  RN-30/RA-07). Ver `docs/GLOSSARIO-TECNICO.md`.
+- `relationships/CouplePairingService.java` ganhou `inviteByHandle`: busca a pessoa por `UserService.findByHandle`
+  (módulo `users`, Etapa 4), confere que não é a própria pessoa e que ela não está em outro vínculo
+  (`CoupleMemberRepository.findByUserIdAndLeftAtIsNull`), e só então cria o convite — reaproveitando o
+  `initiate` que já existia.
+- `relationships/internal/CouplePairingServiceImpl.java`: antes de qualquer busca, chama o `RateLimiter`
+  (abaixo) para o RA-08 — a tentativa conta mesmo se o handle não existir, senão o limite não protegeria nada.
+- Novo módulo auxiliar `shared/RateLimiter.java` (interface) + `shared/RateLimitExceededException.java` +
+  `shared/internal/RateLimitAttempt.java`/`RateLimitAttemptRepository.java`/`RateLimiterImpl.java`: o freio
+  de mão contra força bruta (RA-08), guardado na tabela nova `rate_limit_attempts` (migration `V8`). Pensado
+  para ser reaproveitado por outras rotas depois (ex.: quando a Etapa 13 adicionar o IP, além da conta).
+- Testes novos: 5 em `CouplePairingServiceImplTest` (acha pelo handle, rejeita handle inexistente/próprio/já
+  vinculado, respeita o limite de tentativas) e 5 em `RateLimiterImplTest` (permite até o máximo, bloqueia
+  depois, reseta quando a janela passa, não mistura contadores de chaves/rotas diferentes).
+
+Ainda falta: tela para escolher o @handle (Etapa 14) e o controller HTTP de convite (Etapa 13) — hoje tudo
+isso só existe no `Service`, chamado pelos testes.

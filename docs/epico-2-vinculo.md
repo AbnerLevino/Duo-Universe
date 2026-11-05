@@ -33,7 +33,7 @@ guardar a história no Duo. O conceito do ritual continua sendo especial e pode 
 | P2 — Obrigatoriedade | Cada um dos 4 passos da história exige **no mínimo 20 caracteres** (depois de remover espaços) — não basta não estar vazio. | `DECIDIDO` |
 | P3 — Consenso das datas | **Propor e aceitar:** um propõe as duas datas do casal, o outro aceita ou propõe outras, até concordarem; só depois disso o casal pode firmar (RN-27). | `DECIDIDO` |
 | P4 — O que levar | Estrutura modelada **já na Semana 3** (escopos `PERSONAL`, `ARCHIVED`, `MEMBER_SIDE` e regras, com itens fictícios nos testes); a tela real para escolher o que levar vem na Semana 4, junto das fotos (RN-09). | `DECIDIDO` |
-| P5 — Personal na pausa | O Personal Universe **volta durante a `PAUSED`** (leitura do que foi postado no próprio lado e do que está arquivado) — revisa a DEC-002 (nova regra RN-13a). **Ainda em aberto:** se dá para postar/editar no Personal durante a pausa, e o que acontece com isso ao retomar. | `DECIDIDO (parcial)` |
+| P5 — Personal na pausa | O Personal Universe **volta durante a `PAUSED`**, em leitura **e em edição/postagem** — a pessoa decide livremente o que fazer com o próprio lado durante a pausa; o app não restringe (princípio da liberdade, seção 3). Revisa a DEC-002 (nova regra RN-13a). **Decidido em 2026-11-05.** O que postar/editar durante a pausa volta a pertencer ao `MEMBER_SIDE`/`ARCHIVED` normalmente ao retomar ou sair — não precisa de um terceiro estado. | `DECIDIDO` |
 | P6 — Celebração | O gesto de celebração entra **já na Semana 3**, em **tempo real**: os dois precisam estar online juntos no momento em que o Couple Universe nasce. Acrescenta uma peça técnica nova ao MVP (presença online + notificação em tempo real) — ver nota técnica na seção de requisitos não funcionais. | `DECIDIDO` |
 
 ## Histórias
@@ -105,8 +105,9 @@ RN-13 a RN-18 (seção 8 do CLAUDE.md).
 - **RN-30:** a busca de pessoas para convite só aceita **@handle exato** (sem busca livre por nome/e-mail, sem
   listar resultados parciais); limite de tentativas por conta e por IP (RA-08). Link com código continua
   disponível como alternativa (P1).
-- **RN-13a:** durante a `PAUSED`, a pessoa vê (leitura) o que postou no próprio lado e o que estava arquivado —
-  revisa a DEC-002 (P5). Postar/editar no Personal durante a pausa fica em aberto.
+- **RN-13a:** durante a `PAUSED`, a pessoa volta a ter acesso (leitura **e edição/postagem**) ao que postou no
+  próprio lado e ao que estava arquivado — revisa a DEC-002 (P5, decidido em 2026-11-05). A pessoa decide
+  livremente o que fazer; o app não impõe restrição extra além das já existentes para o `MEMBER_SIDE`/`ARCHIVED`.
 
 ## Requisitos não funcionais
 

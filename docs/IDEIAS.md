@@ -42,6 +42,19 @@ O Duo quer ser uma rede social, com o Personal e o Couple Universe como espaços
 por padrão** e escolhe o que mostrar (DEC-027). Horizonte (seção 10). Traz as obrigações da seção 16 (denúncia,
 bloqueio, remoção de conteúdo ilícito).
 
+## Jogos e perguntas entre o casal (2026-11-05)
+
+Resposta do fundador às Q-11/Q-12 (pergunta do dia): além da pergunta do dia (curada pelo app, no escopo do
+MVP mínimo — seção 10), o casal poderia criar perguntas um para o outro em momentos determinados, e o app
+ofereceria jogos interativos com perguntas "vergonha alheia", picantes etc.
+
+- **Depende de:** chat do casal (já listado acima, Fase 2 — exige tempo real, moderação e retenção sob LGPD).
+  "Jogos de conhecimento mútuo" já está na Fase 2 (seção 10); isso detalha o conteúdo desses jogos.
+- **Atenção:** perguntas "picantes" tocam no Cofre do casal (seção 10 do CLAUDE.md — 18+, criptografia de
+  ponta a ponta) e nos princípios de maturidade/liberdade (seção 3) — o app oferece, não arbitra conteúdo.
+  Detalhar moderação e faixa de conteúdo quando este item for priorizado.
+- **Fora do MVP mínimo e completo** (seção 11): não implementar agora.
+
 ## Fora de questão
 
 - **Cards e compartilhamento para o Instagram:** o fundador quer se distanciar dele. Não fazer.

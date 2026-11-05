@@ -12,10 +12,14 @@ import java.util.HexFormat;
 
 import com.duo.relationships.Channel;
 import com.duo.relationships.CouplePairingService;
+import com.duo.relationships.HandleNotInvitableException;
 import com.duo.relationships.InviteCodeInvalidException;
 import com.duo.relationships.IssuedPairingInvite;
 import com.duo.relationships.PairingNotFoundException;
 import com.duo.relationships.PairingSummary;
+import com.duo.shared.RateLimiter;
+import com.duo.users.UserService;
+import com.duo.users.UserSummary;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,14 +30,28 @@ class CouplePairingServiceImpl implements CouplePairingService {
 	/** RN-29: pareamento sem decisão em 7 dias é tratado como desistência (limpeza de rascunhos: Etapas 6/7/12). */
 	static final Duration TTL = Duration.ofDays(7);
 
+	/** RA-08: ajustável — não é uma regra de negócio do vínculo, é só o tamanho do freio contra força bruta. */
+	static final String INVITE_BY_HANDLE_SCOPE = "pairing_invite_by_handle";
+
+	static final int INVITE_BY_HANDLE_MAX_ATTEMPTS = 20;
+
+	static final Duration INVITE_BY_HANDLE_WINDOW = Duration.ofHours(1);
+
 	private static final int CODE_BYTES = 32;
 
 	private final SecureRandom random = new SecureRandom();
 	private final CouplePairingRepository pairings;
+	private final CoupleMemberRepository coupleMembers;
+	private final UserService users;
+	private final RateLimiter rateLimiter;
 	private final Clock clock;
 
-	CouplePairingServiceImpl(CouplePairingRepository pairings, Clock clock) {
+	CouplePairingServiceImpl(CouplePairingRepository pairings, CoupleMemberRepository coupleMembers,
+			UserService users, RateLimiter rateLimiter, Clock clock) {
 		this.pairings = pairings;
+		this.coupleMembers = coupleMembers;
+		this.users = users;
+		this.rateLimiter = rateLimiter;
 		this.clock = clock;
 	}
 
@@ -43,6 +61,20 @@ class CouplePairingServiceImpl implements CouplePairingService {
 		Instant expiresAt = clock.instant().plus(TTL);
 		CouplePairing saved = pairings.save(new CouplePairing(initiatorUserId, inviteeUserId, channel, expiresAt));
 		return toSummary(saved);
+	}
+
+	@Override
+	@Transactional
+	public PairingSummary inviteByHandle(Long initiatorUserId, String handle) {
+		rateLimiter.checkAndRecord(
+				INVITE_BY_HANDLE_SCOPE, initiatorUserId.toString(), INVITE_BY_HANDLE_MAX_ATTEMPTS,
+				INVITE_BY_HANDLE_WINDOW);
+		Long inviteeUserId = users.findByHandle(handle)
+			.map(UserSummary::id)
+			.filter(id -> !id.equals(initiatorUserId))
+			.filter(id -> coupleMembers.findByUserIdAndLeftAtIsNull(id).isEmpty())
+			.orElseThrow(HandleNotInvitableException::new);
+		return initiate(initiatorUserId, inviteeUserId, Channel.HANDLE);
 	}
 
 	@Override
