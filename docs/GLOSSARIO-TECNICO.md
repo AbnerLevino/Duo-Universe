@@ -293,3 +293,17 @@
   externa: uma denúncia repetida bate no índice único e precisa poder ser aceita em silêncio.
 - **Caminho que escapa (path traversal):** uma chave como `../../etc/senha` tentando sair da pasta. O
   `LocalMediaStorageProvider` só aceita caracteres seguros e confere que o caminho final continua dentro da pasta.
+- **Rota de layout (`Outlet`):** uma rota do React Router que não tem página própria: ela desenha a moldura e o `<Outlet />`
+  é o buraco onde entra a tela da rota filha. No Duo, `AppLayout` é a moldura de todas as telas de quem está logado.
+- **Contexto do React (`createContext`):** um jeito de repartir um dado com várias telas sem passá-lo de pai para filho em
+  cada nível. No Duo, `MeContext` reparte o seu perfil e os números do painel.
+- **Bottom sheet:** um modal que sobe de baixo da tela, com o topo arredondado e uma alça para puxar. No Duo, "Editar
+  perfil" (`BottomSheet`): abre na metade, puxar para cima abre inteiro, puxar para baixo volta ou fecha.
+- **Pointer Events:** eventos do navegador que unificam toque, mouse e caneta (`pointerdown`, `pointermove`, `pointerup`).
+  É por eles que a alça do modal funciona igual no celular e no computador.
+- **Scroll snap:** o navegador "encaixa" a rolagem horizontal em cada item. A faixa de navegação do celular usa isso para
+  arrastar com o dedo sem JavaScript (`scroll-snap-type`).
+- **Área segura (`env(safe-area-inset-bottom)`):** o espaço que o iPhone reserva para a barra de gestos. A faixa de baixo
+  soma esse espaço para não ficar escondida.
+- **`box-sizing: border-box`:** faz `width` e `min-width` incluírem o espaçamento interno. Sem isso, um item de `min-width:
+  5.5rem` com `padding` ocupava 112px e o último item da faixa de baixo ficava cortado (achado na conferência visual).

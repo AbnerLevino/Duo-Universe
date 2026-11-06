@@ -1,5 +1,5 @@
 import { fireEvent, screen } from '@testing-library/react'
-import EditProfileScreen from './EditProfileScreen'
+import EditProfileForm from './EditProfileForm'
 import { clearSession, type User } from './session'
 import { callsTo, jsonResponse, mockBackend, renderAt } from './testHelpers'
 
@@ -16,21 +16,23 @@ const PROFILE = {
   hidden: false,
 }
 
-function open(onUserChanged = vi.fn()) {
+function open(onUserChanged = vi.fn(), onProfileChanged = vi.fn()) {
   renderAt(
     '/perfil/editar',
     '/perfil/editar',
-    <EditProfileScreen
+    <EditProfileForm
       user={USER}
       onUserChanged={onUserChanged}
       onLogout={vi.fn()}
       onLogoutAll={vi.fn()}
+      onProfileChanged={onProfileChanged}
+      onClose={vi.fn()}
     />,
   )
   return onUserChanged
 }
 
-describe('EditProfileScreen', () => {
+describe('EditProfileForm', () => {
   beforeEach(() => clearSession())
   afterEach(() => vi.unstubAllGlobals())
 

@@ -820,6 +820,14 @@ no piloto) decididas em 2026-11-05; domínio próprio; termos de uso e política
     login Google (só por testes automatizados): rodar e conferir manualmente antes de confiar.
   - **Achado de CI:** o job do frontend roda `format:check` e 8 arquivos da Etapa 14 estavam fora do padrão
     (provavelmente CI vermelho); corrigido em `c4469aa`. Ainda sem confirmar a aba Actions no GitHub.
+  - **DEC-036 — Moldura com painel lateral (2026-11-06, decisões do fundador):** painel fixo de 240px à esquerda com
+    a foto grande, Duollowers, Duollowing e Editar na mesma linha e, abaixo, a navegação com ícones; **em todas as telas**
+    de quem está logado. No celular o resumo vira a faixa do topo e a navegação, uma faixa fixa embaixo que se arrasta
+    com o dedo. Editar perfil abre um **modal que sobe de baixo** (topo arredondado, abre na metade, se puxa para cima
+    para abrir inteiro, no computador e no celular). Perfis de outras pessoas abrem na área da direita; o painel é
+    sempre o seu. Nome, DuoName, profissão e bio ficam por ora na Home (decidir onde depois). **Única dependência nova:
+    `lucide-react` 1.58.0** (ISC, versão fixa, publicada em 16/10; a mais nova tinha horas de vida). Layout conferido
+    visualmente com o Edge sem tela a 1100px e 390px.
 - **Próximo passo:** Épico 3 concluído. Falta rodar o app de verdade (backend + frontend) e testar o fluxo pelo
   celular; depois a tela do casal conforme o esboço (com a visibilidade do casal) e, mais adiante, o Bloco D
   (celebração em tempo real, Etapas 15 a 18, isolado de propósito).

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import AcceptInviteScreen from './AcceptInviteScreen'
+import AppLayout from './AppLayout'
 import ConfirmScreen from './ConfirmScreen'
 import CoupleHomeScreen from './CoupleHomeScreen'
 import Dashboard from './Dashboard'
 import DateConsensusScreen from './DateConsensusScreen'
-import EditProfileScreen from './EditProfileScreen'
 import FollowListScreen from './FollowListScreen'
 import HandleSetupScreen from './HandleSetupScreen'
 import HomeScreen from './HomeScreen'
@@ -50,33 +50,35 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/inicio" element={<HomeScreen user={user} />} />
-        <Route path="/buscar" element={<SearchScreen />} />
-        <Route path="/u/:handle" element={<PublicProfileScreen />} />
-        <Route path="/lista/:kind" element={<FollowListScreen />} />
-        <Route path="/momentos/novo" element={<NewMomentScreen />} />
+        {/* Antes de ter um DuoName ainda não existe perfil: esta tela fica fora da moldura. */}
+        <Route path="/vinculo/handle" element={<HandleSetupScreen onChosen={onUserChanged} />} />
+        {/* Todas as outras telas de quem está logado dividem o painel à esquerda (AppLayout). */}
         <Route
-          path="/perfil/editar"
           element={
-            <EditProfileScreen
+            <AppLayout
               user={user}
               onUserChanged={onUserChanged}
               onLogout={onLogout}
               onLogoutAll={onLogoutAll}
             />
           }
-        />
-        <Route path="/convite/:code" element={<AcceptInviteScreen user={user} />} />
-        <Route path="/vinculo/handle" element={<HandleSetupScreen onChosen={onUserChanged} />} />
-        <Route path="/vinculo/convidar" element={<InviteScreen />} />
-        <Route path="/vinculo/:pairingId/historia" element={<StoryScreen />} />
-        <Route path="/vinculo/:pairingId/datas" element={<DateConsensusScreen user={user} />} />
-        <Route path="/vinculo/:pairingId" element={<ConfirmScreen user={user} />} />
-        <Route
-          path="/casal"
-          element={<CoupleHomeScreen user={user} onLogout={onLogout} onLogoutAll={onLogoutAll} />}
-        />
-        <Route path="*" element={<Dashboard user={user} />} />
+        >
+          <Route path="/inicio" element={<HomeScreen />} />
+          <Route path="/buscar" element={<SearchScreen />} />
+          <Route path="/u/:handle" element={<PublicProfileScreen />} />
+          <Route path="/lista/:kind" element={<FollowListScreen />} />
+          <Route path="/momentos/novo" element={<NewMomentScreen />} />
+          <Route path="/convite/:code" element={<AcceptInviteScreen user={user} />} />
+          <Route path="/vinculo/convidar" element={<InviteScreen />} />
+          <Route path="/vinculo/:pairingId/historia" element={<StoryScreen />} />
+          <Route path="/vinculo/:pairingId/datas" element={<DateConsensusScreen user={user} />} />
+          <Route path="/vinculo/:pairingId" element={<ConfirmScreen user={user} />} />
+          <Route
+            path="/casal"
+            element={<CoupleHomeScreen user={user} onLogout={onLogout} onLogoutAll={onLogoutAll} />}
+          />
+          <Route path="*" element={<Dashboard user={user} />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )

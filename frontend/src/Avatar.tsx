@@ -4,7 +4,7 @@ import { initialsOf } from './names'
 type Props = {
   name: string
   mediaId: number | null
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
 }
 
 export default function Avatar({ name, mediaId, size = 'md' }: Props) {

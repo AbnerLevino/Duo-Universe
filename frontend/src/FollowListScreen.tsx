@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Avatar from './Avatar'
-import MainNav from './MainNav'
 import {
   acceptRequest,
   blockedUsers,
@@ -86,8 +85,7 @@ export default function FollowListScreen() {
 
   if (!config)
     return (
-      <main className="screen with-nav">
-        <MainNav />
+      <main className="screen">
         <p role="alert" className="login-error">
           Lista não encontrada.
         </p>
@@ -97,8 +95,7 @@ export default function FollowListScreen() {
   const cards = loaded?.kind === kind ? loaded.cards : null
 
   return (
-    <main className="screen with-nav">
-      <MainNav />
+    <main className="screen">
       <Link to="/inicio" className="button subtle">
         Voltar
       </Link>

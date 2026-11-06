@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Avatar from './Avatar'
-import MainNav from './MainNav'
 import {
   blockUser,
   errorMessage,
@@ -61,16 +60,10 @@ export default function PublicProfileScreen() {
     }
   }
 
-  if (!current)
-    return (
-      <main className="screen with-nav" aria-busy="true">
-        <MainNav />
-      </main>
-    )
+  if (!current) return <main className="screen" aria-busy="true"></main>
   if ('error' in current)
     return (
-      <main className="screen with-nav">
-        <MainNav />
+      <main className="screen">
         <p role="alert" className="login-error">
           {current.error}
         </p>
@@ -86,8 +79,7 @@ export default function PublicProfileScreen() {
     .join(' · ')
 
   return (
-    <main className="screen with-nav">
-      <MainNav />
+    <main className="screen">
       <header className="profile-header">
         <Avatar name={profile.displayName} mediaId={profile.avatarMediaId} size="lg" />
         <div>

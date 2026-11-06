@@ -143,11 +143,16 @@ para `media_assets`. Para **ver**: `GET /api/media/{id}` → `MediaServiceImpl.o
 arquivo sai (404 igual para "não existe" e "não é para você").
 
 **Frontend** (`frontend/src/`): `api.ts` (chamadas), `labels.ts` (textos: DuoName, Duollowers...), `imageTools.ts`
-(recorte e redução com canvas), `session.ts` (agora também o cache das fotos por sessão), componentes
-`AuthedImage`, `Avatar`, `FollowButton`, `PhotoGrid`, `ReportForm`, `MainNav`; telas `HomeScreen` (/inicio),
-`EditProfileScreen` (/perfil/editar), `PublicProfileScreen` (/u/:handle), `SearchScreen` (/buscar),
-`FollowListScreen` (/lista/:kind), `NewMomentScreen` (/momentos/novo). O `Dashboard` agora leva o solteiro à
-home (e quem tem casal ativo a `/casal`). Tokens de design em `index.css`.
+(recorte e redução com canvas), `session.ts` (agora também o cache das fotos por sessão), `meContext.ts` (o "eu" que a
+moldura reparte com as telas). **A moldura** (`AppLayout`): o painel à esquerda com `SideProfile` (foto grande,
+Duollowers, Duollowing e Editar na mesma linha) e `MainNav` (Início, Buscar, Vínculo e Perfil, com ícones do
+`lucide-react`), e ao lado a tela da rota (`Outlet`). No celular o painel se divide: o resumo vira a faixa do topo e
+a navegação, uma faixa fixa embaixo que se arrasta com o dedo. **Editar perfil** não é mais uma tela: `Editar` e
+`Perfil` abrem `BottomSheet` (modal que sobe de baixo, topo arredondado, abre na metade e se puxa para cima) com o
+`EditProfileForm`. Telas: `HomeScreen` (/inicio), `PublicProfileScreen` (/u/:handle), `SearchScreen` (/buscar),
+`FollowListScreen` (/lista/:kind), `NewMomentScreen` (/momentos/novo); componentes `AuthedImage`, `Avatar`,
+`FollowButton`, `PhotoGrid`, `ReportForm`. Só o login e a escolha do DuoName ficam fora da moldura. O `Dashboard`
+leva o solteiro à home (e quem tem casal ativo a `/casal`). Tokens de design em `index.css`.
 
 ## `backend/` — a API
 

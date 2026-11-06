@@ -1,7 +1,6 @@
 import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Avatar from './Avatar'
-import MainNav from './MainNav'
 import {
   chooseHandle,
   errorMessage,
@@ -29,12 +28,26 @@ type Props = {
   onUserChanged: (user: User) => void
   onLogout: () => void
   onLogoutAll: () => void
+  /** Avisa o painel que o perfil mudou (nome, foto...) para ele recarregar. */
+  onProfileChanged: () => void
+  /** Fecha o modal (usado ao sair da tela por um link). */
+  onClose: () => void
 }
 
 const HANDLE_FORMAT = /^[A-Za-z0-9_]{3,20}$/
 
-/** Editar o próprio perfil: foto, nome, bio, profissão, estado civil, visibilidade e o DuoName. */
-export default function EditProfileScreen({ user, onUserChanged, onLogout, onLogoutAll }: Props) {
+/**
+ * O conteúdo do modal "Editar perfil": foto, nome, bio, profissão, estado civil, visibilidade e o DuoName.
+ * Não é mais uma tela: abre por cima da página atual, num modal que sobe de baixo (BottomSheet).
+ */
+export default function EditProfileForm({
+  user,
+  onUserChanged,
+  onLogout,
+  onLogoutAll,
+  onProfileChanged,
+  onClose,
+}: Props) {
   const [profile, setProfile] = useState<MyProfile | null>(null)
   const [form, setForm] = useState({
     displayName: '',
@@ -79,6 +92,7 @@ export default function EditProfileScreen({ user, onUserChanged, onLogout, onLog
     try {
       const saved = await updateProfile(form)
       setProfile(saved)
+      onProfileChanged()
       onUserChanged({ ...user, displayName: saved.displayName })
       setMessage('Perfil salvo.')
     } catch (err) {
@@ -100,6 +114,7 @@ export default function EditProfileScreen({ user, onUserChanged, onLogout, onLog
       const uploaded = await uploadAvatar(await prepareAvatar(file))
       if (previous) forgetMedia(previous)
       setProfile({ ...profile, avatarMediaId: uploaded.id })
+      onProfileChanged()
     } catch (err) {
       setError(errorMessage(err, 'Não foi possível enviar a foto.'))
     } finally {
@@ -116,6 +131,7 @@ export default function EditProfileScreen({ user, onUserChanged, onLogout, onLog
       await removeAvatar()
       forgetMedia(profile.avatarMediaId)
       setProfile({ ...profile, avatarMediaId: null })
+      onProfileChanged()
     } catch (err) {
       setError(errorMessage(err, 'Não foi possível remover a foto.'))
     } finally {
@@ -139,12 +155,16 @@ export default function EditProfileScreen({ user, onUserChanged, onLogout, onLog
     }
   }
 
-  if (!profile) return <main className="screen with-nav" aria-busy="true" />
+  if (!profile)
+    return (
+      <p className="muted" aria-busy="true">
+        Carregando…
+      </p>
+    )
 
   return (
-    <main className="screen with-nav">
-      <MainNav />
-      <h1>Editar perfil</h1>
+    <div>
+      <h2>Editar perfil</h2>
 
       <section className="profile-header">
         <Avatar name={profile.displayName} mediaId={profile.avatarMediaId} size="lg" />
@@ -244,7 +264,7 @@ export default function EditProfileScreen({ user, onUserChanged, onLogout, onLog
       )}
 
       <section className="actions">
-        <Link to="/lista/bloqueados" className="button subtle">
+        <Link to="/lista/bloqueados" className="button subtle" onClick={onClose}>
           Pessoas bloqueadas
         </Link>
         <button type="button" className="button" onClick={onLogout}>
@@ -254,6 +274,6 @@ export default function EditProfileScreen({ user, onUserChanged, onLogout, onLog
           Sair de todos os aparelhos
         </button>
       </section>
-    </main>
+    </div>
   )
 }

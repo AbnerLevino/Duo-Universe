@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Avatar from './Avatar'
-import MainNav from './MainNav'
 import { errorMessage, type Relation, searchProfiles, type SearchPage } from './api'
 import FollowButton from './FollowButton'
 import { TERMS } from './labels'
@@ -74,8 +73,7 @@ export default function SearchScreen() {
   }
 
   return (
-    <main className="screen with-nav">
-      <MainNav />
+    <main className="screen">
       <h1>Buscar</h1>
       <div className="form">
         <label htmlFor="search">Nome ou {TERMS.duoName}</label>
