@@ -1,6 +1,8 @@
-package com.duo.users.internal;
+package com.duo.users.internal.repository;
 
 import java.util.Optional;
+
+import com.duo.users.internal.model.User;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

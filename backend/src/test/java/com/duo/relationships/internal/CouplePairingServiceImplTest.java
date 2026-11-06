@@ -23,12 +23,12 @@ import com.duo.relationships.PairingSummary;
 import com.duo.relationships.StoryIncompleteException;
 import com.duo.relationships.StoryStep;
 import com.duo.relationships.StorySummary;
-import com.duo.shared.exception.RateLimitExceededException;
 import com.duo.shared.RateLimiter;
+import com.duo.shared.exception.RateLimitExceededException;
 import com.duo.users.UserService;
-import com.duo.users.UserSummary;
-import com.duo.users.internal.User;
-import com.duo.users.internal.UserRepository;
+import com.duo.users.dto.UserSummary;
+import com.duo.users.internal.model.User;
+import com.duo.users.internal.repository.UserRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

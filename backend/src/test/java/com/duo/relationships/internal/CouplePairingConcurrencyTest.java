@@ -14,12 +14,12 @@ import java.util.concurrent.TimeUnit;
 
 import com.duo.relationships.AlreadyInRelationshipException;
 import com.duo.relationships.Channel;
-import com.duo.relationships.CoupleState;
 import com.duo.relationships.CouplePairingService;
+import com.duo.relationships.CoupleState;
 import com.duo.relationships.PairingState;
 import com.duo.relationships.PairingSummary;
-import com.duo.users.internal.User;
-import com.duo.users.internal.UserRepository;
+import com.duo.users.internal.model.User;
+import com.duo.users.internal.repository.UserRepository;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

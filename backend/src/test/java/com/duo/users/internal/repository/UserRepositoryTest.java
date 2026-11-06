@@ -1,4 +1,6 @@
-package com.duo.users.internal;
+package com.duo.users.internal.repository;
+
+import com.duo.users.internal.model.User;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

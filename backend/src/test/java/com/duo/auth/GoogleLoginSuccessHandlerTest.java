@@ -11,9 +11,9 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
-import com.duo.users.EmailAlreadyLinkedException;
 import com.duo.users.UserService;
-import com.duo.users.UserSummary;
+import com.duo.users.dto.UserSummary;
+import com.duo.users.exception.EmailAlreadyLinkedException;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;

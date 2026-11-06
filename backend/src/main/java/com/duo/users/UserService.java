@@ -2,6 +2,11 @@ package com.duo.users;
 
 import java.util.Optional;
 
+import com.duo.users.dto.UserSummary;
+import com.duo.users.exception.EmailAlreadyLinkedException;
+import com.duo.users.exception.HandleTakenException;
+import com.duo.users.exception.InvalidHandleException;
+
 /** API pública do módulo {@code users}: os outros módulos só falam com ele por aqui. */
 public interface UserService {
 

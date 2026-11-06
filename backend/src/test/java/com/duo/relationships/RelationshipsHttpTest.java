@@ -14,12 +14,12 @@ import java.util.List;
 import java.util.UUID;
 
 import com.duo.relationships.internal.CoupleMemberRepository;
-import com.duo.relationships.internal.CoupleRepository;
 import com.duo.relationships.internal.CouplePairingRepository;
 import com.duo.relationships.internal.CouplePairingStoryRepository;
+import com.duo.relationships.internal.CoupleRepository;
 import com.duo.users.UserService;
-import com.duo.users.UserSummary;
-import com.duo.users.internal.UserRepository;
+import com.duo.users.dto.UserSummary;
+import com.duo.users.internal.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.AfterEach;

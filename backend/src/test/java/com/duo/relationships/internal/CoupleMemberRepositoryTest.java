@@ -6,8 +6,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.time.Instant;
 
 import com.duo.relationships.CoupleState;
-import com.duo.users.internal.User;
-import com.duo.users.internal.UserRepository;
+import com.duo.users.internal.model.User;
+import com.duo.users.internal.repository.UserRepository;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

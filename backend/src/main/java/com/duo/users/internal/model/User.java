@@ -1,4 +1,4 @@
-package com.duo.users.internal;
+package com.duo.users.internal.model;
 
 import java.time.Instant;
 

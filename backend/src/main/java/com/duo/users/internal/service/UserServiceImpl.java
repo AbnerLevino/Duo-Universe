@@ -1,14 +1,16 @@
-package com.duo.users.internal;
+package com.duo.users.internal.service;
 
 import java.time.Instant;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import com.duo.users.EmailAlreadyLinkedException;
-import com.duo.users.HandleTakenException;
-import com.duo.users.InvalidHandleException;
 import com.duo.users.UserService;
-import com.duo.users.UserSummary;
+import com.duo.users.dto.UserSummary;
+import com.duo.users.exception.EmailAlreadyLinkedException;
+import com.duo.users.exception.HandleTakenException;
+import com.duo.users.exception.InvalidHandleException;
+import com.duo.users.internal.model.User;
+import com.duo.users.internal.repository.UserRepository;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;

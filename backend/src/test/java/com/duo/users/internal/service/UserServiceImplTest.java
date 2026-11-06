@@ -1,11 +1,13 @@
-package com.duo.users.internal;
+package com.duo.users.internal.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.duo.users.HandleTakenException;
-import com.duo.users.InvalidHandleException;
-import com.duo.users.UserSummary;
+import com.duo.users.dto.UserSummary;
+import com.duo.users.exception.HandleTakenException;
+import com.duo.users.exception.InvalidHandleException;
+import com.duo.users.internal.model.User;
+import com.duo.users.internal.repository.UserRepository;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

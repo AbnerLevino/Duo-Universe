@@ -1,4 +1,7 @@
-package com.duo.users;
+package com.duo.users.controller;
+
+import com.duo.users.UserService;
+import com.duo.users.dto.UserSummary;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;

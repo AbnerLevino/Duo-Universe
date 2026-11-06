@@ -1,7 +1,7 @@
 package com.duo.auth;
 
 import com.duo.users.UserService;
-import com.duo.users.UserSummary;
+import com.duo.users.dto.UserSummary;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

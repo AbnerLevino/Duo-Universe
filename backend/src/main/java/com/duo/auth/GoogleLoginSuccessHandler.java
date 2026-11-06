@@ -2,9 +2,9 @@ package com.duo.auth;
 
 import java.io.IOException;
 
-import com.duo.users.EmailAlreadyLinkedException;
 import com.duo.users.UserService;
-import com.duo.users.UserSummary;
+import com.duo.users.dto.UserSummary;
+import com.duo.users.exception.EmailAlreadyLinkedException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

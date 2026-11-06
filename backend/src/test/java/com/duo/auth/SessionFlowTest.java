@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import com.duo.users.UserService;
-import com.duo.users.UserSummary;
+import com.duo.users.dto.UserSummary;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;

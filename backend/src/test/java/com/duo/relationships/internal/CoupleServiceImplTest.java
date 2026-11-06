@@ -11,8 +11,8 @@ import com.duo.relationships.CoupleNotFoundException;
 import com.duo.relationships.CoupleState;
 import com.duo.relationships.CoupleSummary;
 import com.duo.relationships.IllegalCoupleTransitionException;
-import com.duo.users.internal.User;
-import com.duo.users.internal.UserRepository;
+import com.duo.users.internal.model.User;
+import com.duo.users.internal.repository.UserRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

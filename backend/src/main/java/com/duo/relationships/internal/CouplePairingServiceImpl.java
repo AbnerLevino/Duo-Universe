@@ -28,7 +28,7 @@ import com.duo.relationships.StoryStep;
 import com.duo.relationships.StorySummary;
 import com.duo.shared.RateLimiter;
 import com.duo.users.UserService;
-import com.duo.users.UserSummary;
+import com.duo.users.dto.UserSummary;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

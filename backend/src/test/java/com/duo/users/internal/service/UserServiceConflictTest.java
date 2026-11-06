@@ -1,4 +1,4 @@
-package com.duo.users.internal;
+package com.duo.users.internal.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -10,8 +10,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
-import com.duo.users.EmailAlreadyLinkedException;
-import com.duo.users.UserSummary;
+import com.duo.users.dto.UserSummary;
+import com.duo.users.exception.EmailAlreadyLinkedException;
+import com.duo.users.internal.model.User;
+import com.duo.users.internal.repository.UserRepository;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;

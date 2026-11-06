@@ -1,4 +1,4 @@
-package com.duo.users;
+package com.duo.users.exception;
 
 import com.duo.shared.exception.DuoHttpException;
 
