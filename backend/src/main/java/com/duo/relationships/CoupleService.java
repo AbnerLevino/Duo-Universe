@@ -2,6 +2,10 @@ package com.duo.relationships;
 
 import java.util.Optional;
 
+import com.duo.relationships.dto.CoupleSummary;
+import com.duo.relationships.exception.CoupleNotFoundException;
+import com.duo.relationships.exception.IllegalCoupleTransitionException;
+
 /**
  * API pública do Couple Universe depois de nascido: pausar, retomar e sair (RN-13 a RN-18). O nascimento em
  * si (a partir de um {@code CouplePairing} confirmado) chega na Etapa 8, por {@code CouplePairingService}.
