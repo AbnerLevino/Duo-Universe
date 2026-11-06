@@ -1,8 +1,18 @@
 # Plano: reorganização dos pacotes do backend por camada técnica
 
-> Status: **aprovado, aguardando execução.** Nenhum arquivo foi movido ainda.
+> Status: **EXECUTADO em 2026-11-06** (4 etapas, um commit por etapa, build verde com 151 testes em todas).
 > Decisão retomada em 2026-11-05 (a proposta original tinha ficado sem aplicar, ver seção 19 do `CLAUDE.md`,
 > bloco "Decisão de organização"). Desta vez o fundador confirmou que quer aplicar.
+>
+> **Commits:** Etapa 1 `3a8a8a0` (shared), Etapa 2 `eebbc96` (users), Etapa 3 `83aa5c8` (auth),
+> Etapa 4 `42ca045` (relationships).
+>
+> **O que o plano não previa e foi preciso ajustar** (só visibilidade e posição de testes; nenhuma regra de
+> negócio mudou): como quase todas as classes de implementação são *package-private*, separar em pastas diferentes
+> quebrou acessos que só funcionavam "por estar no mesmo pacote". Ficaram `public`: `RefreshCookies` (classe e
+> `set`/`clear`/`read`), `JwtConfig` (classe e `ISSUER`) e `CouplePairing.requireConfirmed()`. Os testes de
+> `internal/` foram para o mesmo pacote da classe que testam; `RelationshipsHttpTest` foi para
+> `relationships/controller/` (usa tipos aninhados package-private de `CouplePairingController`).
 
 ## Motivo
 

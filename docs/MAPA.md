@@ -20,6 +20,76 @@ e uma tela inicial provisória no frontend. Ainda não há casal, nem fotos — 
 (seção 17 do `CLAUDE.md`). A seção "Sessão própria" no fim deste arquivo explica como as peças do login se
 conectam.
 
+## Como os pacotes do backend estão organizados (reorganização de 2026-11-06)
+
+Cada módulo (`shared`, `users`, `auth`, `relationships`) segue a mesma convenção, por **camada técnica**
+(`docs/plano-reorganizacao-pacotes.md`):
+
+- **Raiz do módulo = o que os outros módulos podem usar:** as pastas `controller/`, `exception/` e `dto/`, mais
+  as interfaces de serviço e os enums, que ficam soltos (são o "contrato" do módulo).
+- **`internal/` = só o próprio módulo usa** (o `ArchitectureTest` garante): `model/` (entidades do banco),
+  `repository/` (acesso ao banco) e `service/` (implementações e orquestradores).
+- **Sobras** (configurações e utilitários que não cabem numa dessas pastas) ficam soltas, sem pasta própria.
+
+> **Atenção ao ler as seções mais abaixo:** elas são o diário de cada etapa e citam os caminhos **de antes** da
+> reorganização (ex.: `users/internal/User.java`). Para achar o arquivo hoje, use a árvore desta seção: a classe
+> está na subpasta da sua camada (ex.: `users/internal/model/User.java`).
+
+```
+shared/
+  exception/    DuoHttpException, GlobalExceptionHandler, RateLimitExceededException
+  RateLimiter, Scopeable, Scope                    (contratos, soltos)
+  ClockConfig, SecurityConfig                      (configurações, soltas)
+  internal/
+    model/        RateLimitAttempt
+    repository/   RateLimitAttemptRepository
+    service/      RateLimiterImpl
+
+users/
+  controller/   UserController
+  exception/    EmailAlreadyLinkedException, HandleTakenException, InvalidHandleException
+  dto/          UserSummary
+  UserService                                      (contrato, solto)
+  internal/
+    model/        User
+    repository/   UserRepository
+    service/      UserServiceImpl
+
+auth/
+  controller/   AuthController, MeController
+  dto/          AccessToken, IssuedRefreshToken
+  AccessTokenService, RefreshTokenService          (contratos, soltos)
+  GoogleLoginSuccessHandler, RefreshCookies        (sobras, soltas)
+  internal/
+    model/        RefreshToken
+    repository/   RefreshTokenRepository
+    service/      JwtAccessTokenService, RefreshTokenServiceImpl
+    JwtConfig                                      (configuração, solta)
+
+relationships/
+  controller/   CoupleController, CouplePairingController
+  exception/    AlreadyInRelationshipException, CoupleNotFoundException, DatesNotAcceptedException,
+                HandleNotInvitableException, IllegalCoupleTransitionException,
+                IllegalPairingOperationException, IllegalPairingTransitionException,
+                InviteCodeInvalidException, PairingNotFoundException, StoryIncompleteException
+  dto/          CoupleSummary, PairingSummary, StorySummary, IssuedPairingInvite
+  Channel, CoupleState, PairingState, StoryStep    (enums do contrato, soltos)
+  CouplePairingService, CoupleService, CouplePermissions   (contratos, soltos)
+  internal/
+    model/        Couple, CoupleMember, CouplePairing, CouplePairingStory
+    repository/   CoupleRepository, CoupleMemberRepository, CouplePairingRepository,
+                  CouplePairingStoryRepository
+    service/      CoupleServiceImpl, CouplePairingServiceImpl, CoupleFactory
+```
+
+**Os testes seguem a mesma estrutura** em `src/test/java/com/duo/`: um teste que usa membros *package-private*
+fica no mesmo pacote da classe que testa (ex.: `CouplePairingTest` em `relationships/internal/model/`;
+`RelationshipsHttpTest` em `relationships/controller/`, porque usa tipos internos do controller).
+
+**Ajustes de visibilidade feitos na reorganização** (não mudam comportamento): ao separar em pacotes diferentes,
+o que era visível "por estar na mesma pasta" precisou virar `public` — `RefreshCookies` (classe e
+`set`/`clear`/`read`), `JwtConfig` (classe e `ISSUER`) e `CouplePairing.requireConfirmed()`.
+
 ## `backend/` — a API
 
 **Arquivos de build (como o projeto é compilado):**

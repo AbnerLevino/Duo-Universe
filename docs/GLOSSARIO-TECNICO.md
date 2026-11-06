@@ -88,8 +88,19 @@
   de um pacote inteiro. No Duo: `auth/package-info.java` e `users/package-info.java` explicam o que cada
   módulo vai fazer antes mesmo de ter classes.
 - **Convenção `internal`:** a API pública de um módulo vive na raiz do pacote (`com.duo.auth.X`); a
-  implementação que só o próprio módulo deve usar vive em `com.duo.auth.internal.X`. Ainda não há exemplo
-  no código — vem com a primeira classe de verdade.
+  implementação que só o próprio módulo deve usar vive em `com.duo.auth.internal.X`. Desde 2026-11-06 cada uma
+  das duas partes também é dividida por camada técnica (próximo item). Exemplo: `UserService` (contrato) fica em
+  `com.duo.users`; `UserServiceImpl` (implementação) fica em `com.duo.users.internal.service`.
+- **Camada técnica (`controller`, `exception`, `dto`, `model`, `repository`, `service`):** pastas que agrupam
+  os arquivos pelo **tipo de trabalho** que fazem, não pelo assunto. `controller/` recebe o HTTP; `exception/`
+  tem os erros do módulo; `dto/` tem os objetos que viajam para fora (ex.: `UserSummary`); `model/` tem as
+  entidades do banco (ex.: `User`); `repository/` fala com o banco; `service/` tem a lógica (ex.:
+  `CouplePairingServiceImpl`). As três últimas ficam dentro de `internal/` (só o próprio módulo as usa).
+- **Package-private (visibilidade padrão):** uma classe, método ou campo **sem** `public`, `private` ou
+  `protected` só é visível para classes do **mesmo pacote**. Na reorganização por camadas isso importou: o que
+  funcionava "por estar na mesma pasta" quebrou ao separar em pastas diferentes e precisou virar `public`
+  (ex.: `RefreshCookies`, usado pelo `AuthController`, que foi para `auth/controller/`). É também o motivo de
+  um teste ficar no mesmo pacote da classe que testa quando ela não é `public`.
 - **ArchUnit:** biblioteca de teste que não testa comportamento, testa **regras de organização do código**
   (ex.: "nenhum controller acessa o banco direto"). No Duo: `ArchitectureTest.java`.
 - **"Slice" (em ArchUnit):** um agrupamento de classes por um critério (aqui, por módulo) usado para checar

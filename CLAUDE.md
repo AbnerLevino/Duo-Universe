@@ -693,6 +693,15 @@ no piloto) decididas em 2026-11-05; domínio próprio; termos de uso e política
   mantendo a estrutura de pastas e o código em inglês como estão (DEC-028 continua `DECIDIDO`, sem mudança).
   Se a necessidade de reorganizar por camada voltar, o desenho já discutido (nested dentro de `internal/`,
   sem precisar tocar no `ArchitectureTest`) fica registrado aqui para não refazer a análise.
+- **Reorganização dos pacotes por camada técnica — EXECUTADA em 2026-11-06** (revoga o "sem aplicar" acima; o
+  fundador voltou atrás e aprovou o plano, `docs/plano-reorganizacao-pacotes.md`). Quatro etapas, um commit cada
+  (`3a8a8a0` shared, `eebbc96` users, `83aa5c8` auth, `42ca045` relationships), build verde com 151 testes em todas,
+  `ArchitectureTest` sem alteração. Convenção: raiz do módulo = `controller/`, `exception/`, `dto/` + contratos e
+  enums soltos; `internal/` = `model/`, `repository/`, `service/`. Só ajustes de visibilidade (`public` em
+  `RefreshCookies`, `JwtConfig.ISSUER`, `CouplePairing.requireConfirmed()`) e posição de testes; nenhuma regra de
+  negócio mudou. **Os caminhos citados nesta seção 19 e nos registros por etapa do `docs/MAPA.md` são os de antes
+  da reorganização**; a árvore atual está no `docs/MAPA.md` (seção "Como os pacotes do backend estão organizados").
+  DEC-028 (código em inglês) segue valendo. Segue valendo também o item de código em português: continua sem aplicar.
 - **Etapa 6 (história em 4 passos, RN-25/26) — concluída em 2026-11-05.** Módulo `relationships` ganhou
   `StoryStep`/`StorySummary`/`StoryIncompleteException`; entidade `CouplePairingStory` (migration `V9`, uma
   linha por pessoa por pareamento, 4 colunas de texto); `CouplePairingService` ganhou
