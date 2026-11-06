@@ -5,9 +5,15 @@ import ConfirmScreen from './ConfirmScreen'
 import CoupleHomeScreen from './CoupleHomeScreen'
 import Dashboard from './Dashboard'
 import DateConsensusScreen from './DateConsensusScreen'
+import EditProfileScreen from './EditProfileScreen'
+import FollowListScreen from './FollowListScreen'
 import HandleSetupScreen from './HandleSetupScreen'
+import HomeScreen from './HomeScreen'
 import InviteScreen from './InviteScreen'
 import LoginScreen from './LoginScreen'
+import NewMomentScreen from './NewMomentScreen'
+import PublicProfileScreen from './PublicProfileScreen'
+import SearchScreen from './SearchScreen'
 import { getCurrentUser, logout, logoutAll, type User } from './session'
 import StoryScreen from './StoryScreen'
 
@@ -44,6 +50,22 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/inicio" element={<HomeScreen user={user} />} />
+        <Route path="/buscar" element={<SearchScreen />} />
+        <Route path="/u/:handle" element={<PublicProfileScreen />} />
+        <Route path="/lista/:kind" element={<FollowListScreen />} />
+        <Route path="/momentos/novo" element={<NewMomentScreen />} />
+        <Route
+          path="/perfil/editar"
+          element={
+            <EditProfileScreen
+              user={user}
+              onUserChanged={onUserChanged}
+              onLogout={onLogout}
+              onLogoutAll={onLogoutAll}
+            />
+          }
+        />
         <Route path="/convite/:code" element={<AcceptInviteScreen user={user} />} />
         <Route path="/vinculo/handle" element={<HandleSetupScreen onChosen={onUserChanged} />} />
         <Route path="/vinculo/convidar" element={<InviteScreen />} />

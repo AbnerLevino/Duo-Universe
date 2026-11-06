@@ -10,8 +10,8 @@ type Props = {
 // Mesmo formato que o backend exige (RN-30): 3 a 20 letras, números ou "_".
 const HANDLE_FORMAT = /^[A-Za-z0-9_]{3,20}$/
 
-// Tela obrigatória no próximo login para quem ainda não escolheu um @handle (Etapa 4) — é por ele que a sua
-// pessoa vai te encontrar para o convite do vínculo.
+// Tela obrigatória no próximo login para quem ainda não escolheu um DuoName (Etapa 4) — é por ele que as
+// pessoas te encontram: para seguir, buscar e para o convite do vínculo.
 export default function HandleSetupScreen({ onChosen }: Props) {
   const navigate = useNavigate()
   const [handle, setHandle] = useState('')
@@ -30,20 +30,24 @@ export default function HandleSetupScreen({ onChosen }: Props) {
       onChosen(user)
       navigate('/', { replace: true })
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível salvar o @handle.')
+      setError(err instanceof ApiError ? err.message : 'Não foi possível salvar o DuoName.')
       setSaving(false)
     }
   }
 
   return (
     <main className="screen">
-      <h1>Escolha seu @handle</h1>
+      <h1>Escolha seu DuoName</h1>
       <p className="muted">
-        É assim que a sua pessoa vai te encontrar para o vínculo. 3 a 20 letras, números ou
+        É o seu nome de usuário: assim as pessoas te encontram. 3 a 20 letras, números ou
         &quot;_&quot;.
       </p>
+      <p className="muted">
+        O seu perfil começa <strong>público</strong>: qualquer pessoa pode ver o seu cartão e o que
+        você marcar como público. Você muda isso quando quiser, em Perfil.
+      </p>
       <form onSubmit={submit} className="form">
-        <label htmlFor="handle">@handle</label>
+        <label htmlFor="handle">DuoName</label>
         <input
           id="handle"
           value={handle}

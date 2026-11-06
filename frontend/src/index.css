@@ -179,3 +179,202 @@ code {
 section {
   margin-top: var(--space-8);
 }
+
+/* ---------- Épico 3: perfil, busca, listas, fotos ---------- */
+
+/* Telas com a barra de navegação fixa embaixo precisam de espaço para o conteúdo não ficar escondido. */
+.screen.with-nav {
+  padding-bottom: 5.5rem;
+}
+
+.bottom-nav {
+  position: fixed;
+  inset: auto 0 0 0;
+  display: flex;
+  justify-content: space-around;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.nav-item {
+  flex: 1;
+  padding: var(--space-3) var(--space-2);
+  text-align: center;
+  text-decoration: none;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-md);
+}
+
+.nav-item.active {
+  color: var(--color-text);
+  background: var(--color-primary);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.profile-header h1 {
+  font-size: var(--text-xl);
+  margin: 0;
+}
+
+.profile-header p {
+  margin: var(--space-1) 0 0;
+}
+
+/* O avatar cresce de tamanho conforme o lugar: lista (sm), cartão (md), perfil (lg). */
+.avatar {
+  flex: none;
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.avatar-sm {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: var(--text-base);
+}
+
+.avatar-md {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.avatar-lg {
+  width: 5rem;
+  height: 5rem;
+  font-size: var(--text-xl);
+}
+
+.img-placeholder {
+  background: var(--color-surface);
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  list-style: none;
+  padding: 0;
+  margin: var(--space-4) 0;
+}
+
+.stats a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--color-accent);
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-4) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.list-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.list-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: inherit;
+  text-decoration: none;
+  min-width: 0;
+}
+
+.list-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-1);
+  list-style: none;
+  padding: 0;
+  margin: var(--space-4) 0;
+}
+
+.photo-cell {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--color-surface);
+}
+
+.photo-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgb(0 0 0 / 0.7);
+  overflow-y: auto;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 28rem;
+  box-sizing: border-box;
+  padding: var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-outline);
+  border-radius: var(--radius-lg);
+}
+
+.photo-large {
+  display: block;
+  width: 100%;
+  max-height: 60dvh;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+}
+
+select {
+  font: inherit;
+  color: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem var(--space-3);
+}
+
+.form input[type='search'] {
+  font: inherit;
+}

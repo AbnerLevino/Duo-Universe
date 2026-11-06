@@ -1,11 +1,12 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { myCouple, myPairings } from './api'
+import { myCouple } from './api'
 import type { User } from './session'
 
 /**
  * A raiz do app, depois do login: decide pra onde mandar a pessoa, sem ela saber nenhum id de antemão —
- * handle faltando → casal ativo → convite pendente → convidar alguém, nesta ordem (Etapa 13/14).
+ * DuoName faltando → escolher; casal ativo → o universo do casal; senão → o Personal Universe (Épico 3).
+ * Quem está solteiro nunca cai mais direto num formulário de convite: o vínculo é um caminho dentro da home.
  */
 export default function Dashboard({ user }: { user: User }) {
   const navigate = useNavigate()
@@ -16,11 +17,9 @@ export default function Dashboard({ user }: { user: User }) {
       return
     }
     let active = true
-    Promise.all([myCouple(), myPairings()]).then(([couple, pairings]) => {
+    myCouple().then((couple) => {
       if (!active) return
-      if (couple) navigate('/casal', { replace: true })
-      else if (pairings.length > 0) navigate(`/vinculo/${pairings[0].id}`, { replace: true })
-      else navigate('/vinculo/convidar', { replace: true })
+      navigate(couple ? '/casal' : '/inicio', { replace: true })
     })
     return () => {
       active = false

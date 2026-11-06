@@ -8,6 +8,32 @@ const jsonResponse = (status: number, body?: unknown) =>
 
 const ME = { id: 1, email: 'ana@example.com', displayName: 'Ana', handle: 'ana' }
 const TOKEN = { accessToken: 'jwt', expiresInSeconds: 900 }
+const MY_PROFILE = {
+  id: 1,
+  displayName: 'Ana',
+  handle: 'ana',
+  bio: 'Gosto de café',
+  profession: 'Dev',
+  maritalStatus: 'SINGLE',
+  profileVisibility: 'PUBLIC',
+  avatarMediaId: null,
+  hidden: false,
+}
+const MY_PUBLIC_PROFILE = {
+  userId: 1,
+  displayName: 'Ana',
+  handle: 'ana',
+  bio: 'Gosto de café',
+  profession: 'Dev',
+  maritalStatus: 'SINGLE',
+  profileVisibility: 'PUBLIC',
+  avatarMediaId: null,
+  duollowers: 3,
+  duollowing: 2,
+  relation: 'NONE',
+  self: true,
+  canSeeContent: true,
+}
 const COUPLE = {
   id: 1,
   state: 'ACTIVE',
@@ -67,19 +93,29 @@ describe('App', () => {
     })
     render(<App />)
 
-    expect(await screen.findByRole('heading', { name: 'Escolha seu @handle' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Escolha seu DuoName' })).toBeInTheDocument()
   })
 
-  it('sem casal e sem convite pendente, oferece convidar alguém', async () => {
+  it('solteiro cai no Personal Universe, com o vínculo como um caminho dentro da home', async () => {
     mockBackend({
       'POST /api/auth/refresh': () => jsonResponse(200, TOKEN),
       'GET /api/me': () => jsonResponse(200, ME),
       'GET /api/couples/mine': () => jsonResponse(204),
       'GET /api/pairings/mine': () => jsonResponse(200, []),
+      'GET /api/me/profile': () => jsonResponse(200, MY_PROFILE),
+      'GET /api/profiles/ana': () => jsonResponse(200, MY_PUBLIC_PROFILE),
+      'GET /api/media/users/1/photos': () => jsonResponse(200, []),
+      'GET /api/me/follow-requests': () => jsonResponse(200, []),
     })
     render(<App />)
 
-    expect(await screen.findByRole('heading', { name: 'Chame a sua pessoa' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Ana' })).toBeInTheDocument()
+    expect(window.location.pathname).toBe('/inicio')
+    expect(screen.getByRole('link', { name: 'Vincular-se' })).toHaveAttribute(
+      'href',
+      '/vinculo/convidar',
+    )
+    expect(screen.getByRole('link', { name: /Duollowers/ })).toBeInTheDocument()
   })
 
   it('mostra o motivo quando o backend recusa o login', async () => {
