@@ -1,10 +1,12 @@
-package com.duo.shared.internal;
+package com.duo.shared.internal.service;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 
-import com.duo.shared.RateLimitExceededException;
+import com.duo.shared.exception.RateLimitExceededException;
+import com.duo.shared.internal.model.RateLimitAttempt;
+import com.duo.shared.internal.repository.RateLimitAttemptRepository;
 import com.duo.shared.RateLimiter;
 
 import org.springframework.stereotype.Service;

@@ -1,6 +1,6 @@
 package com.duo.users;
 
-import com.duo.shared.DuoHttpException;
+import com.duo.shared.exception.DuoHttpException;
 
 import org.springframework.http.HttpStatus;
 

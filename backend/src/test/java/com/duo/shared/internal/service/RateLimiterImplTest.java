@@ -1,4 +1,4 @@
-package com.duo.shared.internal;
+package com.duo.shared.internal.service;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -8,7 +8,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
-import com.duo.shared.RateLimitExceededException;
+import com.duo.shared.exception.RateLimitExceededException;
+import com.duo.shared.internal.repository.RateLimitAttemptRepository;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

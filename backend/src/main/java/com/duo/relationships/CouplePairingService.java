@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import com.duo.shared.RateLimitExceededException;
+import com.duo.shared.exception.RateLimitExceededException;
 
 /**
  * API pública do convite para o vínculo (DEC-012). Nesta etapa: só nascer, cancelar e expirar — o convite de

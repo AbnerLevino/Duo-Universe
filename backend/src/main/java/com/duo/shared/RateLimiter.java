@@ -2,6 +2,8 @@ package com.duo.shared;
 
 import java.time.Duration;
 
+import com.duo.shared.exception.RateLimitExceededException;
+
 /**
  * Limite de tentativas por período (RA-08), guardado no banco — sobrevive a um reinício do servidor.
  * {@code scope} identifica a rota (ex.: {@code "pairing_invite_by_handle"}); {@code key} identifica quem

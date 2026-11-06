@@ -1,8 +1,10 @@
-package com.duo.shared.internal;
+package com.duo.shared.internal.repository;
 
 import java.util.Optional;
 
 import jakarta.persistence.LockModeType;
+
+import com.duo.shared.internal.model.RateLimitAttempt;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

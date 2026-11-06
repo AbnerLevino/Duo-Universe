@@ -23,7 +23,7 @@ import com.duo.relationships.PairingSummary;
 import com.duo.relationships.StoryIncompleteException;
 import com.duo.relationships.StoryStep;
 import com.duo.relationships.StorySummary;
-import com.duo.shared.RateLimitExceededException;
+import com.duo.shared.exception.RateLimitExceededException;
 import com.duo.shared.RateLimiter;
 import com.duo.users.UserService;
 import com.duo.users.UserSummary;

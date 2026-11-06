@@ -1,4 +1,4 @@
-package com.duo.shared;
+package com.duo.shared.exception;
 
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;

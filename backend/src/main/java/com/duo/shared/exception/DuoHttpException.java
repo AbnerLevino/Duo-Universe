@@ -1,4 +1,4 @@
-package com.duo.shared;
+package com.duo.shared.exception;
 
 import org.springframework.http.HttpStatus;
 
