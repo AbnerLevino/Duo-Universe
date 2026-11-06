@@ -1,4 +1,4 @@
-package com.duo.auth.internal;
+package com.duo.auth.internal.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -7,7 +7,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
-import com.duo.auth.IssuedRefreshToken;
+import com.duo.auth.dto.IssuedRefreshToken;
+import com.duo.auth.internal.model.RefreshToken;
+import com.duo.auth.internal.repository.RefreshTokenRepository;
 import com.duo.users.internal.model.User;
 import com.duo.users.internal.repository.UserRepository;
 

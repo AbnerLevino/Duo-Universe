@@ -1,4 +1,4 @@
-package com.duo.auth.internal;
+package com.duo.auth.internal.service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -12,8 +12,10 @@ import java.util.HexFormat;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.duo.auth.IssuedRefreshToken;
 import com.duo.auth.RefreshTokenService;
+import com.duo.auth.dto.IssuedRefreshToken;
+import com.duo.auth.internal.model.RefreshToken;
+import com.duo.auth.internal.repository.RefreshTokenRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

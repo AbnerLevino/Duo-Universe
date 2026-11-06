@@ -1,4 +1,4 @@
-package com.duo.auth;
+package com.duo.auth.controller;
 
 import com.duo.users.UserService;
 import com.duo.users.dto.UserSummary;

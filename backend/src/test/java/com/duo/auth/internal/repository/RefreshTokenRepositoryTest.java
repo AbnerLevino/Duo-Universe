@@ -1,4 +1,4 @@
-package com.duo.auth.internal;
+package com.duo.auth.internal.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
+import com.duo.auth.internal.model.RefreshToken;
 import com.duo.users.internal.model.User;
 import com.duo.users.internal.repository.UserRepository;
 

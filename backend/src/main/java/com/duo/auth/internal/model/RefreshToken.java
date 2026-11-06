@@ -1,4 +1,4 @@
-package com.duo.auth.internal;
+package com.duo.auth.internal.model;
 
 import java.time.Instant;
 import java.util.UUID;

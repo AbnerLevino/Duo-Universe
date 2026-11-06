@@ -2,6 +2,8 @@ package com.duo.auth;
 
 import java.util.Optional;
 
+import com.duo.auth.dto.IssuedRefreshToken;
+
 /** API pública do token de renovação (RA-04, RA-05): os outros módulos só falam com ele por aqui. */
 public interface RefreshTokenService {
 

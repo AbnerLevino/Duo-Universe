@@ -8,6 +8,8 @@ import java.util.Optional;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
+import com.duo.auth.dto.IssuedRefreshToken;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -18,7 +20,7 @@ import org.springframework.stereotype.Component;
  * {@code Secure} fica ligado por padrão; só se desliga em desenvolvimento sem HTTPS.
  */
 @Component
-class RefreshCookies {
+public class RefreshCookies {
 
 	static final String NAME = "duo_refresh";
 	static final String PATH = "/api/auth";
@@ -31,15 +33,15 @@ class RefreshCookies {
 		this.clock = clock;
 	}
 
-	String set(IssuedRefreshToken issued) {
+	public String set(IssuedRefreshToken issued) {
 		return build(issued.token(), Duration.between(clock.instant(), issued.expiresAt())).toString();
 	}
 
-	String clear() {
+	public String clear() {
 		return build("", Duration.ZERO).toString();
 	}
 
-	Optional<String> read(HttpServletRequest request) {
+	public Optional<String> read(HttpServletRequest request) {
 		if (request.getCookies() == null) {
 			return Optional.empty();
 		}

@@ -1,4 +1,4 @@
-package com.duo.auth;
+package com.duo.auth.dto;
 
 import java.time.Instant;
 

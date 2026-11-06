@@ -24,9 +24,9 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
  * A aplicação não sobe sem o segredo ou com um segredo curto demais.
  */
 @Configuration
-class JwtConfig {
+public class JwtConfig {
 
-	static final String ISSUER = "duo";
+	public static final String ISSUER = "duo";
 	private static final int MIN_SECRET_BYTES = 32;
 
 	@Bean

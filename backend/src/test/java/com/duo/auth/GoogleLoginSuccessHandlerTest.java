@@ -11,6 +11,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
+import com.duo.auth.dto.IssuedRefreshToken;
 import com.duo.users.UserService;
 import com.duo.users.dto.UserSummary;
 import com.duo.users.exception.EmailAlreadyLinkedException;

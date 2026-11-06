@@ -1,11 +1,12 @@
-package com.duo.auth.internal;
+package com.duo.auth.internal.service;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 
-import com.duo.auth.AccessToken;
 import com.duo.auth.AccessTokenService;
+import com.duo.auth.dto.AccessToken;
+import com.duo.auth.internal.JwtConfig;
 
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
