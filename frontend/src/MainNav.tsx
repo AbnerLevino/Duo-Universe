@@ -7,10 +7,10 @@ const ITEMS = [
   { to: '/perfil/editar', label: 'Perfil' },
 ]
 
-/** A navegação principal do app, fixa embaixo da tela (mobile-first, DEC-013). */
-export default function BottomNav() {
+/** O cabeçalho do app: a navegação principal, fixa no topo da tela (mobile-first, DEC-013). */
+export default function MainNav() {
   return (
-    <nav className="bottom-nav" aria-label="Navegação principal">
+    <nav className="main-nav" aria-label="Navegação principal">
       {ITEMS.map((item) => (
         <NavLink
           key={item.to}

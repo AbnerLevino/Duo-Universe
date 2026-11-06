@@ -1,7 +1,7 @@
 import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Avatar from './Avatar'
-import BottomNav from './BottomNav'
+import MainNav from './MainNav'
 import {
   chooseHandle,
   errorMessage,
@@ -143,6 +143,7 @@ export default function EditProfileScreen({ user, onUserChanged, onLogout, onLog
 
   return (
     <main className="screen with-nav">
+      <MainNav />
       <h1>Editar perfil</h1>
 
       <section className="profile-header">
@@ -253,7 +254,6 @@ export default function EditProfileScreen({ user, onUserChanged, onLogout, onLog
           Sair de todos os aparelhos
         </button>
       </section>
-      <BottomNav />
     </main>
   )
 }

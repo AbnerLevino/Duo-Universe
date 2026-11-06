@@ -144,7 +144,7 @@ arquivo sai (404 igual para "não existe" e "não é para você").
 
 **Frontend** (`frontend/src/`): `api.ts` (chamadas), `labels.ts` (textos: DuoName, Duollowers...), `imageTools.ts`
 (recorte e redução com canvas), `session.ts` (agora também o cache das fotos por sessão), componentes
-`AuthedImage`, `Avatar`, `FollowButton`, `PhotoGrid`, `ReportForm`, `BottomNav`; telas `HomeScreen` (/inicio),
+`AuthedImage`, `Avatar`, `FollowButton`, `PhotoGrid`, `ReportForm`, `MainNav`; telas `HomeScreen` (/inicio),
 `EditProfileScreen` (/perfil/editar), `PublicProfileScreen` (/u/:handle), `SearchScreen` (/buscar),
 `FollowListScreen` (/lista/:kind), `NewMomentScreen` (/momentos/novo). O `Dashboard` agora leva o solteiro à
 home (e quem tem casal ativo a `/casal`). Tokens de design em `index.css`.

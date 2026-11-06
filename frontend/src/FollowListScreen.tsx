@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Avatar from './Avatar'
-import BottomNav from './BottomNav'
+import MainNav from './MainNav'
 import {
   acceptRequest,
   blockedUsers,
@@ -87,10 +87,10 @@ export default function FollowListScreen() {
   if (!config)
     return (
       <main className="screen with-nav">
+        <MainNav />
         <p role="alert" className="login-error">
           Lista não encontrada.
         </p>
-        <BottomNav />
       </main>
     )
 
@@ -98,6 +98,7 @@ export default function FollowListScreen() {
 
   return (
     <main className="screen with-nav">
+      <MainNav />
       <Link to="/inicio" className="button subtle">
         Voltar
       </Link>
@@ -140,7 +141,6 @@ export default function FollowListScreen() {
           ))}
         </ul>
       )}
-      <BottomNav />
     </main>
   )
 }

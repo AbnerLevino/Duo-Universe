@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import Avatar from './Avatar'
-import BottomNav from './BottomNav'
+import MainNav from './MainNav'
 import {
   type Couple,
   errorMessage,
@@ -67,10 +67,10 @@ export default function HomeScreen({ user }: { user: User }) {
   if (error)
     return (
       <main className="screen with-nav">
+        <MainNav />
         <p role="alert" className="login-error">
           {error}
         </p>
-        <BottomNav />
       </main>
     )
   if (!data) return <main className="screen with-nav" aria-busy="true" />
@@ -82,6 +82,7 @@ export default function HomeScreen({ user }: { user: User }) {
 
   return (
     <main className="screen with-nav">
+      <MainNav />
       <header className="profile-header">
         <Avatar name={profile.displayName} mediaId={profile.avatarMediaId} size="lg" />
         <div>
@@ -139,7 +140,6 @@ export default function HomeScreen({ user }: { user: User }) {
           </Link>
         )}
       </section>
-      <BottomNav />
     </main>
   )
 }

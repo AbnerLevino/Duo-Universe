@@ -182,33 +182,32 @@ section {
 
 /* ---------- Épico 3: perfil, busca, listas, fotos ---------- */
 
-/* Telas com a barra de navegação fixa embaixo precisam de espaço para o conteúdo não ficar escondido. */
+/* Telas com o cabeçalho de navegação fixo no topo precisam de espaço para o conteúdo não ficar escondido. */
 .screen.with-nav {
-  padding-bottom: 5.5rem;
+  padding-top: 3.5rem;
 }
 
-.bottom-nav {
+/* O cabeçalho: só as palavras, centralizadas, separadas por um espaço. Sem bloco de cor e sem efeito de hover. */
+.main-nav {
   position: fixed;
-  inset: auto 0 0 0;
+  inset: 0 0 auto 0;
+  z-index: 10;
   display: flex;
-  justify-content: space-around;
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
+  justify-content: center;
+  gap: var(--space-6);
+  padding: var(--space-4);
+  background: var(--color-bg);
 }
 
 .nav-item {
-  flex: 1;
-  padding: var(--space-3) var(--space-2);
-  text-align: center;
+  font-size: var(--text-sm);
   text-decoration: none;
   color: var(--color-text-muted);
-  border-radius: var(--radius-md);
 }
 
+/* A página atual só fica com a letra mais clara, sem fundo. */
 .nav-item.active {
   color: var(--color-text);
-  background: var(--color-primary);
 }
 
 .profile-header {
