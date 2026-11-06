@@ -39,7 +39,8 @@ export default function HandleSetupScreen({ onChosen }: Props) {
     <main className="screen">
       <h1>Escolha seu @handle</h1>
       <p className="muted">
-        É assim que a sua pessoa vai te encontrar para o vínculo. 3 a 20 letras, números ou &quot;_&quot;.
+        É assim que a sua pessoa vai te encontrar para o vínculo. 3 a 20 letras, números ou
+        &quot;_&quot;.
       </p>
       <form onSubmit={submit} className="form">
         <label htmlFor="handle">@handle</label>

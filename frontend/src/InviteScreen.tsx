@@ -54,7 +54,9 @@ export default function InviteScreen() {
           Convidar
         </button>
       </form>
-      <p className="muted">Ainda não sabe o @handle dela? Gere um link pra mandar por fora (válido por 7 dias):</p>
+      <p className="muted">
+        Ainda não sabe o @handle dela? Gere um link pra mandar por fora (válido por 7 dias):
+      </p>
       <button type="button" className="button subtle" onClick={generateLink} disabled={sending}>
         Gerar link de convite
       </button>
@@ -63,7 +65,11 @@ export default function InviteScreen() {
           <p className="muted">
             Envie este link: <code>{linkUrl}</code>
           </p>
-          <button type="button" className="button" onClick={() => navigate(`/vinculo/${link.pairingId}`)}>
+          <button
+            type="button"
+            className="button"
+            onClick={() => navigate(`/vinculo/${link.pairingId}`)}
+          >
             Já enviei, ver status
           </button>
         </div>

@@ -6,7 +6,8 @@ import { authedFetch } from './session'
 export type Channel = 'HANDLE' | 'LINK'
 export type PairingState = 'PENDING' | 'CONFIRMED' | 'CANCELLED'
 export type CoupleState = 'ACTIVE' | 'PAUSED' | 'ENDED'
-export type StoryStep = 'HOW_WE_MET' | 'TIME_BEFORE_DATING' | 'WHAT_I_THOUGHT_THEN' | 'WHAT_I_THINK_NOW'
+export type StoryStep =
+  'HOW_WE_MET' | 'TIME_BEFORE_DATING' | 'WHAT_I_THOUGHT_THEN' | 'WHAT_I_THINK_NOW'
 
 export const STORY_STEPS: StoryStep[] = [
   'HOW_WE_MET',
@@ -81,9 +82,12 @@ const withJsonBody = (method: string, body: unknown): RequestInit => ({
 
 export const myCouple = () => call<Couple | null>('/api/couples/mine')
 export const getCouple = (id: number) => call<Couple>(`/api/couples/${id}`)
-export const pauseCouple = (id: number) => call<Couple>(`/api/couples/${id}/pause`, { method: 'POST' })
-export const resumeCouple = (id: number) => call<Couple>(`/api/couples/${id}/resume`, { method: 'POST' })
-export const leaveCouple = (id: number) => call<void>(`/api/couples/${id}/leave`, { method: 'POST' })
+export const pauseCouple = (id: number) =>
+  call<Couple>(`/api/couples/${id}/pause`, { method: 'POST' })
+export const resumeCouple = (id: number) =>
+  call<Couple>(`/api/couples/${id}/resume`, { method: 'POST' })
+export const leaveCouple = (id: number) =>
+  call<void>(`/api/couples/${id}/leave`, { method: 'POST' })
 
 export const myPairings = () => call<Pairing[]>('/api/pairings/mine')
 export const getPairing = (id: number) => call<Pairing>(`/api/pairings/${id}`)
@@ -91,13 +95,16 @@ export const getPairing = (id: number) => call<Pairing>(`/api/pairings/${id}`)
 export const inviteByHandle = (handle: string) =>
   call<Pairing>('/api/pairings/invite-by-handle', withJsonBody('POST', { handle }))
 
-export const inviteByLink = () => call<IssuedInvite>('/api/pairings/invite-by-link', { method: 'POST' })
+export const inviteByLink = () =>
+  call<IssuedInvite>('/api/pairings/invite-by-link', { method: 'POST' })
 
 export const redeemByLink = (code: string) =>
   call<Pairing>('/api/pairings/redeem', withJsonBody('POST', { code }))
 
-export const confirmPairing = (id: number) => call<Pairing>(`/api/pairings/${id}/confirm`, { method: 'POST' })
-export const cancelPairing = (id: number) => call<void>(`/api/pairings/${id}/cancel`, { method: 'POST' })
+export const confirmPairing = (id: number) =>
+  call<Pairing>(`/api/pairings/${id}/confirm`, { method: 'POST' })
+export const cancelPairing = (id: number) =>
+  call<void>(`/api/pairings/${id}/cancel`, { method: 'POST' })
 
 export const saveStoryStep = (pairingId: number, step: StoryStep, text: string) =>
   call<void>(`/api/pairings/${pairingId}/story/${step}`, withJsonBody('PUT', { text }))
@@ -106,7 +113,10 @@ export const partnerStory = (pairingId: number) =>
   call<Story | null>(`/api/pairings/${pairingId}/partner-story`)
 
 export const proposeDates = (pairingId: number, knownSinceDate: string, datingSinceDate: string) =>
-  call<void>(`/api/pairings/${pairingId}/dates`, withJsonBody('PUT', { knownSinceDate, datingSinceDate }))
+  call<void>(
+    `/api/pairings/${pairingId}/dates`,
+    withJsonBody('PUT', { knownSinceDate, datingSinceDate }),
+  )
 
 export const acceptDates = (pairingId: number) =>
   call<void>(`/api/pairings/${pairingId}/dates/accept`, { method: 'POST' })

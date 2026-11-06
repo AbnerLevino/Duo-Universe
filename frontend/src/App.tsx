@@ -11,7 +11,8 @@ import LoginScreen from './LoginScreen'
 import { getCurrentUser, logout, logoutAll, type User } from './session'
 import StoryScreen from './StoryScreen'
 
-type State = { status: 'loading' } | { status: 'anonymous' } | { status: 'authenticated'; user: User }
+type State =
+  { status: 'loading' } | { status: 'anonymous' } | { status: 'authenticated'; user: User }
 
 export default function App() {
   const [state, setState] = useState<State>({ status: 'loading' })

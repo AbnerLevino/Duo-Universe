@@ -19,7 +19,9 @@ export default function ConfirmScreen({ user }: { user: User }) {
   const load = useCallback(() => {
     getPairing(id)
       .then(setPairing)
-      .catch((err: unknown) => setError(err instanceof ApiError ? err.message : 'Pareamento não encontrado.'))
+      .catch((err: unknown) =>
+        setError(err instanceof ApiError ? err.message : 'Pareamento não encontrado.'),
+      )
   }, [id])
 
   useEffect(() => {
@@ -69,7 +71,9 @@ export default function ConfirmScreen({ user }: { user: User }) {
 
   const iAmInitiator = pairing.initiatorUserId === user.id
   const myConfirmedAt = iAmInitiator ? pairing.initiatorConfirmedAt : pairing.inviteeConfirmedAt
-  const partnerConfirmedAt = iAmInitiator ? pairing.inviteeConfirmedAt : pairing.initiatorConfirmedAt
+  const partnerConfirmedAt = iAmInitiator
+    ? pairing.inviteeConfirmedAt
+    : pairing.initiatorConfirmedAt
   const waitingForInvitee = pairing.inviteeUserId === null
 
   return (

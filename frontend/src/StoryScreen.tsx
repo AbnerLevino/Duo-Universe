@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ApiError, partnerStory, saveStoryStep, STORY_STEPS, type Story, type StoryStep } from './api'
+import {
+  ApiError,
+  partnerStory,
+  saveStoryStep,
+  STORY_STEPS,
+  type Story,
+  type StoryStep,
+} from './api'
 
 const LABELS: Record<StoryStep, string> = {
   HOW_WE_MET: 'Como vocês se conheceram?',
@@ -65,7 +72,9 @@ export default function StoryScreen() {
   return (
     <main className="screen">
       <h1>A história de vocês</h1>
-      <p className="muted">Escreva com calma — cada passo salva sozinho quando você sai do campo.</p>
+      <p className="muted">
+        Escreva com calma — cada passo salva sozinho quando você sai do campo.
+      </p>
       {STORY_STEPS.map((step) => (
         <div key={step} className="form">
           <label htmlFor={step}>{LABELS[step]}</label>

@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ApiError, leaveCouple, myCouple, myPairings, pauseCouple, resumeCouple, type Couple } from './api'
+import {
+  ApiError,
+  leaveCouple,
+  myCouple,
+  myPairings,
+  pauseCouple,
+  resumeCouple,
+  type Couple,
+} from './api'
 import type { User } from './session'
 
 type Props = {
@@ -35,7 +43,9 @@ export default function CoupleHomeScreen({ user, onLogout, onLogoutAll }: Props)
         setCouple(c)
         setPairingId(pairings[0]?.id ?? null)
       })
-      .catch((err: unknown) => setError(err instanceof ApiError ? err.message : 'Não foi possível carregar.'))
+      .catch((err: unknown) =>
+        setError(err instanceof ApiError ? err.message : 'Não foi possível carregar.'),
+      )
     return () => {
       active = false
     }
@@ -46,7 +56,9 @@ export default function CoupleHomeScreen({ user, onLogout, onLogoutAll }: Props)
     setBusy(true)
     setError(null)
     try {
-      setCouple(couple.state === 'PAUSED' ? await resumeCouple(couple.id) : await pauseCouple(couple.id))
+      setCouple(
+        couple.state === 'PAUSED' ? await resumeCouple(couple.id) : await pauseCouple(couple.id),
+      )
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível.')
     } finally {
@@ -56,7 +68,10 @@ export default function CoupleHomeScreen({ user, onLogout, onLogoutAll }: Props)
 
   async function sair() {
     if (!couple) return
-    if (!window.confirm('Tem certeza? Isso termina o vínculo para os dois (RN-17: nada é apagado).')) return
+    if (
+      !window.confirm('Tem certeza? Isso termina o vínculo para os dois (RN-17: nada é apagado).')
+    )
+      return
     setBusy(true)
     setError(null)
     try {
@@ -89,13 +104,21 @@ export default function CoupleHomeScreen({ user, onLogout, onLogoutAll }: Props)
         </p>
       ) : (
         pairingId && (
-          <button type="button" className="button" onClick={() => navigate(`/vinculo/${pairingId}/datas`)}>
+          <button
+            type="button"
+            className="button"
+            onClick={() => navigate(`/vinculo/${pairingId}/datas`)}
+          >
             Combinar as datas do casal
           </button>
         )
       )}
       {pairingId && (
-        <button type="button" className="button" onClick={() => navigate(`/vinculo/${pairingId}/historia`)}>
+        <button
+          type="button"
+          className="button"
+          onClick={() => navigate(`/vinculo/${pairingId}/historia`)}
+        >
           Escrever/ler a história
         </button>
       )}

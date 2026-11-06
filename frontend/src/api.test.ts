@@ -37,7 +37,9 @@ describe('api', () => {
   it('traduz uma resposta de erro (ProblemDetail) em ApiError, com o detail do backend', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(() => Promise.resolve(jsonResponse(409, { detail: 'O vínculo ainda não foi firmado.' }))),
+      vi.fn(() =>
+        Promise.resolve(jsonResponse(409, { detail: 'O vínculo ainda não foi firmado.' })),
+      ),
     )
 
     await expect(saveStoryStep(7, 'HOW_WE_MET', 'oi')).rejects.toMatchObject({
