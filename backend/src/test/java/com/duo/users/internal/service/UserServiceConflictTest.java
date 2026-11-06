@@ -22,7 +22,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 class UserServiceConflictTest {
 
 	private final UserRepository repository = mock(UserRepository.class);
-	private final UserServiceImpl service = new UserServiceImpl(repository);
+	private final UserServiceImpl service = new UserServiceImpl(repository, java.time.Clock.systemUTC());
 
 	@Test
 	void simultaneousFirstLoginReturnsTheAccountTheOtherRequestCreated() {

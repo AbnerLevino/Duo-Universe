@@ -124,6 +124,36 @@ class CouplePairingServiceImplTest {
 				return users.findByHandleIgnoreCase(handle)
 					.map(u -> new UserSummary(u.getId(), u.getEmail(), u.getDisplayName(), u.getHandle()));
 			}
+
+			@Override
+			public Optional<com.duo.users.dto.UserProfile> findProfileById(Long id) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public Optional<com.duo.users.dto.UserProfile> findProfileByHandle(String handle) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public java.util.List<com.duo.users.dto.UserProfile> findProfilesByIds(java.util.Collection<Long> ids) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public com.duo.users.dto.UserProfile updateProfile(Long userId, com.duo.users.dto.ProfileUpdate update) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public com.duo.users.dto.ProfilePage searchProfiles(String query, java.util.Collection<Long> excludedIds, int page, int size) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public void setAvatar(Long userId, Long mediaId) {
+				throw new UnsupportedOperationException();
+			}
 		};
 	}
 

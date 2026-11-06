@@ -3,6 +3,7 @@ package com.duo.users.internal.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.duo.shared.ClockConfig;
 import com.duo.users.dto.UserSummary;
 import com.duo.users.exception.HandleTakenException;
 import com.duo.users.exception.InvalidHandleException;
@@ -19,7 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(UserServiceImpl.class)
+@Import({ UserServiceImpl.class, ClockConfig.class })
 class UserServiceImplTest {
 
 	@Autowired
