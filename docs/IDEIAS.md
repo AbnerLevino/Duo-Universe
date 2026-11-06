@@ -42,6 +42,11 @@ O Duo quer ser uma rede social, com o Personal e o Couple Universe como espaços
 por padrão** e escolhe o que mostrar (DEC-027). Horizonte (seção 10). Traz as obrigações da seção 16 (denúncia,
 bloqueio, remoção de conteúdo ilícito).
 
+**Atualização de 2026-11-06:** o fundador decidiu que o Duo terá **busca por nome (além do handle), conexões e
+seguidores (pedir para seguir e ser seguido)** e que o casal escolherá se o perfil do Couple é público, privado
+ou visível só a pessoas selecionadas. Isso tira a rede social do "Horizonte" e **precisa ser registrado como
+decisão de escopo** (seção 11 do `CLAUDE.md`), com denúncia e bloqueio (seção 16) como pré-requisito.
+
 ## Jogos e perguntas entre o casal (2026-11-05)
 
 Resposta do fundador às Q-11/Q-12 (pergunta do dia): além da pergunta do dia (curada pelo app, no escopo do
@@ -72,6 +77,41 @@ momento do vínculo de hoje.
   `PENDING` por pessoa ao mesmo tempo — não custa nada deixar aberto, e evita bloquear esse caso de uso futuro
   sem necessidade real agora.
 - **Fora do MVP mínimo e completo** (seção 11): não implementar agora.
+
+## Home como "o seu universo", não como feed (2026-11-06)
+
+Ao pensar a tela inicial do Personal, a proposta é que a home mostre **o universo da própria pessoa**: o cartão
+de perfil, os momentos recentes dela e, quando houver casal, o banner "N meses juntos" (esboço do fundador,
+`DUO Universe.png`). Um feed com conteúdo de **outras pessoas** é um passo à parte.
+
+- **Por quê:** a home é útil desde o primeiro dia, sem depender de outras pessoas; combina com "lugar quentinho"
+  e "formatos próprios, sem feed infinito" (seção 3 do `CLAUDE.md`); e evita trazer moderação (denúncia, bloqueio,
+  remoção de conteúdo, seção 16) antes da hora.
+- **Depende de:** perfil e fotos do Personal (Épico 3); o feed de outras pessoas depende de conexões/seguidores
+  e do que a seção 16 exige.
+- **Fora do MVP:** feed com conteúdo de outras pessoas é "Universo social" (Horizonte, seção 10).
+
+## Formatos próprios no lugar do "reels" (2026-11-06)
+
+O fundador não quer um reels. Vídeo em si é **Fase 2** (custo de armazenamento e de conversão, planos pagos), mas
+os formatos abaixo ficam guardados para quando chegar a hora. Princípio comum: **nada de rolagem vertical
+infinita com reprodução automática**.
+
+- **Recados que se abrem depois ("abra quando…")** — uma foto, um áudio ou um vídeo curto **selado** até uma data
+  ou uma situação ("abra quando estiver com saudade", "abra no nosso aniversário"). Privado entre duas pessoas,
+  o que evita o peso de moderação, e muito ligado ao casal. Candidato a **primeiro formato de vídeo** (duração
+  curta, ex.: até 30 s).
+  - **Depende de:** Duo Cloud (mídia), vídeo (Fase 2), cotas (Q-20) e algum jeito de lembrar a pessoa quando o
+    recado puder ser aberto.
+- **Feed com fim** — se um dia houver feed, ele **acaba**: "você viu tudo de hoje". Sem rolagem infinita.
+  - **Depende de:** conexões/seguidores e do feed em si (Horizonte).
+- **Resumo automático ("nosso ano em 1 minuto")** — o app monta sozinho um vídeo curto a partir dos momentos e
+  das datas do casal. Existe prior art (apps de "1 segundo por dia"); o diferencial seria a história do casal
+  (datas do vínculo, a pergunta do dia, os marcos).
+  - **Depende de:** fotos/momentos com data (Épico 3 e Semana 4), vídeo (Fase 2). Gerar vídeo é pesado: decidir
+    se roda no aparelho ou no servidor, e o custo disso, antes de prometer.
+- **Universo de estrelas e planetas** — já registrado acima; é também o formato próprio de **navegar** por vídeos
+  e fotos (um planeta pode abrir um álbum), em vez de uma lista rolável.
 
 ## Fora de questão
 
