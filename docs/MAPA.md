@@ -90,6 +90,65 @@ fica no mesmo pacote da classe que testa (ex.: `CouplePairingTest` em `relations
 o que era visível "por estar na mesma pasta" precisou virar `public` — `RefreshCookies` (classe e
 `set`/`clear`/`read`), `JwtConfig` (classe e `ISSUER`) e `CouplePairing.requireConfirmed()`.
 
+## Épico 3 — Personal Universe (2026-11-06): perfil, social, fotos
+
+Três módulos novos (`social`, `storage`, `media`) e um `users` maior. Dependências, sempre num sentido só:
+`media → social → users`, `media → storage`. (`users` nunca conhece `social` nem `media`.)
+
+```
+users/ (ampliado)
+  MaritalStatus, ProfileVisibility                (enums do contrato)
+  dto/          UserProfile, ProfileUpdate, ProfilePage
+  exception/    InvalidProfileException, InvalidSearchException, HandleChangeLimitException
+  controller/   UserController                    (+ GET/PUT /api/me/profile)
+  internal/model/    User (bio, profissão, estado civil, visibilidade, search_name, hidden_at, avatar...)
+                     NameNormalizer               (minúsculas e sem acento, para a busca)
+
+social/                                           (quem pode ver o quê; Duollow; bloqueio; denúncia)
+  Access                                          (OWNER, FOLLOWER, PUBLIC_VIEWER, OUTSIDER, UNAVAILABLE)
+  ProfileAccessService, FollowService, BlockService, ReportService, ProfileViewService, ReportReason
+  dto/          PublicProfile, ProfileCard, SearchItem, SearchPage, Relation
+  exception/    ProfileNotFoundException, FollowRequestNotFoundException, FollowLimitException,
+                InvalidSocialActionException
+  controller/   ProfileController, FollowController, BlockController
+  internal/
+    model/        Follow, FollowStatus, Block, Report, ReportTarget
+    repository/   FollowRepository, BlockRepository, ReportRepository
+    service/      ProfileAccessServiceImpl (a regra central), ProfileLookup, SocialMapper,
+                  FollowServiceImpl, BlockServiceImpl, ReportServiceImpl, ProfileViewServiceImpl
+
+storage/                                          (guarda bytes por uma chave; não sabe o que são)
+  MediaStorageProvider
+  internal/service/  LocalMediaStorageProvider    (pasta do computador, com defesa contra "..")
+
+media/                                            (avatar e fotos do Personal)
+  MediaKind, MediaVisibility, MediaService
+  dto/          MediaSummary, MediaContent, UploadedFile
+  exception/    InvalidMediaException, MediaQuotaExceededException, MediaNotFoundException
+  controller/   MediaController
+  internal/
+    model/        MediaAsset
+    repository/   MediaAssetRepository
+    service/      MediaServiceImpl, ImageSniffer (tipo real pelos bytes), PhotoAccessRule (matriz de acesso)
+```
+
+**Migrations:** `V12` (perfil em `users`), `V13` (`follows`, `blocks`, `reports`), `V14` (`media_assets` e a
+chave estrangeira do avatar). **Configuração** (`application.properties`): `duo.media.dir` (pasta das fotos, fora
+do repositório; `DUO_MEDIA_DIR`), `duo.media.max-photos`, `duo.media.max-total-bytes`, limites de multipart.
+
+**O fluxo de uma foto:** o app reduz a imagem no aparelho → `POST /api/me/photos` (multipart) → `MediaController`
+→ `MediaServiceImpl` confere tipo real, tamanho e cota → `LocalMediaStorageProvider` grava o arquivo → a linha vai
+para `media_assets`. Para **ver**: `GET /api/media/{id}` → `MediaServiceImpl.openFor` pergunta a
+`ProfileAccessService` quem é o visitante em relação ao dono (`Access`) → `PhotoAccessRule` decide → só então o
+arquivo sai (404 igual para "não existe" e "não é para você").
+
+**Frontend** (`frontend/src/`): `api.ts` (chamadas), `labels.ts` (textos: DuoName, Duollowers...), `imageTools.ts`
+(recorte e redução com canvas), `session.ts` (agora também o cache das fotos por sessão), componentes
+`AuthedImage`, `Avatar`, `FollowButton`, `PhotoGrid`, `ReportForm`, `BottomNav`; telas `HomeScreen` (/inicio),
+`EditProfileScreen` (/perfil/editar), `PublicProfileScreen` (/u/:handle), `SearchScreen` (/buscar),
+`FollowListScreen` (/lista/:kind), `NewMomentScreen` (/momentos/novo). O `Dashboard` agora leva o solteiro à
+home (e quem tem casal ativo a `/casal`). Tokens de design em `index.css`.
+
 ## `backend/` — a API
 
 **Arquivos de build (como o projeto é compilado):**

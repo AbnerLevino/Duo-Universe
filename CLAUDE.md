@@ -783,10 +783,46 @@ no piloto) decididas em 2026-11-05; domínio próprio; termos de uso e política
     seção "Estado do código").
   - Detalhe completo, inclusive uma limitação conhecida (link de convite se perde se clicado por alguém
     deslogado) e o que ficou sem teste dedicado, em `docs/MAPA.md`.
-- **Próximo passo:** Etapas 13 e 14 concluídas. Falta o acabamento visual — identidade visual / protótipo da
-  tela inicial (o fundador trouxe um esboço, `~/Downloads/DUO Universe.png`, só como referência; ainda não
-  virou protótipo nem código) e, depois, o Bloco D (celebração em tempo real, Etapas 15 a 18, isolado de
-  propósito).
+- **Épico 3 — Personal Universe (perfil, busca, Duollowers, bloqueio, denúncia e fotos): CONCLUÍDO em
+  2026-11-06**, Etapas 1 a 9 numa sessão só (o fundador decidiu tudo de antemão e pediu a implementação inteira,
+  com a explicação depois). **Mudança de escopo registrada:** a "rede social" sai do Horizonte e entra no MVP
+  (busca por nome, Duollowers/Duollowing, bloqueio e denúncia mínimos); feed de outras pessoas e vídeo
+  continuam fora (`docs/IDEIAS.md`). O Personal é o ponto de partida; o Couple "nasce" dele (RN-09).
+  - **DEC-032 — Perfil e visibilidade:** bio até 100, profissão até 20, estado civil (Solteiro/Namorando/
+    Casado/Divorciado/Viúvo, declarativo; o selo "vinculado" virá do `Couple`), visibilidade `PUBLIC`/`PRIVATE`.
+    **Personal nasce público; o casal nasce privado** (casal ainda não implementado). O cartão básico (nome,
+    DuoName, foto, bio) aparece nos dois casos; o conteúdo segue a regra central `Access` (módulo `social`).
+  - **DEC-033 — Duollowers/Duollowing:** perfil público → seguir direto; privado → pedido que o dono aceita ou
+    recusa, sem aviso a ninguém (RN-16). Seguem-se pessoas, não o casal. Sem "conexão" separada. Antispam:
+    50 pedidos pendentes e 60 ações/hora.
+  - **DEC-034 — Busca (revisa a RN-30):** por nome **ou** DuoName, sem acento nem maiúsculas, mínimo 3 letras,
+    20 por página, 120 buscas/hora; perfis públicos e privados aparecem. Quem bloqueou/foi bloqueado e perfis
+    ocultos nunca aparecem. O convite de vínculo (`inviteByHandle`) continua só por DuoName exato.
+  - **DEC-035 — Bloqueio e denúncia:** bloquear some nos dois sentidos e desfaz os Duollows; denunciar perfil
+    ou foto com motivos fixos, sem revelar o denunciante, repetição aceita em silêncio. **Sem painel de
+    moderação**: revisão manual no banco (`reports`, `hidden_at` em `users`/`media_assets`). Prazo de guarda das
+    denúncias: validar com advogado (seção 16).
+  - **DuoName:** nome exibido na interface; no código segue `handle` (DEC-028). Pode ser trocado **2 vezes por
+    dia** (a primeira escolha e mudar só maiúsculas não contam). "Duollowers/Duollowing" na tela (grafia
+    centralizada em `frontend/src/labels.ts`; confirmar a grafia final com o fundador).
+  - **Q-20, decidida em parte (2026-11-06) — só avatar e fotos do Personal:** JPEG/PNG/WebP validados pelos
+    bytes (RN-23); avatar até 1 MB (recorte quadrado de 512 px no aparelho); fotos até 2 MB (lado máximo de
+    1600 px); **limite provisório de 200 fotos e 100 MB por pessoa**. Cotas gerais, planos e vídeo continuam
+    abertos. Visibilidade por foto: `ONLY_ME` (padrão) / `DUOLLOWERS` / `PUBLIC`, sempre limitada pela do perfil.
+  - **Módulos novos:** `social` (acesso, Duollow, bloqueio, denúncia, busca) e `media` (avatar e fotos); `storage`
+    (`MediaStorageProvider` + implementação local, DEC-019/021; R2 depois, sem mudar o resto). Migrations `V12`,
+    `V13`, `V14`. Arquivo só sai por `GET /api/media/{id}` com a regra de acesso (RN-19/21); upload é um
+    multipart direto ao backend (não por URL assinada, que só faz sentido com o R2) — simplificação consciente.
+  - **Fora desta rodada (continuam a fazer):** tela do casal conforme o esboço, visibilidade/perfil público do
+    casal (B5–B7) e a lista de "pessoas selecionadas", miniatura de 128 px do avatar (adicionar se medirmos
+    lentidão), o que são o "cartão grande" e o "círculo roxo" do esboço, fonte do design, selo de "vinculado".
+  - **Números:** backend 214 testes (era 151), frontend 49 (era 15). **Não testado** num navegador real com
+    login Google (só por testes automatizados): rodar e conferir manualmente antes de confiar.
+  - **Achado de CI:** o job do frontend roda `format:check` e 8 arquivos da Etapa 14 estavam fora do padrão
+    (provavelmente CI vermelho); corrigido em `c4469aa`. Ainda sem confirmar a aba Actions no GitHub.
+- **Próximo passo:** Épico 3 concluído. Falta rodar o app de verdade (backend + frontend) e testar o fluxo pelo
+  celular; depois a tela do casal conforme o esboço (com a visibilidade do casal) e, mais adiante, o Bloco D
+  (celebração em tempo real, Etapas 15 a 18, isolado de propósito).
 
 ### Roteiro restante do Épico 2 (Etapas 4 a 18 — plano aprovado em 2026-11-04)
 

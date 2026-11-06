@@ -256,3 +256,40 @@
   `CouplePairingServiceImplTest.fakeUserService()` devolve um `UserService` que só sabe responder
   `findByHandle` (os outros métodos nem são usados neste teste) — útil quando a dependência real está em
   outro módulo e não dá para importar a classe escondida (`internal`) de fora dele.
+
+## Épico 3 — perfil, social e fotos
+
+- **DuoName / Duollowers / Duollowing:** os nomes na tela para o nome de usuário (`handle` no código), quem te
+  segue e quem você segue. Ficam em `frontend/src/labels.ts`; trocar a palavra é mudar uma linha.
+- **Design token:** um valor de design com nome (`--color-primary`) em vez do número solto (`#39005a`) repetido
+  pelo CSS. No Duo, todos moram no bloco `:root` de `index.css`; mudar um muda o app inteiro.
+- **`color-mix()`:** função do CSS que calcula uma cor a partir de outras. `--color-surface` é o fundo escurecido,
+  então nunca sai de sintonia se o fundo mudar.
+- **Regra central de acesso (`Access`):** uma única pergunta, "o que este visitante pode ver desta pessoa?", que todo
+  módulo faz em vez de decidir sozinho. Respostas: `OWNER`, `FOLLOWER`, `PUBLIC_VIEWER`, `OUTSIDER`, `UNAVAILABLE`.
+- **Acesso cruzado (teste):** tentar ver o que não é seu (A olhando o que é de B). Nos testes do Duo, quem não
+  pode ver recebe 404 mesmo sabendo o id.
+- **404 igual para "não existe" e "não é para você":** responder de forma idêntica para não revelar que algo existe
+  (ou que você foi bloqueado). No Duo: `ProfileNotFoundException` e `MediaNotFoundException`.
+- **Idempotente:** repetir a ação dá o mesmo resultado, sem erro. Seguir quem você já segue, ou denunciar duas vezes
+  a mesma coisa, é aceito em silêncio.
+- **Moderação por `hidden_at`:** um carimbo de data na linha (`users`, `media_assets`) que faz o item sumir para
+  os outros sem apagá-lo. É a ferramenta manual do fundador enquanto não há painel.
+- **Assinatura de arquivo (magic bytes):** os primeiros bytes de um arquivo revelam o formato de verdade (PNG começa
+  com `89 50 4E 47`). `ImageSniffer` usa isso em vez de confiar no nome ou no tipo que o cliente declarou (RN-23).
+- **Multipart:** formato HTTP para enviar um arquivo junto com campos de texto (foto + legenda). No Duo:
+  `POST /api/me/photos`. O Spring limita o tamanho em `spring.servlet.multipart.max-file-size`.
+- **Blob URL:** um endereço local (`blob:...`) que o navegador cria para dados que já estão na memória. As fotos do
+  Duo precisam do token, e `<img src>` não envia cabeçalho, então o app baixa com o token e mostra por um blob URL.
+- **Debounce:** esperar a pessoa parar de digitar (300 ms) antes de buscar, em vez de uma requisição por tecla.
+- **`Slice` x `Page` (Spring Data):** `Page` faz um `COUNT` extra para saber o total; `Slice` só descobre se há uma
+  página seguinte. A busca do Duo usa `Slice` porque só precisa de "ver mais".
+- **Escape no `LIKE`:** `%` e `_` são curingas no `LIKE`; como `_` é válido num DuoName, o termo buscado tem os
+  curingas escapados (com `!`) para virarem texto comum.
+- **`CHAR` x `VARCHAR`:** `CHAR(64)` tem tamanho fixo (bom para um hash hexadecimal); `VARCHAR` varia. O Hibernate
+  valida o tipo da coluna na subida, e `@JdbcTypeCode(SqlTypes.CHAR)` diz que o campo `sha256` é `CHAR`.
+- **Transação marcada como *rollback-only*:** quando uma exceção passa por dentro de uma transação, o Spring a marca
+  como "só reverter", mesmo que você capture a exceção. Por isso `reportPhoto` e `follow` não abrem transação
+  externa: uma denúncia repetida bate no índice único e precisa poder ser aceita em silêncio.
+- **Caminho que escapa (path traversal):** uma chave como `../../etc/senha` tentando sair da pasta. O
+  `LocalMediaStorageProvider` só aceita caracteres seguros e confere que o caminho final continua dentro da pasta.
