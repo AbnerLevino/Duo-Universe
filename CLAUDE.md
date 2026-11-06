@@ -828,6 +828,10 @@ no piloto) decididas em 2026-11-05; domínio próprio; termos de uso e política
     sempre o seu. Nome, DuoName, profissão e bio ficam por ora na Home (decidir onde depois). **Única dependência nova:
     `lucide-react` 1.58.0** (ISC, versão fixa, publicada em 16/10; a mais nova tinha horas de vida). Layout conferido
     visualmente com o Edge sem tela a 1100px e 390px.
+- **Pendente, guardado para mais tarde (2026-11-06):** reorganização do frontend por feature (45 arquivos soltos em
+  `src/`, `api.ts` e `session.ts` misturando assuntos, 12 telas com o mesmo padrão de carga e 21 blocos de erro
+  repetidos, `index.css` de 615 linhas). Plano completo, etapas e decisões em `docs/plano-reorganizacao-frontend.md`;
+  **aguarda a decisão do fundador** (pastas por feature ou por tipo, alias `@/`, CSS em arquivos ou Modules).
 - **Próximo passo:** Épico 3 concluído. Falta rodar o app de verdade (backend + frontend) e testar o fluxo pelo
   celular; depois a tela do casal conforme o esboço (com a visibilidade do casal) e, mais adiante, o Bloco D
   (celebração em tempo real, Etapas 15 a 18, isolado de propósito).
