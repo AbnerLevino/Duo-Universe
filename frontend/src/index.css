@@ -24,6 +24,13 @@
   ); /* controles */
   --color-error-text: #ffb4b4;
 
+  /* Aurora (fundo animado, mesmo conceito do Astrodny): base escura + três manchas que se somam com "screen" */
+  --aurora-base: #04061a;
+  --aurora-1: #2a4bff; /* azul principal */
+  --aurora-2: #1636c9; /* azul mais fundo */
+  --aurora-3: #8a5cff; /* o toque de roxo */
+  --aurora-veil: 0.3; /* 0 = aurora no talo, 1 = some; o véu escuro ajuda a ler o texto por cima */
+
   /* Escala de espaço (múltiplos de 0,25rem = 4px) */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -612,4 +619,95 @@ select {
 
 .form input[type='search'] {
   font: inherit;
+}
+
+/* ---------- Aurora: o fundo animado de todas as telas ---------- */
+
+/* Fixa atrás de tudo: o conteúdo rola por cima e as manchas nunca recebem clique. */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background-color: var(--aurora-base);
+}
+
+/* O véu escuro por cima das manchas: deixa o texto legível sem apagar a aurora. */
+.aurora::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--aurora-base);
+  opacity: var(--aurora-veil);
+}
+
+/* Cada mancha é gigante e muito desfocada (sem borda) e gira em volta de um ponto deslocado: um círculo
+   contínuo, sem tranco. Onde elas se cruzam a cor soma e clareia (mix-blend-mode: screen). */
+.blob {
+  position: absolute;
+  width: 65vmax;
+  height: 65vmax;
+  border-radius: var(--radius-round);
+  filter: blur(70px);
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+.blob-1 {
+  background: radial-gradient(circle, var(--aurora-1) 0%, transparent 70%);
+  top: -10%;
+  left: -10%;
+  transform-origin: 80% 80%;
+  animation: orbitar 22s linear infinite;
+}
+
+.blob-2 {
+  background: radial-gradient(circle, var(--aurora-2) 0%, transparent 70%);
+  bottom: -15%;
+  right: -10%;
+  transform-origin: 20% 20%;
+  animation: orbitar 30s linear infinite reverse; /* direção oposta */
+}
+
+.blob-3 {
+  background: radial-gradient(circle, var(--aurora-3) 0%, transparent 70%);
+  top: 20%;
+  left: 30%;
+  transform-origin: 50% 130%;
+  animation: orbitar 26s linear infinite;
+}
+
+@keyframes orbitar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Na tela larga as manchas crescem e ganham um núcleo mais sólido, senão a cor fica rala. */
+@media (min-width: 1024px) {
+  .blob {
+    width: 110vmax;
+    height: 110vmax;
+    filter: blur(90px);
+  }
+
+  .blob-1 {
+    background: radial-gradient(circle, var(--aurora-1) 0%, var(--aurora-1) 22%, transparent 78%);
+  }
+
+  .blob-2 {
+    background: radial-gradient(circle, var(--aurora-2) 0%, var(--aurora-2) 22%, transparent 78%);
+  }
+
+  .blob-3 {
+    background: radial-gradient(circle, var(--aurora-3) 0%, var(--aurora-3) 22%, transparent 78%);
+  }
+}
+
+/* Quem pediu menos movimento no sistema recebe a aurora parada. */
+@media (prefers-reduced-motion: reduce) {
+  .blob {
+    animation: none;
+  }
 }

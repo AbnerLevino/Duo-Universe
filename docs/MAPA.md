@@ -649,3 +649,18 @@ Requisitos em `docs/ESPECIFICACAO-V5.md` (RF-A01, A02, A06, A08, A10, A11).
   as rotas de busca e perfil de terceiros. Nenhuma tabela foi apagada.
 - Testes novos: `SocialFrozenHttpTest`, `ExpiredLinkRedeemTest`, `RateLimiterConcurrencyTest`, `features.test.tsx`,
   e 6 casos em `CouplePairingServiceImplTest`.
+
+## Fundo aurora (2026-11-09) — design
+
+Mesmo conceito do Astrodny: manchas de cor enormes e desfocadas que giram devagar e se misturam
+(`mix-blend-mode: screen`).
+
+- `frontend/src/AuroraBackground.tsx`: o componente (três `<span class="blob">` dentro de `.aurora`, tudo
+  `aria-hidden`). Montado uma vez, em `main.tsx`, antes do `<App />`.
+- `frontend/src/index.css`: tokens `--aurora-base`, `--aurora-1/2/3` e `--aurora-veil` no `:root`; regras
+  `.aurora`, `.blob`, `.blob-1/2/3` e `@keyframes orbitar` no fim do arquivo. A aurora é `position: fixed` com
+  `z-index: -1` e `pointer-events: none`, então fica atrás de tudo e nunca recebe clique. O véu escuro
+  (`.aurora::after`) mantém o texto legível. Na tela larga (1024px+) as manchas crescem; com
+  `prefers-reduced-motion` ela fica parada.
+- **Estado:** as cores ainda são as do Astrodny (azul e um toque de roxo). A paleta do Duo está proposta e
+  aguarda aprovação (ver `docs/ESPECIFICACAO-V5.md`, seção 8).
