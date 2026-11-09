@@ -32,6 +32,7 @@ import com.duo.relationships.internal.repository.CouplePairingStoryRepository;
 import com.duo.relationships.internal.repository.CoupleRepository;
 import com.duo.shared.RateLimiter;
 import com.duo.shared.exception.RateLimitExceededException;
+import com.duo.social.BlockService;
 import com.duo.users.UserService;
 import com.duo.users.dto.UserSummary;
 import com.duo.users.internal.model.User;
@@ -67,6 +68,12 @@ class CouplePairingServiceImplTest {
 	@Autowired
 	UserRepository users;
 
+	@Autowired
+	org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+	@Autowired
+	jakarta.persistence.EntityManager entityManager;
+
 	Long initiatorId;
 	Long inviteeId;
 
@@ -81,7 +88,7 @@ class CouplePairingServiceImplTest {
 	}
 
 	private CouplePairingServiceImpl serviceAt(Instant now, RateLimiter rateLimiter) {
-		return new CouplePairingServiceImpl(pairings, couples, coupleMembers, stories, fakeUserService(),
+		return new CouplePairingServiceImpl(pairings, couples, coupleMembers, stories, fakeUserService(), fakeBlocks,
 				rateLimiter, new CoupleFactory(couples, coupleMembers), Clock.fixed(now, ZoneOffset.UTC));
 	}
 
@@ -126,6 +133,13 @@ class CouplePairingServiceImplTest {
 			}
 
 			@Override
+			public Optional<UserSummary> findActiveByHandle(String handle) {
+				return users.findByHandleIgnoreCase(handle)
+					.filter(u -> u.getDeletedAt() == null && u.getHiddenAt() == null)
+					.map(u -> new UserSummary(u.getId(), u.getEmail(), u.getDisplayName(), u.getHandle()));
+			}
+
+			@Override
 			public Optional<com.duo.users.dto.UserProfile> findProfileById(Long id) {
 				throw new UnsupportedOperationException();
 			}
@@ -156,6 +170,31 @@ class CouplePairingServiceImplTest {
 			}
 		};
 	}
+
+	/** Dublê do bloqueio: só {@code existsBetween} importa aqui (o resto do módulo social tem testes próprios). */
+	private final java.util.Set<java.util.Set<Long>> blockedPairs = new java.util.HashSet<>();
+
+	private final BlockService fakeBlocks = new BlockService() {
+		@Override
+		public void block(Long me, String handle) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void unblock(Long me, String handle) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public java.util.List<com.duo.social.dto.ProfileCard> blocked(Long me) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean existsBetween(Long a, Long b) {
+			return blockedPairs.contains(java.util.Set.of(a, b));
+		}
+	};
 
 	private static RateLimiter alwaysAllow() {
 		return (scope, key, maxAttempts, window) -> {
@@ -312,6 +351,77 @@ class CouplePairingServiceImplTest {
 
 		assertThatThrownBy(() -> serviceAt(NOW).inviteByHandle(initiatorId, "handle_b"))
 				.isInstanceOf(HandleNotInvitableException.class);
+	}
+
+	/** RF-A01: o convite não pode ser um jeito de contornar o bloqueio. */
+	@Test
+	void inviteByHandleRejectsSomeoneWhoBlockedTheInitiator() {
+		giveHandle(inviteeId, "handle_b");
+		blockedPairs.add(java.util.Set.of(initiatorId, inviteeId));
+
+		assertThatThrownBy(() -> serviceAt(NOW).inviteByHandle(initiatorId, "handle_b"))
+				.isInstanceOf(HandleNotInvitableException.class);
+		assertThat(pairings.count()).isZero();
+	}
+
+	/** RF-A01: perfil oculto pela moderação responde igual a "não existe". */
+	@Test
+	void inviteByHandleRejectsAHiddenProfile() {
+		giveHandle(inviteeId, "handle_b");
+		jdbc.update("update users set hidden_at = now() where id = ?", inviteeId);
+		entityManager.clear(); // o JDBC passou por fora do Hibernate: descarta o que ele tinha em memória
+
+		assertThatThrownBy(() -> serviceAt(NOW).inviteByHandle(initiatorId, "handle_b"))
+				.isInstanceOf(HandleNotInvitableException.class);
+	}
+
+	/** RF-A01: conta excluída também. */
+	@Test
+	void inviteByHandleRejectsADeletedAccount() {
+		giveHandle(inviteeId, "handle_b");
+		jdbc.update("update users set deleted_at = now() where id = ?", inviteeId);
+		entityManager.clear();
+
+		assertThatThrownBy(() -> serviceAt(NOW).inviteByHandle(initiatorId, "handle_b"))
+				.isInstanceOf(HandleNotInvitableException.class);
+	}
+
+	/** RF-A02: convidar a mesma pessoa de novo devolve o convite que já existe, em vez de empilhar outro. */
+	@Test
+	void inviteByHandleReusesThePendingInviteBetweenTheSamePair() {
+		giveHandle(inviteeId, "handle_b");
+		giveHandle(initiatorId, "handle_a");
+
+		PairingSummary first = serviceAt(NOW).inviteByHandle(initiatorId, "handle_b");
+		PairingSummary again = serviceAt(NOW).inviteByHandle(initiatorId, "handle_b");
+		PairingSummary reverse = serviceAt(NOW).inviteByHandle(inviteeId, "handle_a");
+
+		assertThat(again.id()).isEqualTo(first.id());
+		assertThat(reverse.id()).isEqualTo(first.id());
+		assertThat(pairings.count()).isEqualTo(1);
+	}
+
+	/** RF-A02: um convite vencido não conta; vale convidar de novo. */
+	@Test
+	void inviteByHandleCreatesANewInviteWhenTheOldOneExpired() {
+		giveHandle(inviteeId, "handle_b");
+		PairingSummary old = serviceAt(NOW).inviteByHandle(initiatorId, "handle_b");
+
+		PairingSummary fresh = serviceAt(NOW.plus(CouplePairingServiceImpl.TTL).plusSeconds(1))
+			.inviteByHandle(initiatorId, "handle_b");
+
+		assertThat(fresh.id()).isNotEqualTo(old.id());
+	}
+
+	/** RF-A10: convite vencido não aparece como pendente. */
+	@Test
+	void findPendingForUserHidesExpiredInvites() {
+		giveHandle(inviteeId, "handle_b");
+		serviceAt(NOW).inviteByHandle(initiatorId, "handle_b");
+
+		assertThat(serviceAt(NOW).findPendingForUser(inviteeId)).hasSize(1);
+		assertThat(serviceAt(NOW.plus(CouplePairingServiceImpl.TTL).plusSeconds(1)).findPendingForUser(inviteeId))
+				.isEmpty();
 	}
 
 	@Test

@@ -12,4 +12,7 @@ public interface BlockService {
 	void unblock(Long me, String handle);
 
 	List<ProfileCard> blocked(Long me);
+
+	/** Existe bloqueio entre as duas pessoas, em qualquer sentido? Usado para barrar convites de vínculo (RF-A01). */
+	boolean existsBetween(Long a, Long b);
 }

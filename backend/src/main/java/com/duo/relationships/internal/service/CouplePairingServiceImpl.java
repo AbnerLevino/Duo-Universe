@@ -34,6 +34,7 @@ import com.duo.relationships.internal.repository.CouplePairingRepository;
 import com.duo.relationships.internal.repository.CouplePairingStoryRepository;
 import com.duo.relationships.internal.repository.CoupleRepository;
 import com.duo.shared.RateLimiter;
+import com.duo.social.BlockService;
 import com.duo.users.UserService;
 import com.duo.users.dto.UserSummary;
 
@@ -61,18 +62,20 @@ class CouplePairingServiceImpl implements CouplePairingService {
 	private final CoupleMemberRepository coupleMembers;
 	private final CouplePairingStoryRepository stories;
 	private final UserService users;
+	private final BlockService blocks;
 	private final RateLimiter rateLimiter;
 	private final CoupleFactory coupleFactory;
 	private final Clock clock;
 
 	CouplePairingServiceImpl(CouplePairingRepository pairings, CoupleRepository couples,
 			CoupleMemberRepository coupleMembers, CouplePairingStoryRepository stories, UserService users,
-			RateLimiter rateLimiter, CoupleFactory coupleFactory, Clock clock) {
+			BlockService blocks, RateLimiter rateLimiter, CoupleFactory coupleFactory, Clock clock) {
 		this.pairings = pairings;
 		this.couples = couples;
 		this.coupleMembers = coupleMembers;
 		this.stories = stories;
 		this.users = users;
+		this.blocks = blocks;
 		this.rateLimiter = rateLimiter;
 		this.coupleFactory = coupleFactory;
 		this.clock = clock;
@@ -92,11 +95,23 @@ class CouplePairingServiceImpl implements CouplePairingService {
 		rateLimiter.checkAndRecord(
 				INVITE_BY_HANDLE_SCOPE, initiatorUserId.toString(), INVITE_BY_HANDLE_MAX_ATTEMPTS,
 				INVITE_BY_HANDLE_WINDOW);
-		Long inviteeUserId = users.findByHandle(handle)
+		// RF-A01: conta excluída, perfil oculto e bloqueio (em qualquer sentido) respondem igual a "não existe",
+		// para o convite não virar um jeito de contornar o bloqueio nem de descobrir quem existe.
+		Long inviteeUserId = users.findActiveByHandle(handle)
 			.map(UserSummary::id)
 			.filter(id -> !id.equals(initiatorUserId))
+			.filter(id -> !blocks.existsBetween(initiatorUserId, id))
 			.filter(id -> coupleMembers.findByUserIdAndLeftAtIsNull(id).isEmpty())
 			.orElseThrow(HandleNotInvitableException::new);
+		// RF-A02: já existe um convite em aberto entre as duas pessoas? Reaproveita em vez de empilhar outro.
+		Instant now = clock.instant();
+		Optional<CouplePairing> existing = pairings.findBetween(initiatorUserId, inviteeUserId, PairingState.PENDING)
+			.stream()
+			.filter(pairing -> !pairing.isExpired(now))
+			.findFirst();
+		if (existing.isPresent()) {
+			return toSummary(existing.get());
+		}
 		return initiate(initiatorUserId, inviteeUserId, Channel.HANDLE);
 	}
 
@@ -129,8 +144,10 @@ class CouplePairingServiceImpl implements CouplePairingService {
 		return new IssuedPairingInvite(saved.getId(), rawCode, expiresAt);
 	}
 
+	/** RF-A10: {@code noRollbackFor}, senão a exceção de "código inválido" desfaria o cancelamento do convite
+	 * vencido que acabou de ser gravado, e ele ficaria pendente para sempre. */
 	@Override
-	@Transactional
+	@Transactional(noRollbackFor = InviteCodeInvalidException.class)
 	public PairingSummary redeemByLink(String code, Long inviteeUserId) {
 		CouplePairing pairing = pairings.findByInviteCodeHash(hash(code)).orElseThrow(InviteCodeInvalidException::new);
 		Instant now = clock.instant();
@@ -256,7 +273,9 @@ class CouplePairingServiceImpl implements CouplePairingService {
 	@Override
 	@Transactional(readOnly = true)
 	public List<PairingSummary> findPendingForUser(Long userId) {
+		Instant now = clock.instant();
 		return pairings.findByUserIdAndState(userId, PairingState.PENDING).stream()
+			.filter(pairing -> !pairing.isExpired(now))
 			.map(CouplePairingServiceImpl::toSummary)
 			.toList();
 	}

@@ -49,6 +49,12 @@ class BlockServiceImpl implements BlockService {
 
 	@Override
 	@Transactional(readOnly = true)
+	public boolean existsBetween(Long a, Long b) {
+		return blocks.existsBetween(a, b);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
 	public List<ProfileCard> blocked(Long me) {
 		return lookup.cards(blocks.findTop200ByBlockerIdOrderByIdDesc(me).stream().map(Block::getBlockedId).toList());
 	}

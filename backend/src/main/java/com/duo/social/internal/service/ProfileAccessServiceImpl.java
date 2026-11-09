@@ -2,6 +2,7 @@ package com.duo.social.internal.service;
 
 import com.duo.social.Access;
 import com.duo.social.ProfileAccessService;
+import com.duo.social.SocialFeature;
 import com.duo.social.internal.model.FollowStatus;
 import com.duo.social.internal.repository.BlockRepository;
 import com.duo.social.internal.repository.FollowRepository;
@@ -9,6 +10,7 @@ import com.duo.users.ProfileVisibility;
 import com.duo.users.UserService;
 import com.duo.users.dto.UserProfile;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,11 +25,14 @@ class ProfileAccessServiceImpl implements ProfileAccessService {
 	private final UserService users;
 	private final BlockRepository blocks;
 	private final FollowRepository follows;
+	private final boolean socialEnabled;
 
-	ProfileAccessServiceImpl(UserService users, BlockRepository blocks, FollowRepository follows) {
+	ProfileAccessServiceImpl(UserService users, BlockRepository blocks, FollowRepository follows,
+			@Value("${" + SocialFeature.PROPERTY + ":false}") boolean socialEnabled) {
 		this.users = users;
 		this.blocks = blocks;
 		this.follows = follows;
+		this.socialEnabled = socialEnabled;
 	}
 
 	@Override
@@ -45,7 +50,9 @@ class ProfileAccessServiceImpl implements ProfileAccessService {
 		if (viewerId.equals(owner.id())) {
 			return Access.OWNER;
 		}
-		if (owner.hidden() || blocks.existsBetween(viewerId, owner.id())) {
+		// RF-A11: com a camada social congelada, só o dono enxerga o próprio conteúdo (fotos e perfil de terceiros
+		// ficam indisponíveis, mesmo que alguém adivinhe o id de uma foto).
+		if (!socialEnabled || owner.hidden() || blocks.existsBetween(viewerId, owner.id())) {
 			return Access.UNAVAILABLE;
 		}
 		boolean follower = follows.findByFollowerIdAndFolloweeId(viewerId, owner.id())

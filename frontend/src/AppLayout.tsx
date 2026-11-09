@@ -4,6 +4,7 @@ import { followRequests, getProfile, myProfile, type MyProfile } from './api'
 import BottomSheet from './BottomSheet'
 import EditProfileForm from './EditProfileForm'
 import MainNav from './MainNav'
+import { socialEnabled } from './features'
 import { type Me, MeContext } from './meContext'
 import SideProfile from './SideProfile'
 import type { User } from './session'
@@ -37,7 +38,13 @@ export default function AppLayout({ user, onUserChanged, onLogout, onLogoutAll }
     if (!user.handle) return
     const handle = user.handle
     let active = true
-    Promise.all([myProfile(), getProfile(handle), followRequests()])
+    // Congelado (RF-A11): sem a camada social, só o próprio perfil existe para buscar.
+    const social = socialEnabled()
+    Promise.all([
+      myProfile(),
+      social ? getProfile(handle) : Promise.resolve({ duollowers: 0, duollowing: 0 }),
+      social ? followRequests() : Promise.resolve([]),
+    ])
       .then(([profile, counts, requests]) => {
         if (active) {
           setLoaded({

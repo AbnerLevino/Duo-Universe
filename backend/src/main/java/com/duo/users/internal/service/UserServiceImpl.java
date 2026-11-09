@@ -125,6 +125,14 @@ class UserServiceImpl implements UserService {
 
 	@Override
 	@Transactional(readOnly = true)
+	public Optional<UserSummary> findActiveByHandle(String handle) {
+		return userRepository.findByHandleIgnoreCase(handle)
+			.filter(user -> user.getDeletedAt() == null && user.getHiddenAt() == null)
+			.map(UserServiceImpl::toSummary);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
 	public Optional<UserProfile> findProfileById(Long id) {
 		return userRepository.findById(id).filter(user -> user.getDeletedAt() == null).map(UserServiceImpl::toProfile);
 	}

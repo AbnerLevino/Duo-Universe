@@ -45,6 +45,12 @@ public interface UserService {
 
 	Optional<UserSummary> findByHandle(String handle);
 
+	/**
+	 * Igual a {@link #findByHandle}, mas só devolve contas que podem receber um convite de vínculo: vazio se a
+	 * conta foi excluída ou o perfil está oculto pela moderação (RF-A01).
+	 */
+	Optional<UserSummary> findActiveByHandle(String handle);
+
 	/** O perfil de uma pessoa (sem e-mail); vazio se a conta não existe ou foi excluída. */
 	Optional<UserProfile> findProfileById(Long id);
 

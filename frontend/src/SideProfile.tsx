@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import Avatar from './Avatar'
+import { socialEnabled } from './features'
 import { TERMS } from './labels'
 import { useMe } from './meContext'
 
@@ -18,18 +19,22 @@ export default function SideProfile() {
         size="xl"
       />
       <ul className="side-stats">
-        <li>
-          <Link to="/lista/duollowers">
-            <strong>{duollowers}</strong>
-            <span>{TERMS.followers}</span>
-          </Link>
-        </li>
-        <li>
-          <Link to="/lista/duollowing">
-            <strong>{duollowing}</strong>
-            <span>{TERMS.following}</span>
-          </Link>
-        </li>
+        {socialEnabled() && (
+          <>
+            <li>
+              <Link to="/lista/duollowers">
+                <strong>{duollowers}</strong>
+                <span>{TERMS.followers}</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/lista/duollowing">
+                <strong>{duollowing}</strong>
+                <span>{TERMS.following}</span>
+              </Link>
+            </li>
+          </>
+        )}
         <li>
           <button type="button" className="side-edit" onClick={openEdit}>
             Editar

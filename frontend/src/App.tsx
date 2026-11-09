@@ -13,6 +13,7 @@ import InviteScreen from './InviteScreen'
 import LoginScreen from './LoginScreen'
 import NewMomentScreen from './NewMomentScreen'
 import PublicProfileScreen from './PublicProfileScreen'
+import { socialEnabled } from './features'
 import SearchScreen from './SearchScreen'
 import { getCurrentUser, logout, logoutAll, type User } from './session'
 import StoryScreen from './StoryScreen'
@@ -64,8 +65,9 @@ export default function App() {
           }
         >
           <Route path="/inicio" element={<HomeScreen />} />
-          <Route path="/buscar" element={<SearchScreen />} />
-          <Route path="/u/:handle" element={<PublicProfileScreen />} />
+          {/* Camada social congelada (RF-A11): sem busca nem perfil de outras pessoas. */}
+          {socialEnabled() && <Route path="/buscar" element={<SearchScreen />} />}
+          {socialEnabled() && <Route path="/u/:handle" element={<PublicProfileScreen />} />}
           <Route path="/lista/:kind" element={<FollowListScreen />} />
           <Route path="/momentos/novo" element={<NewMomentScreen />} />
           <Route path="/convite/:code" element={<AcceptInviteScreen user={user} />} />

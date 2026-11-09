@@ -8,3 +8,9 @@ URL.revokeObjectURL = vi.fn()
 if (!('PointerEvent' in window)) {
   Object.defineProperty(window, 'PointerEvent', { value: MouseEvent })
 }
+
+// RF-A11: a camada social está congelada no produto, mas as telas dela continuam existindo e têm testes; por
+// padrão os testes rodam com ela ligada, e `features.test.tsx` cobre o modo congelado.
+beforeEach(() => {
+  vi.stubEnv('VITE_FEATURE_SOCIAL', 'true')
+})

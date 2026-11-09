@@ -3,9 +3,11 @@ package com.duo.social.controller;
 import java.util.List;
 
 import com.duo.social.FollowService;
+import com.duo.social.SocialFeature;
 import com.duo.social.dto.ProfileCard;
 import com.duo.social.dto.Relation;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /** Duollowers e Duollowing: seguir, pedidos, aceitar, recusar e remover. */
 @RestController
+@ConditionalOnProperty(name = SocialFeature.PROPERTY, havingValue = "true")
 class FollowController {
 
 	private final FollowService follows;

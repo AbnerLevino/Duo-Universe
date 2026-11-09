@@ -23,6 +23,12 @@ public interface CouplePairingRepository extends JpaRepository<CouplePairing, Lo
 	@Query("select p from CouplePairing p where p.id = :id")
 	Optional<CouplePairing> findByIdForUpdate(@Param("id") Long id);
 
+	/** RF-A02: os convites em aberto entre duas pessoas, em qualquer sentido (o mais recente primeiro). */
+	@Query("select p from CouplePairing p where p.state = :state and p.inviteeUserId is not null "
+			+ "and ((p.initiatorUserId = :a and p.inviteeUserId = :b) "
+			+ "or (p.initiatorUserId = :b and p.inviteeUserId = :a)) order by p.id desc")
+	List<CouplePairing> findBetween(@Param("a") Long a, @Param("b") Long b, @Param("state") PairingState state);
+
 	/** Etapa 13: o que o app mostra ao abrir — os convites ainda em aberto da pessoa, de qualquer lado. */
 	@Query("select p from CouplePairing p where p.state = :state "
 			+ "and (p.initiatorUserId = :userId or p.inviteeUserId = :userId)")

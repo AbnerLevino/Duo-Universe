@@ -626,3 +626,26 @@ isso só existe no `Service`, chamado pelos testes.
   `CouplePairingServiceImplTest` (contra o `duo_test` real): cancelar um pareamento com histórias dos dois
   lados apaga as duas; um pareamento que expira sozinho (via `find()`) também apaga a história; e a mesma
   pessoa consegue ter dois pareamentos `PENDING` ao mesmo tempo, com convidados diferentes.
+
+## Fatia 0 da v5 (2026-11-09) — fundação segura e social congelado
+
+Requisitos em `docs/ESPECIFICACAO-V5.md` (RF-A01, A02, A06, A08, A10, A11).
+
+- `users/UserService.findActiveByHandle`: igual a `findByHandle`, mas ignora conta excluída e perfil oculto.
+- `social/BlockService.existsBetween`: pergunta pública "há bloqueio entre A e B?"; o vínculo (`relationships`)
+  passa a usá-la. `relationships` agora depende de `social` (sem ciclo: `social` nunca importa `relationships`).
+- `relationships/.../CouplePairingServiceImpl.inviteByHandle`: respeita bloqueio/oculto/excluído e reaproveita o
+  convite pendente do mesmo par (`CouplePairingRepository.findBetween`). `redeemByLink` não desfaz mais o
+  cancelamento do convite vencido (`noRollbackFor`), e `findPendingForUser` esconde convites vencidos.
+- `shared/.../RateLimiterImpl` + `RateLimitAttemptRepository.insertIfAbsent`: cria a linha com
+  `INSERT ... ON CONFLICT DO NOTHING` antes de travar, para duas primeiras tentativas simultâneas não gerarem 500.
+- `shared/exception/GlobalExceptionHandler`: `NoSuchElementException` → 404, `IllegalArgumentException` → 400,
+  `DataIntegrityViolationException` → 409, sempre com mensagem fixa.
+- **Congelamento do social:** chave `duo.features.social.enabled` (`DUO_FEATURE_SOCIAL`, padrão `false`; testes
+  ligam). Desligada: `FollowController` e `ProfileController` (ver perfil e buscar) nem existem (404);
+  `ProfileAccessServiceImpl` devolve `UNAVAILABLE` para tudo que não é do próprio dono (fotos de terceiros somem);
+  a denúncia foi para o novo `ReportController`, sempre ligado; bloqueio continua. No frontend,
+  `frontend/src/features.ts` (`socialEnabled()`, `VITE_FEATURE_SOCIAL`) esconde Buscar, Duollowers/Duollowing e
+  as rotas de busca e perfil de terceiros. Nenhuma tabela foi apagada.
+- Testes novos: `SocialFrozenHttpTest`, `ExpiredLinkRedeemTest`, `RateLimiterConcurrencyTest`, `features.test.tsx`,
+  e 6 casos em `CouplePairingServiceImplTest`.

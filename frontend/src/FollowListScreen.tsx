@@ -14,6 +14,7 @@ import {
   unblockUser,
   unfollow,
 } from './api'
+import { socialEnabled } from './features'
 import { TERMS } from './labels'
 
 type Action = { label: string; run: (handle: string) => Promise<unknown> }
@@ -52,7 +53,8 @@ const KINDS: Record<string, Kind> = {
 
 export default function FollowListScreen() {
   const { kind = '' } = useParams()
-  const config = KINDS[kind]
+  // Congelado (RF-A11): só a lista de bloqueados existe sem a camada social.
+  const config = kind === 'bloqueados' || socialEnabled() ? KINDS[kind] : undefined
   const [loaded, setLoaded] = useState<{ kind: string; cards: ProfileCard[] } | null>(null)
   const [version, setVersion] = useState(0)
   const [error, setError] = useState<string | null>(null)

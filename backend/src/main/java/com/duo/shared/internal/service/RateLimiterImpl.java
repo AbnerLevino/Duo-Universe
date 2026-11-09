@@ -27,11 +27,9 @@ class RateLimiterImpl implements RateLimiter {
 	@Transactional
 	public void checkAndRecord(String scope, String key, int maxAttempts, Duration window) {
 		Instant now = clock.instant();
-		RateLimitAttempt attempt = attempts.findForUpdateByScopeAndAttemptKey(scope, key).orElse(null);
-		if (attempt == null) {
-			attempts.save(new RateLimitAttempt(scope, key, now));
-			return;
-		}
+		// RF-A06: garante a linha (sem erro se duas requisições chegarem juntas) e só então a trava.
+		attempts.insertIfAbsent(scope, key, now);
+		RateLimitAttempt attempt = attempts.findForUpdateByScopeAndAttemptKey(scope, key).orElseThrow();
 		if (attempt.windowExpired(now, window)) {
 			attempt.resetWindow(now);
 			return;
