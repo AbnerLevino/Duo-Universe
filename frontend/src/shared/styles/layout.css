@@ -4,7 +4,7 @@
 
 .app-shell {
   display: grid;
-  grid-template-columns: 224px minmax(0, 1fr);
+  grid-template-columns: 226px minmax(0, 1fr);
   min-height: 100dvh;
 }
 
@@ -65,15 +65,38 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-3);
+  margin-top: calc(
+    -1 * var(--space-2) + 14px
+  ); /* sobe a foto e a descrição; o respiro fica só o da barra */
 }
 
 /* A foto, redonda e pequena, centrada — estica o .avatar global (avatar.css) por cima. As iniciais (sem foto)
    ficam brancas porque o fundo do círculo continua roxo. */
 .side-profile .avatar {
-  width: 8rem;
-  height: 8rem;
+  width: calc(8rem - 2px);
+  height: calc(8rem - 2px);
   font-size: 2.5rem;
   color: #ffffff;
+}
+
+/* Nome, DuoName e situação, centrados abaixo da foto. */
+.side-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.side-info span {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.side-name {
+  font-size: var(--text-lg);
 }
 
 .side-profile .side-stats {
@@ -165,10 +188,15 @@
     flex-direction: row;
     align-items: center;
     gap: var(--space-4);
+    margin-top: 0;
     padding: var(--space-3) var(--space-4);
     background: var(--sidebar-bg);
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
+  }
+
+  .side-info {
+    display: none;
   }
 
   .side-profile .avatar {

@@ -192,7 +192,8 @@ toda, sem margem e sem cantos) e para a barra lateral. Sem suporte a `backdrop-f
 
 **Barra lateral** (`layout.css`, `SideProfile`, `AvatarMenu`): vidro no roxo da marca (tokens `--sidebar-*`; dentro
 dela as cores do app são trocadas pelas claras). No celular o vidro sai do painel e vai para cada faixa (o
-`backdrop-filter` no painel prenderia a faixa fixa de baixo). `AvatarMenu` (só no computador, `min-width: 768px`):
+`backdrop-filter` no painel prenderia a faixa fixa de baixo). `SideProfile` mostra, abaixo da foto, nome, DuoName e situação (profissão · estado civil), só no computador; no
+celular esse bloco some da faixa e o nome continua na `HomeScreen`. `AvatarMenu` (só no computador, `min-width: 768px`):
 a foto é um botão com um círculo em degradê da aurora que gira; ao clicar abre um cartão ao lado ("Colocar foto de
 perfil" sem foto, "Trocar foto de perfil" com foto), posicionado com `position: fixed` num portal porque o painel
 rola por dentro. No celular a foto continua só uma imagem (o perfil por lá ainda vai ser pensado).

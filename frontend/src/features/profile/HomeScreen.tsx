@@ -17,8 +17,8 @@ type Data = {
 
 /**
  * A página inicial do Personal Universe (Épico 3): os momentos da pessoa e o caminho para o vínculo. A foto, os
- * números de Duollowers e o botão Editar moraram no painel (`SideProfile`); o nome, o DuoName, a profissão e a bio
- * ficam aqui por enquanto, até decidirmos onde mostrá-los. É o "seu universo" — não um feed de outras pessoas.
+ * números de Duollowers e o botão Editar moraram no painel (`SideProfile`), que no computador também mostra o nome,
+ * o DuoName e a situação; no celular eles ainda ficam aqui, junto com a bio. É o "seu universo" — não um feed de outras pessoas.
  */
 export default function HomeScreen() {
   const { profile, requests } = useMe()

@@ -10,3 +10,10 @@
 .profileInfo p {
   margin: var(--space-1) 0 0;
 }
+
+/* No computador o nome, o DuoName e a situação moram na barra lateral (`SideProfile`). */
+@media (min-width: 768px) {
+  .profileInfo {
+    display: none;
+  }
+}
