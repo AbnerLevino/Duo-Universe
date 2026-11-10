@@ -1,726 +1,197 @@
 # Mapa do projeto
 
-> Para que serve este arquivo: explicar, em português simples, o que cada pasta e cada arquivo importante
-> faz e como as peças se conectam. Exigido pela regra "Modo acompanhamento" do `CLAUDE.md`.
-> **Atualize-o sempre que um arquivo for criado, movido ou removido.**
+> Para que serve: explicar, em português simples, **onde está cada coisa e como as peças se conectam**.
+> Descreve só o **presente**. O histórico de cada etapa está no `git log` (os commits citam DEC/RN/RF).
+> Termos técnicos: `docs/CONSULTA.md`. Decisões e regras: `CLAUDE.md`.
+> **Atualize este arquivo sempre que um arquivo for criado, movido ou removido.**
+> Última conferência contra o código: 2026-11-10.
 
 ## Visão geral
 
 ```
-Duo-Universe/
-  CLAUDE.md        contexto do projeto para quem (humano ou IA) for trabalhar nele
-  docs/            este mapa e o glossário técnico
-  backend/         a API (Spring Boot + Java)
-  frontend/        o app que roda no navegador/celular (React + Vite, PWA)
-  .github/         configuração do CI (verificação automática a cada push)
+duo/
+  CLAUDE.md      contexto e regras para quem (humano ou IA) trabalha no projeto
+  docs/          MAPA.md (este) e CONSULTA.md (glossário, requisitos, ideias)
+  backend/       a API (Java 21 + Spring Boot + PostgreSQL)
+  frontend/      o app (React + Vite, PWA mobile-first)
+  estudos/       plano de estudos de Java do fundador (tem CLAUDE.md próprio; não é o produto)
+  .github/       CI (verificação automática a cada push)
+  dev.sh         sobe backend e frontend juntos (Ctrl+C para os dois)
 ```
 
-Hoje existe o **login completo**: entrar com Google, sessão própria (tokens), sair de um aparelho ou de todos,
-e uma tela inicial provisória no frontend. Ainda não há casal, nem fotos — isso vem a partir da Semana 3
-(seção 17 do `CLAUDE.md`). A seção "Sessão própria" no fim deste arquivo explica como as peças do login se
-conectam.
+**O que o Duo faz hoje:** entrar com Google; sessão própria; perfil pessoal com foto; vínculo de casal
+(convite, confirmação, história, datas, pausa e saída); fotos do Personal. A camada social (busca,
+Duollowers, perfil de terceiros) existe no código mas está **congelada** por configuração (RF-A11).
 
-## Como os pacotes do backend estão organizados (reorganização de 2026-11-06)
-
-Cada módulo (`shared`, `users`, `auth`, `relationships`) segue a mesma convenção, por **camada técnica**
-(`docs/plano-reorganizacao-pacotes.md`):
-
-- **Raiz do módulo = o que os outros módulos podem usar:** as pastas `controller/`, `exception/` e `dto/`, mais
-  as interfaces de serviço e os enums, que ficam soltos (são o "contrato" do módulo).
-- **`internal/` = só o próprio módulo usa** (o `ArchitectureTest` garante): `model/` (entidades do banco),
-  `repository/` (acesso ao banco) e `service/` (implementações e orquestradores).
-- **Sobras** (configurações e utilitários que não cabem numa dessas pastas) ficam soltas, sem pasta própria.
-
-> **Atenção ao ler as seções mais abaixo:** elas são o diário de cada etapa e citam os caminhos **de antes** da
-> reorganização (ex.: `users/internal/User.java`). Para achar o arquivo hoje, use a árvore desta seção: a classe
-> está na subpasta da sua camada (ex.: `users/internal/model/User.java`).
+**Caminho de uma requisição:**
 
 ```
-shared/
-  exception/    DuoHttpException, GlobalExceptionHandler, RateLimitExceededException
-  RateLimiter, Scopeable, Scope                    (contratos, soltos)
-  ClockConfig, SecurityConfig                      (configurações, soltas)
-  internal/
-    model/        RateLimitAttempt
-    repository/   RateLimitAttemptRepository
-    service/      RateLimiterImpl
-
-users/
-  controller/   UserController
-  exception/    EmailAlreadyLinkedException, HandleTakenException, InvalidHandleException
-  dto/          UserSummary
-  UserService                                      (contrato, solto)
-  internal/
-    model/        User
-    repository/   UserRepository
-    service/      UserServiceImpl
-
-auth/
-  controller/   AuthController, MeController
-  dto/          AccessToken, IssuedRefreshToken
-  AccessTokenService, RefreshTokenService          (contratos, soltos)
-  GoogleLoginSuccessHandler, RefreshCookies        (sobras, soltas)
-  internal/
-    model/        RefreshToken
-    repository/   RefreshTokenRepository
-    service/      JwtAccessTokenService, RefreshTokenServiceImpl
-    JwtConfig                                      (configuração, solta)
-
-relationships/
-  controller/   CoupleController, CouplePairingController
-  exception/    AlreadyInRelationshipException, CoupleNotFoundException, DatesNotAcceptedException,
-                HandleNotInvitableException, IllegalCoupleTransitionException,
-                IllegalPairingOperationException, IllegalPairingTransitionException,
-                InviteCodeInvalidException, PairingNotFoundException, StoryIncompleteException
-  dto/          CoupleSummary, PairingSummary, StorySummary, IssuedPairingInvite
-  Channel, CoupleState, PairingState, StoryStep    (enums do contrato, soltos)
-  CouplePairingService, CoupleService, CouplePermissions   (contratos, soltos)
-  internal/
-    model/        Couple, CoupleMember, CouplePairing, CouplePairingStory
-    repository/   CoupleRepository, CoupleMemberRepository, CouplePairingRepository,
-                  CouplePairingStoryRepository
-    service/      CoupleServiceImpl, CouplePairingServiceImpl, CoupleFactory
+navegador → Vite (proxy /api; em produção será o Caddy) → SecurityConfig (confere o token)
+          → Controller (recebe o HTTP) → Service (regra de negócio)
+          → Repository (fala com o banco) → PostgreSQL
 ```
 
-**Os testes seguem a mesma estrutura** em `src/test/java/com/duo/`: um teste que usa membros *package-private*
-fica no mesmo pacote da classe que testa (ex.: `CouplePairingTest` em `relationships/internal/model/`;
-`RelationshipsHttpTest` em `relationships/controller/`, porque usa tipos internos do controller).
-
-**Ajustes de visibilidade feitos na reorganização** (não mudam comportamento): ao separar em pacotes diferentes,
-o que era visível "por estar na mesma pasta" precisou virar `public` — `RefreshCookies` (classe e
-`set`/`clear`/`read`), `JwtConfig` (classe e `ISSUER`) e `CouplePairing.requireConfirmed()`.
-
-## Épico 3 — Personal Universe (2026-11-06): perfil, social, fotos
-
-Três módulos novos (`social`, `storage`, `media`) e um `users` maior. Dependências, sempre num sentido só:
-`media → social → users`, `media → storage`. (`users` nunca conhece `social` nem `media`.)
-
-```
-users/ (ampliado)
-  MaritalStatus, ProfileVisibility                (enums do contrato)
-  dto/          UserProfile, ProfileUpdate, ProfilePage
-  exception/    InvalidProfileException, InvalidSearchException, HandleChangeLimitException
-  controller/   UserController                    (+ GET/PUT /api/me/profile)
-  internal/model/    User (bio, profissão, estado civil, visibilidade, search_name, hidden_at, avatar...)
-                     NameNormalizer               (minúsculas e sem acento, para a busca)
-
-social/                                           (quem pode ver o quê; Duollow; bloqueio; denúncia)
-  Access                                          (OWNER, FOLLOWER, PUBLIC_VIEWER, OUTSIDER, UNAVAILABLE)
-  ProfileAccessService, FollowService, BlockService, ReportService, ProfileViewService, ReportReason
-  dto/          PublicProfile, ProfileCard, SearchItem, SearchPage, Relation
-  exception/    ProfileNotFoundException, FollowRequestNotFoundException, FollowLimitException,
-                InvalidSocialActionException
-  controller/   ProfileController, FollowController, BlockController
-  internal/
-    model/        Follow, FollowStatus, Block, Report, ReportTarget
-    repository/   FollowRepository, BlockRepository, ReportRepository
-    service/      ProfileAccessServiceImpl (a regra central), ProfileLookup, SocialMapper,
-                  FollowServiceImpl, BlockServiceImpl, ReportServiceImpl, ProfileViewServiceImpl
-
-storage/                                          (guarda bytes por uma chave; não sabe o que são)
-  MediaStorageProvider
-  internal/service/  LocalMediaStorageProvider    (pasta do computador, com defesa contra "..")
-
-media/                                            (avatar e fotos do Personal)
-  MediaKind, MediaVisibility, MediaService
-  dto/          MediaSummary, MediaContent, UploadedFile
-  exception/    InvalidMediaException, MediaQuotaExceededException, MediaNotFoundException
-  controller/   MediaController
-  internal/
-    model/        MediaAsset
-    repository/   MediaAssetRepository
-    service/      MediaServiceImpl, ImageSniffer (tipo real pelos bytes), PhotoAccessRule (matriz de acesso)
-```
-
-**Migrations:** `V12` (perfil em `users`), `V13` (`follows`, `blocks`, `reports`), `V14` (`media_assets` e a
-chave estrangeira do avatar). **Configuração** (`application.properties`): `duo.media.dir` (pasta das fotos, fora
-do repositório; `DUO_MEDIA_DIR`), `duo.media.max-photos`, `duo.media.max-total-bytes`, limites de multipart.
-
-**O fluxo de uma foto:** o app reduz a imagem no aparelho → `POST /api/me/photos` (multipart) → `MediaController`
-→ `MediaServiceImpl` confere tipo real, tamanho e cota → `LocalMediaStorageProvider` grava o arquivo → a linha vai
-para `media_assets`. Para **ver**: `GET /api/media/{id}` → `MediaServiceImpl.openFor` pergunta a
-`ProfileAccessService` quem é o visitante em relação ao dono (`Access`) → `PhotoAccessRule` decide → só então o
-arquivo sai (404 igual para "não existe" e "não é para você").
-
-**Frontend** (`frontend/src/`): `api.ts` (chamadas), `labels.ts` (textos: DuoName, Duollowers...), `imageTools.ts`
-(recorte e redução com canvas), `session.ts` (agora também o cache das fotos por sessão), `meContext.ts` (o "eu" que a
-moldura reparte com as telas). **A moldura** (`AppLayout`): o painel à esquerda com `SideProfile` (foto grande,
-Duollowers, Duollowing e Editar na mesma linha) e `MainNav` (Início, Buscar, Vínculo e Perfil, com ícones do
-`lucide-react`), e ao lado a tela da rota (`Outlet`). No celular o painel se divide: o resumo vira a faixa do topo e
-a navegação, uma faixa fixa embaixo que se arrasta com o dedo. **Editar perfil** não é mais uma tela: `Editar` e
-`Perfil` abrem `BottomSheet` (modal que sobe de baixo, topo arredondado, abre na metade e se puxa para cima) com o
-`EditProfileForm`. Telas: `HomeScreen` (/inicio), `PublicProfileScreen` (/u/:handle), `SearchScreen` (/buscar),
-`FollowListScreen` (/lista/:kind), `NewMomentScreen` (/momentos/novo); componentes `AuthedImage`, `Avatar`,
-`FollowButton`, `PhotoGrid`, `ReportForm`. Só o login e a escolha do DuoName ficam fora da moldura. O `Dashboard`
-leva o solteiro à home (e quem tem casal ativo a `/casal`). Tokens de design em `index.css`.
+**Como rodar:** variáveis de ambiente `DUO_APP_DB_PASSWORD`, `DUO_JWT_SECRET` (mínimo 32 caracteres),
+`DUO_GOOGLE_CLIENT_ID` e `DUO_GOOGLE_CLIENT_SECRET`; depois `./dev.sh`, ou separado: `cd backend && ./gradlew
+bootRun` e `cd frontend && npm run dev`, e abrir `http://localhost:5173`. Em `http://localhost` sem HTTPS, o
+navegador pode recusar o cookie `Secure`: use `DUO_COOKIE_SECURE=false` só em desenvolvimento.
 
 ## `backend/` — a API
 
-**Arquivos de build (como o projeto é compilado):**
-- `build.gradle.kts`: a "receita" do projeto em Kotlin. Lista as dependências (bibliotecas prontas que o
-  projeto usa, como Spring Security) e as ferramentas de qualidade (Spotless, que corrige formatação).
-- `settings.gradle.kts`: diz ao Gradle o nome do projeto.
-- `gradlew` / `gradlew.bat`: scripts que baixam e rodam a versão certa do Gradle sozinhos, sem precisar
-  instalar o Gradle na mão. É por isso que rodamos `.\gradlew.bat build` e não `gradle build`.
-- `gradle/wrapper/`: arquivos de apoio do script acima (não precisa abrir).
+### Convenção dos pacotes (`src/main/java/com/duo/`)
 
-**Código (`src/main/java/com/duo/`):**
-- `DuoBackendApplication.java`: o `main()` do projeto — o arquivo que, ao ser executado, liga toda a
-  aplicação Spring Boot (lê as configurações, conecta no banco, abre a porta HTTP).
-- `shared/SecurityConfig.java`: a regra de acesso — **tudo exige o token de acesso (Bearer), exceto
-  `/actuator/health`, o início do login com Google e `POST /api/auth/refresh` e `/logout`** (RN-20).
-- `shared/ClockConfig.java`: entrega o relógio do sistema como bean; os testes o trocam por um relógio fixo.
-- `auth/package-info.java` e `users/package-info.java`: a "placa" (Javadoc do pacote) de cada módulo. `auth`
-  cuida de login e sessão; `users` cuida da conta e, no futuro, do Personal Universe.
+Cada módulo segue a mesma forma:
+- **Raiz do módulo = o contrato** que outros módulos podem usar: interfaces de serviço, enums e as pastas
+  `controller/`, `dto/` e `exception/`.
+- **`internal/` = só o próprio módulo usa** (o `ArchitectureTest` garante): `model/` (entidades),
+  `repository/` (acesso ao banco) e `service/` (implementações).
+- Controllers nunca acessam repository. Sem ciclos entre módulos.
 
-**Configuração (`src/main/resources/`):**
-- `application.properties`: onde o backend acha o banco de dados (endereço, usuário, senha — a senha vem
-  de uma variável de ambiente, nunca do arquivo, regra 11) e ajustes finos (ex.: `ddl-auto=validate` diz ao
-  Hibernate "só confira se o banco bate com as entidades, não crie tabelas sozinho — isso é trabalho do
-  Flyway").
-- `db/migration/V1__create_users.sql`: a primeira "migration" do Flyway — um script SQL versionado que cria
-  a tabela `users`. `V2__add_google_sub_to_users.sql` acrescenta `google_sub` (único, obrigatório; DEC-030).
-  `V3__create_refresh_tokens.sql` cria `refresh_tokens`. `V4__create_couples.sql` (Épico 2, Etapa 1) cria
-  `couples` e `couple_members`. Cada migration nova vira um arquivo `V5__...`, `V6__...`, nunca editamos um
-  já aplicado.
+### Módulos
 
-**Testes (`src/test/java/com/duo/`):**
-- `DuoBackendApplicationTests.java`: só liga a aplicação inteira e confere que nada quebra ao subir.
-- `HealthEndpointTest.java`: confirma que `/actuator/health` é público e que qualquer outra rota pede login.
-- `OpenApiDocsTest.java`: confirma que a documentação da API (gerada pelo Springdoc) também exige login.
-- `ArchitectureTest.java`: não testa o que o código faz, testa **como ele está organizado** — garante que os
-  módulos não dependem um do outro em círculo, que controllers nunca acessam o banco direto, e que a pasta
-  `internal` de um módulo só é usada por ele mesmo.
-- `users/internal/UserRepositoryTest.java`: primeiro teste que fala com o PostgreSQL de verdade (`duo_test`),
-  usando `@DataJpaTest` — confirma que `User` é salvo e encontrado pelo `UserRepository`.
-- `application-test.properties` (em `src/test/resources`): troca o banco de desenvolvimento (`duo`) pelo
-  banco de teste (`duo_test`), para os testes nunca sujarem dados reais.
+**`shared/`** — o que todos usam
+- `SecurityConfig`: tudo exige o token Bearer (RN-20), exceto `/actuator/health`, o início do login com
+  Google e `POST /api/auth/refresh` e `/logout`. Também libera `GET /api/dev/**`, que só existe com o perfil
+  `dev` (hoje não há nenhum controller ali; ver "Etapa B parqueada").
+- `ClockConfig`: entrega o relógio como bean (os testes trocam por um fixo).
+- `RateLimiter` + `internal/service/RateLimiterImpl`: limite de tentativas por chave e período (RA-08), sobre a
+  tabela `rate_limit_attempts`.
+- `Scope` (`PERSONAL`, `ARCHIVED`, `MEMBER_SIDE`, `COUPLE_CENTER`) e `Scopeable`: o vocabulário de "onde isto
+  mora" (RN-09, RN-19). Ainda é só estrutura.
+- `exception/GlobalExceptionHandler`: traduz exceções em respostas HTTP (`ProblemDetail`, mensagens fixas);
+  `DuoHttpException` é a classe-base que cada módulo estende.
 
-**`users/internal/User.java`:** a primeira entidade JPA do projeto — mapeia a tabela `users` (da migration
-`V1` e `V2`). Tem um construtor protegido vazio (exigido pelo Hibernate) e um construtor público com os campos
-obrigatórios; `createdAt` é preenchido sozinho (`@CreationTimestamp`), nunca pelo código que cria o `User`.
+**`users/`** — conta e perfil
+- `UserService`, `controller/UserController`: perfil (`/api/me/profile`), DuoName (`/api/me/handle`).
+- Enums `MaritalStatus`, `ProfileVisibility`; `dto/` (`UserSummary`, `UserProfile`, `ProfileUpdate`,
+  `ProfilePage`).
+- `internal/model`: `User`, `NameNormalizer` (nome sem acento nem maiúsculas, para busca).
+- Exceções: DuoName inválido/repetido/trocado demais, perfil inválido, e-mail já ligado a outro Google.
 
-**`users/internal/UserRepository.java`:** a interface Spring Data JPA que dá acesso ao banco para `User`
-(`save`, `findById`, etc., herdados de `JpaRepository`) mais uma busca própria por e-mail sem diferenciar
-maiúsculas (`findByEmailIgnoreCase`) e por `googleSub` (`findByGoogleSub`), usada pelo futuro login com Google.
+**`auth/`** — login e sessão
+- `GoogleLoginSuccessHandler`: cria/acha a conta, grava o cookie `duo_refresh` e devolve a pessoa ao frontend.
+- `AccessTokenService` (JWT de 15 min, HS256) e `RefreshTokenService` (token de renovação aleatório, guardado
+  como hash, rotacionado a cada uso; reuso de um token antigo derruba a família). `RefreshCookies` monta o
+  cookie (`HttpOnly`, `Secure`, `SameSite=Strict`, `Path=/api/auth`).
+- `controller/AuthController`: `POST /api/auth/refresh`, `/logout`, `/logout-all`. `MeController`: `GET /api/me`.
 
-**O que falta para existir um fluxo completo:** ainda não há `controller` nem `service` — faltam essas duas
-camadas para formar o caminho de uma requisição:
+**`relationships/`** — o vínculo do casal
+- `CouplePairingService` (convite → confirmação → história e datas) e `CoupleService` (consultar, pausar,
+  retomar, sair). `CouplePermissions`: a matriz "o que cada estado permite" (4 perguntas puras; ainda não
+  usada por fotos do casal).
+- Enums `PairingState`, `CoupleState`, `StoryStep`, `Channel`.
+- `internal/model`: `CouplePairing` (o convite e a máquina de estados), `CouplePairingStory` (história de
+  cada pessoa), `Couple`, `CoupleMember`.
+- `internal/service`: `CouplePairingServiceImpl`; `CoupleFactory` (cria o `Couple` numa transação própria, para
+  a corrida de "um vínculo por pessoa" desfazer só o nascimento); `CoupleServiceImpl`.
+- Endpoints: `/api/pairings` (`invite-by-handle`, `invite-by-link`, `redeem`, `mine`, `{id}`, `confirm`,
+  `cancel`, `story/{step}`, `partner-story`, `dates`, `dates/accept`) e `/api/couples` (`mine`, `{id}`, `pause`,
+  `resume`, `leave`).
+- Depende de `social` (só para perguntar "há bloqueio entre A e B?").
 
-```
-navegador → SecurityConfig (confere login) → Controller (recebe o HTTP)
-          → Service (regra de negócio) → UserRepository (fala com o banco) → PostgreSQL
-```
+**`social/`** — camada social (**congelada**, RF-A11)
+- `Access` + `ProfileAccessService`: a regra central de quem vê o quê.
+- `FollowService` (Duollow, pedidos), `BlockService`, `ReportService`, `ProfileViewService`.
+- Controllers: `FollowController` e `ProfileController` (busca e perfil de terceiros) **só existem com
+  `duo.features.social.enabled=true`**; `BlockController` e `ReportController` ficam sempre ligados.
+- `SocialFeature`: a chave que liga/desliga.
+
+**`media/`** — fotos
+- `MediaService` e `controller/MediaController`: avatar (`/api/me/avatar`), fotos (`/api/me/photos`), ler,
+  mudar visibilidade, apagar e denunciar (`/api/media/{id}`). Arquivo só sai por `GET /api/media/{id}` depois
+  da regra de acesso (RN-19/21).
+- `internal/service`: `ImageSniffer` (tipo real pelos bytes, RN-23), `PhotoAccessRule`, `MediaServiceImpl`.
+- Limites provisórios: avatar 1 MB, foto 2 MB, 200 fotos e 100 MB por pessoa.
+
+**`storage/`** — onde o arquivo fica
+- `MediaStorageProvider` (contrato) + `internal/service/LocalMediaStorageProvider` (pasta local `~/duo-media`).
+  Trocar para R2 depois muda só esta peça (DEC-019/021).
+
+### Banco (Flyway, `src/main/resources/db/migration/`)
+
+Nunca se edita uma migration já aplicada; muda-se com uma nova.
+
+| Migration | O que faz |
+| --- | --- |
+| V1, V2, V7, V12 | `users` e suas colunas: e-mail único, `google_sub`, `handle` (DuoName), perfil e `search_name` |
+| V3 | `refresh_tokens` |
+| V4 | `couples`, `couple_members` (índice único parcial garante um vínculo por pessoa, RN-06) |
+| V5, V6, V10, V11 | `couple_pairings`, código de convite (só o hash), datas, confirmações |
+| V8 | `rate_limit_attempts` |
+| V9 | `couple_pairing_stories` |
+| V13 | `follows`, `blocks`, `reports` |
+| V14 | `media_assets` |
+
+### Configuração (`application.properties`)
+
+Segredos vêm de variáveis de ambiente, nunca do arquivo. Pontos úteis: `ddl-auto=validate` (o schema é do
+Flyway; o Hibernate só confere), `duo.features.social.enabled` (padrão `false`), `duo.media.*` (pasta e
+limites), `duo.frontend-url`. Perfil `test` (`application-test.properties`) aponta para o banco `duo_test`.
+
+### Testes (`src/test/java/com/duo/`, mesma estrutura dos pacotes)
+
+Rodam contra um PostgreSQL local de verdade (`duo_test`), sem mocks de banco. Destaques:
+- `ArchitectureTest`: sem ciclos, controller sem repository, `internal` privado ao módulo.
+- `CouplePairingConcurrencyTest` e `RateLimiterConcurrencyTest`: corridas com threads reais.
+- `RelationshipsHttpTest`, `MediaHttpTest`, `SocialHttpTest`, `UserProfileHttpTest`: HTTP via MockMvc,
+  incluindo acesso cruzado (RN-12, RN-20).
+- `SocialFrozenHttpTest`: com o social desligado, as rotas respondem 404.
+- `SessionFlowTest`: refresh, rotação, reuso, token vencido, logout.
+
+### Etapa B parqueada (`backend/wip-etapa-b-pendente/`)
+
+Esboço de entrar por **código de 6 dígitos por e-mail** (`DevLoginController` e uma migration), **fora do
+build** de propósito: a Etapa B foi adiada (DEC-030). O `build.gradle.kts` já lista `spring-boot-starter-mail`
+para ela. Antes de ativar: a migration precisa de número novo (`V12` já existe) e o provedor de e-mail
+(Q-18) está em aberto.
 
 ## `frontend/` — o app
 
-- `vite.config.ts`: a configuração do Vite (a ferramenta que builda e serve o frontend). Aqui também vive o
-  plugin de PWA (o que faz o site "se instalar" no celular), o proxy que redireciona `/api/...` para o
-  backend em `localhost:8080` durante o desenvolvimento, e o alias `@/` → `src/` (ver reorganização abaixo).
-- `index.html`: a página HTML única do app (todo o resto é desenhado por React dentro dela); aponta pro
-  `src/app/main.tsx`.
-- `src/app/main.tsx`: o ponto de entrada — pega a `<div id="root">` do `index.html` e manda o React desenhar
-  o `<App />` e o fundo da aurora dentro dela.
-- `src/app/App.tsx`: o componente principal. Decide qual tela mostrar (carregando, entrar ou início); veja a
-  seção "Sessão própria".
-- `src/shared/test/test-setup.ts`: a configuração que liga o Vitest (framework de teste) ao `jsdom` (um
-  navegador falso que roda em memória, sem abrir uma janela de verdade).
-- `src/index.css`: só `@import` dos arquivos de `shared/styles/` (tokens, base, botão, formulário, avatar,
-  listas, moldura, aurora) — ver "Como o CSS está organizado" logo abaixo.
-- `public/pwa-192.png`, `public/pwa-512.png`: os ícones do app quando instalado no celular — **provisórios**.
-- `public/images/`: arte pesada (ex.: o fundo do login) que fica fora do cache offline do service worker
-  (`globIgnores` no `vite.config.ts`) — o limite de pré-cache é 2 MB por arquivo.
-- `package.json`: lista as dependências (React, Vite, ferramentas de teste e lint) e os comandos disponíveis
-  (`npm run dev`, `npm test`, etc.).
-- `eslint.config.js`, `.prettierrc`, `.prettierignore`: regras de qualidade de código (ESLint acha erros e
-  maus hábitos; Prettier só formata, sem opinar sobre lógica).
-- `tsconfig.json`: as regras do TypeScript (o quão estrito ele é ao checar tipos) e o `paths` do alias `@/`.
-
-### Como o `src/` do frontend está organizado (reorganização de 2026-11-09)
-
-`docs/plano-reorganizacao-frontend.md` (escrito em 2026-11-06, executado em 2026-11-09) espelha a ideia da
-reorganização do backend: separar por **assunto** (feature), não por tipo de arquivo. Dentro de cada feature,
-os imports pra fora dela só podem vir de `shared/` — nunca de outra feature (um componente usado por mais de
-uma feature sobe pra `shared/ui/`).
+Vite 8 + React 19 + TypeScript, PWA (`vite-plugin-pwa`; o service worker **não** guarda cache da API).
+Alias `@/` aponta para `src/`. O proxy do Vite manda `/api` para `localhost:8080`.
 
 ```
 src/
-  app/        A moldura: App (rotas), AppLayout (painel + navegação), Dashboard, MainNav, AuroraBackground
+  app/        a moldura: main.tsx (entrada), App (rotas), AppLayout (painel lateral + navegação),
+              Dashboard (decide para onde mandar a pessoa), MainNav, AuroraBackground (fundo)
   shared/
-    api/      client.ts (call, ApiError, fileForm...) e types.ts (tipos usados por 2+ features)
-    session/  token, cache de fotos e usuário atual — reunidos em shared/session (index.ts)
-    ui/       Avatar, AuthedImage, BottomSheet, FollowButton, ReportForm, PhotoGrid (usados por 2+ features)
-    lib/      imageTools, names, labels, features (a flag do social congelado)
-    context/  meContext (o "eu" que o AppLayout carrega uma vez e reparte com as telas)
-    test/     testHelpers, test-setup
-  features/
-    auth/          LoginScreen, HandleSetupScreen
-    profile/        HomeScreen, EditProfileForm, SideProfile, PublicProfileScreen, api.ts
-    social/         SearchScreen, FollowListScreen, api.ts (congelado, RF-A11)
-    media/          NewMomentScreen, api.ts
+    api/      client.ts (chamadas HTTP e erros), types.ts, account.ts (escolher DuoName)
+    session/  token (token de acesso só em memória, renovação com uma chamada só), usuário atual,
+              cache de fotos
+    ui/       Avatar, AuthedImage, BottomSheet, FollowButton, PhotoGrid, ReportForm
+    lib/      imageTools (recorte e redução no aparelho), names, labels (textos da interface),
+              features (a chave do social congelado)
+    context/  meContext (o "eu" que o AppLayout carrega e reparte com as telas)
+    styles/   tokens, base, buttons, forms, avatar, lists, layout, aurora (CSS global compartilhado)
+    test/     test-setup, testHelpers
+  features/   cada assunto com suas telas e seu api.ts; uma feature não importa de outra
+    auth/           LoginScreen, HandleSetupScreen
+    profile/        HomeScreen, EditProfileForm, SideProfile, PublicProfileScreen
+    social/         SearchScreen, FollowListScreen (congelado)
+    media/          NewMomentScreen
     relationships/  InviteScreen, AcceptInviteScreen, ConfirmScreen, StoryScreen,
-                    DateConsensusScreen, CoupleHomeScreen, api.ts
+                    DateConsensusScreen, CoupleHomeScreen
+  index.css   só importa os arquivos de shared/styles
 ```
 
-O `api.ts` único de antes (62 exports, 4 assuntos misturados) virou um `client.ts`/`types.ts` genéricos em
-`shared/` mais um `api.ts` por feature. `chooseHandle` (escolher @handle) é a única ação chamada por duas
-telas de features diferentes (`auth` na primeira vez, `profile` ao editar depois) — por isso mora à parte, em
-`shared/api/account.ts`. O `@/` (configurado no `vite.config.ts` e no `tsconfig.json`) evita que os imports
-dentro de `features/` virem uma fileira de `../../..`.
+**Rotas** (`app/App.tsx`): `/inicio`, `/casal`, `/momentos/novo`, `/lista/:kind`,
+`/convite/:code`, `/vinculo/handle`, `/vinculo/convidar`, `/vinculo/:pairingId` (+ `/historia`, `/datas`);
+`/buscar` e `/u/:handle` só com o social ligado. Qualquer outra cai no `Dashboard`: sem DuoName vai escolher,
+com casal vai a `/casal`, senão a `/inicio`.
 
-### Como o CSS está organizado (Etapa 3, 2026-11-09)
+**CSS:** o que várias telas usam fica global em `shared/styles/`; o que é de uma tela só fica em
+`Componente.module.css` ao lado dela (CSS Modules). A ordem de import em `main.tsx` importa: `index.css`
+precisa vir antes de qualquer tela, senão o CSS global vence o do módulo num empate.
 
-O `index.css` (795 linhas, tudo global) virou dois tipos de arquivo:
+**Fundo aurora:** 4 manchas (roxo, azul escuro, azul claro, rosa) com véu escuro para o texto ficar legível;
+cores em `shared/styles/tokens.css` (`--aurora-*`), regras em `aurora.css`. Respeita `prefers-reduced-motion`.
 
-- **`shared/styles/*.css`** (importados uma vez, em `src/index.css`): o que é usado por **duas ou mais**
-  features ao mesmo tempo — `tokens.css` (cores, espaço, cantos), `base.css` (`.screen`, `.muted`,
-  `.login-error`), `buttons.css`, `forms.css`, `avatar.css`, `lists.css` (ações, badge, lista, cabeçalho de
-  perfil), `layout.css` (a moldura: `app-shell`, `side`, `main-nav`) e `aurora.css`. Continuam globais de
-  propósito: por exemplo, `Avatar.tsx` monta a classe na mão (`` `avatar avatar-${size}` ``) e `layout.css`
-  tem uma regra (`.side-profile .avatar`) que estica essa foto por fora — um módulo escondido não permitiria
-  isso sem redesenhar a API do `Avatar`, o que seria mudança de comportamento, fora do escopo desta etapa.
-- **`Componente.module.css`**, ao lado do componente, só para o que **nenhuma outra tela enxerga**:
-  `features/auth/LoginScreen.module.css`, `shared/ui/PhotoGrid.module.css`, `shared/ui/BottomSheet.module.css`,
-  `shared/ui/AuthedImage.module.css`, `features/profile/HomeScreen.module.css`. O Vite já suporta isso sem
-  nenhuma dependência nova; o TypeScript também, porque `vite/client` (em `tsconfig.json`) já declara o tipo
-  de um import `*.module.css`.
+**Outros:** `public/images/` guarda arte pesada (fora do cache offline do service worker, limite de 2 MB por
+arquivo); `public/pwa-*.png` são ícones **provisórios**. Comandos: `npm run dev | test | lint | format:check |
+build`. Dependências de runtime: React, React Router, `lucide-react` (ícones, versão fixa).
 
-**Achado importante:** depois de mover `.login` para um módulo, a ordem dos `import` em `app/main.tsx` passou
-a importar de verdade — antes, `import App` vinha antes de `import '../index.css'`, e como o JavaScript injeta
-o `<style>` de cada módulo na ordem em que é executado, o CSS global acabava carregando **depois** do CSS da
-tela, fazendo `.screen` (global) vencer `.login` (módulo) num empate de cascata. Corrigido invertendo a ordem:
-o `index.css` tem que vir antes de qualquer tela.
+## `.github/workflows/ci.yml`
 
-## `.github/workflows/ci.yml` — a verificação automática
-
-A cada `push` ou pull request na branch `main`, o GitHub sobe uma máquina temporária e roda dois jobs em
-paralelo:
-- **`backend`**: sobe um Postgres descartável (só para esse job) e roda `./gradlew build`, que compila,
-  formata (Spotless) e testa (incluindo o `ArchitectureTest`).
-- **`frontend`**: instala as dependências com `npm ci` e roda lint, checagem de formatação, testes e build.
-
-Se qualquer um desses passos falhar, o GitHub marca o commit como vermelho — é esse sinal que ainda
-precisamos confirmar na aba Actions do repositório (seção 19 do `CLAUDE.md`).
-
-## Login com Google (Épico 1, etapa 4 — DEC-030)
-
-- `users/UserService.java` + `UserSummary.java`: a **API pública** do módulo `users`. Outros módulos só conversam com ele por aqui. `findOrCreateByGoogle` acha a pessoa pelo `sub` do Google ou cria a conta no primeiro acesso.
-- `users/internal/UserServiceImpl.java`: a implementação (pacote `internal`, invisível para outros módulos — o ArchUnit garante).
-- `auth/GoogleLoginSuccessHandler.java`: roda quando o Google confirma a identidade. Recusa e-mail não verificado (RA-01) e chama o `UserService`.
-- `auth/MeController.java`: `GET /api/me`, devolve quem está logado. Serve para provar o login.
-- `shared/SecurityConfig.java`: liga o `oauth2Login`; sem login, qualquer rota responde 401 (RN-20).
-- `application.properties`: registro do Google lendo `DUO_GOOGLE_CLIENT_ID` e `DUO_GOOGLE_CLIENT_SECRET` do ambiente.
-
-Fluxo: navegador → `/oauth2/authorization/google` → Google → `/login/oauth2/code/google` → handler → `UserService` → banco → `/api/me`.
-
-## Sessão própria (Épico 1, passos 5 a 7 — RA-04, RA-05, H4)
-
-Depois do login com Google, o Duo não usa a sessão padrão do Spring: usa dois tokens.
-
-| Token | Dura | Onde vive | Para quê |
-| --- | --- | --- | --- |
-| **Acesso (JWT)** | 15 min | só na memória do frontend | provar quem você é em cada chamada (`Authorization: Bearer`) |
-| **Renovação** | 30 dias, uso único | cookie `HttpOnly` (o JavaScript não lê) | pedir um token de acesso novo |
-
-**Backend, módulo `auth`** (`src/main/java/com/duo/auth/`):
-- `RefreshTokenService.java` + `IssuedRefreshToken.java`: a API pública do token de renovação (emitir, rotacionar,
-  sair deste aparelho, sair de todos).
-- `AccessTokenService.java` + `AccessToken.java`: a API pública do token de acesso.
-- `AuthController.java`: `POST /api/auth/refresh`, `/logout` e `/logout-all`.
-- `MeController.java`: `GET /api/me`; agora lê quem é a pessoa **do token**, nunca de um id enviado.
-- `RefreshCookies.java`: monta e lê o cookie `duo_refresh` (`HttpOnly`, `Secure`, `SameSite=Strict`, `/api/auth`).
-- `GoogleLoginSuccessHandler.java`: ao terminar o login com Google, cria/acha a conta, grava o cookie e manda a
-  pessoa de volta ao frontend (com `?erro=...` se for recusada).
-- `internal/RefreshToken.java`, `RefreshTokenRepository.java`, `RefreshTokenServiceImpl.java`: a tabela
-  `refresh_tokens` (migration `V3`) e a regra de rotação: cada uso troca o token por outro da mesma "família";
-  se um token **já usado** reaparece, a família inteira é encerrada. O banco guarda só o hash (SHA-256).
-- `internal/JwtConfig.java`, `JwtAccessTokenService.java`: assinam e validam o JWT com `DUO_JWT_SECRET`.
-
-**Módulo `users`:** `UserService.findById` (usado pelo `/api/me`) e `EmailAlreadyLinkedException` (e-mail já
-ligado a outra conta).
-
-**Frontend** (`frontend/src/`):
-- `session.ts`: guarda o token de acesso em memória, renova quando vence e repete a chamada; junta pedidos
-  simultâneos de renovação numa só (renovação é de uso único).
-- `App.tsx`: decide a tela — carregando, `LoginScreen.tsx` (botão "Entrar com Google") ou `HomeScreen.tsx`
-  (tela inicial provisória com "Sair" e "Sair de todos os aparelhos").
-- `session.test.ts` e `App.test.tsx`: testes com um backend simulado.
-
-**Testes novos no backend:** `SessionFlowTest` (fluxo completo pelos filtros de segurança), `RefreshToken*Test`,
-`UserServiceConflictTest` (primeiro login simultâneo e e-mail repetido) e o `GoogleLoginSuccessHandlerTest`.
-
-Fluxo completo:
-
-```
-Entrar com Google → Google → GoogleLoginSuccessHandler → cookie duo_refresh → frontend
-frontend → POST /api/auth/refresh (cookie) → token de acesso (JWT) na memória
-frontend → GET /api/me (Bearer) → quem sou eu
-JWT venceu (401) → refresh de novo → repete a chamada
-```
-
-## Épico 2 — frontend (Etapa 14)
-
-- `src/api.ts` (novo): todas as chamadas HTTP do vínculo (convidar, firmar, história, datas, pausar/sair),
-  mais os tipos TypeScript espelhando os DTOs do backend (`Pairing`, `Couple`, `Story`). Uma função central,
-  `call<T>`, cuida de três coisas: usa sempre `authedFetch` (nunca `fetch` direto, pra não perder o token);
-  trata `204 No Content` como `null` (é assim que `/api/couples/mine` diz "você não tem casal ainda"); e
-  traduz qualquer erro HTTP num `ApiError` (com a mensagem que o `GlobalExceptionHandler` do backend mandou),
-  pra cada tela mostrar algo sensato em vez de travar.
-- `src/session.ts`: o tipo `User` ganhou `handle: string | null` — o `/api/me` já devolvia isso, só faltava
-  o frontend saber.
-- **`react-router-dom` (nova dependência):** antes, `App.tsx` só trocava de tela com `useState`. Isso não dá
-  conta de um link de convite de verdade (`/convite/ABC123`, mandado por fora do app, que precisa abrir numa
-  tela específica) sem reinventar parte de um roteador na mão. Zero custo (biblioteca de código aberto,
-  padrão em apps React).
-- **As telas novas, uma por arquivo** (`HandleSetupScreen`, `InviteScreen`, `AcceptInviteScreen`,
-  `ConfirmScreen`, `StoryScreen`, `DateConsensusScreen`, `CoupleHomeScreen` — substitui a antiga
-  `HomeScreen.tsx`, removida) e `Dashboard.tsx`: a peça que decide pra onde mandar a pessoa ao abrir o app,
-  sem ela saber nenhum id de antemão — consulta `/api/couples/mine` e `/api/pairings/mine` e navega pro
-  lugar certo (sem @handle → escolher um; com casal → `/casal`; com convite pendente → a tela de firmar; nada
-  disso → convidar alguém).
-- `App.tsx`: continua decidindo só *loading/anônimo/autenticado* (como antes); uma vez autenticado, quem
-  decide a tela certa dentro do vínculo é o roteador (`<Routes>`), não mais um `useState` só.
-- **Limitação conhecida, documentada no código** (`AcceptInviteScreen.tsx`): se alguém clica num link de
-  convite sem estar logado, ou logado mas sem @handle ainda, o link se perde depois do login/da escolha do
-  handle (o app não guarda "pra onde eu ia antes de parar"). Aceitável para o piloto; resolver isso de verdade
-  precisaria de mais uma peça (guardar o destino, repassar pelo redirect do Google) — não implementado agora,
-  pra não aumentar o escopo sem necessidade real ainda.
-- **Sem tempo real ainda** (combinado, é o Bloco D mais pra frente): `ConfirmScreen` não avisa sozinha quando
-  a outra pessoa confirma — a pessoa atualiza manualmente.
-- `src/App.test.tsx`: reescrito — autenticar agora passa pelo `Dashboard` antes de chegar numa tela, então os
-  testes existentes precisaram de mocks novos (`/api/couples/mine`, `/api/pairings/mine`). Dois testes novos:
-  sem @handle vai pra tela de escolher um; sem casal e sem convite vai pra tela de convidar.
-- `src/api.test.ts` (novo): o `call()` central — sucesso, `204 → null`, erro traduzido com a mensagem do
-  backend, erro sem corpo não quebra.
-- **Cobertura que ficou de fora, por tempo:** não há testes dedicados para `AcceptInviteScreen`,
-  `ConfirmScreen`, `StoryScreen`, `DateConsensusScreen` ou `CoupleHomeScreen` isoladas — só o caminho
-  principal, via `App.test.tsx`. Vale voltar aqui quando o fluxo estiver sendo usado de verdade.
-- **Confirmado pelo fundador, no terminal real dele, em 2026-11-05:** `npm install` (507 pacotes), **15
-  testes passando** (`session.test.ts` 3, `api.test.ts` 4, `App.test.tsx` 8), `npm run build` (tsc + vite) sem
-  erro. A IA roda num sandbox isolado (sem `sudo`, sem ver o sistema real) — por isso não conseguiu rodar isso
-  sozinha; só alcança serviços de rede expostos, como o PostgreSQL. Ver seção 19 do `CLAUDE.md` para o
-  detalhe dessa descoberta.
-
-## Épico 2 — o vínculo (módulo `relationships`, em andamento)
-
-Especificação aprovada em `docs/epico-2-vinculo.md`; progresso etapa a etapa na seção 19 do `CLAUDE.md`.
-
-**Etapa 1 — esqueleto do casal (concluída):**
-- `relationships/package-info.java`: a "placa" do módulo novo — o vínculo entre duas pessoas, do convite ao
-  casal nascido, até a saída. Ainda não sabe nada de fotos/memórias.
-- `relationships/internal/Couple.java`: a entidade do casal (migration `V4`) — estado (`ACTIVE`/`PAUSED`/
-  `ENDED`) e as duas datas do relacionamento, ainda sempre nulas (ninguém as preenche até a Etapa 7). Sem
-  nenhuma regra de transição ainda — isso chega nas Etapas 8 e 10.
-- `relationships/internal/CoupleMember.java`: uma pessoa dentro de um casal. `leftAt` nulo = "ainda dentro do
-  vínculo"; é esse campo que o índice único da migration usa para valer a RN-06.
-- `relationships/internal/CoupleRepository.java`, `CoupleMemberRepository.java`: acesso ao banco para as duas
-  entidades acima; `findByUserIdAndLeftAtIsNull` é a consulta que vai apoiar a regra de concorrência mais
-  adiante.
-- `db/migration/V4__create_couples.sql`: cria `couples` e `couple_members`, com o índice único **parcial**
-  `couple_members_active_person_unique` — só existe para linhas com `left_at IS NULL`. É a peça que faz o
-  banco recusar, sozinho, uma segunda linha "ativa" para a mesma pessoa (RN-06).
-- `relationships/internal/CoupleMemberRepositoryTest.java`: prova as três coisas acima contra o banco de
-  teste real: salva e acha a filiação ativa; recusa uma segunda filiação ativa para a mesma pessoa; permite
-  uma nova filiação depois que a pessoa "sai" da anterior (`leftAt` preenchido).
-
-**Etapa 2 — o convite como máquina de estados pura (concluída):**
-- `relationships/Channel.java`, `PairingState.java`: os dois "vocabulários" públicos do convite — como ele
-  chegou (`HANDLE`/`LINK`) e em que pé está (`PENDING`/`CONFIRMED`/`CANCELLED`).
-- `relationships/PairingSummary.java`: o que o resto do sistema pode saber sobre um convite, sem tocar na
-  entidade JPA (que é `internal`).
-- `relationships/PairingNotFoundException.java`, `IllegalPairingTransitionException.java`: os dois erros de
-  negócio deste pedaço — "não existe (ou não é seu)" e "esse convite já foi decidido".
-- `relationships/CouplePairingService.java` (API pública) + `internal/CouplePairingServiceImpl.java`:
-  `initiate` (cria `PENDING`, vence em 7 dias — RN-29), `cancel` (qualquer um dos dois desiste) e `find`
-  (busca o convite; se já venceu e ainda estava `PENDING`, marca `CANCELLED` **na hora** — é a "expiração
-  lazy": não existe nenhum processo rodando sozinho de tempos em tempos, só confere quando alguém olha).
-- `relationships/internal/CouplePairing.java`: a entidade. `cancel`/`markConfirmed` só funcionam se o estado
-  ainda for `PENDING` — tentar de novo (ex.: cancelar um convite já cancelado) lança
-  `IllegalPairingTransitionException`. `markConfirmed` já existe, mas só será chamado de verdade na Etapa 8
-  (quando os dois lados tiverem confirmado).
-- `db/migration/V5__create_couple_pairings.sql`: cria `couple_pairings`. Sem índice único aqui — ainda é
-  permitido alguém ter mais de um convite pendente ao mesmo tempo (decisão de deixar para a Etapa 12).
-- `relationships/internal/CouplePairingTest.java`: testa a máquina de estados sozinha, sem banco (rápido).
-- `relationships/internal/CouplePairingServiceImplTest.java`: testa o serviço contra o `duo_test` real, com
-  o relógio "congelado" em um instante escolhido — é assim que se testa "passou uma semana" sem esperar uma
-  semana de verdade.
-
-**Etapa 3 — convite por link/código (concluída):**
-- `relationships/IssuedPairingInvite.java`: o código do convite em texto puro, só para A mandar por fora
-  (WhatsApp etc.) — o `toString` o esconde de propósito (nunca em log, RA-09), igual ao `IssuedRefreshToken`
-  do login.
-- `relationships/InviteCodeInvalidException.java`: um erro só, de propósito, para quatro motivos diferentes
-  (código não existe, já foi usado, venceu, ou a própria pessoa que criou o link tentando usá-lo) — não
-  revelar qual deles é o real.
-- `relationships/CouplePairingService.java` ganhou `inviteByLink` (gera o código, guarda só o hash) e
-  `redeemByLink` (alguém usa o código; se já tiver vencido, o pareamento é cancelado na hora — mesma
-  "expiração lazy" da Etapa 2).
-- `relationships/internal/CouplePairing.java` ganhou `inviteCodeHash` e `redeemLink` — preenche quem aceitou
-  o convite; só funciona uma vez.
-- `db/migration/V6__add_invite_code_to_pairings.sql`: acrescenta `invite_code_hash` a `couple_pairings`, com
-  índice único parcial (só conta quando não é nulo — convites por @handle, da Etapa 5, não têm código).
-- Testes: a máquina de estados do código (sem banco, em `CouplePairingTest`) e o fluxo completo contra o
-  `duo_test` real (`CouplePairingServiceImplTest`), incluindo "o código nunca fica salvo em texto puro".
-
-**Etapa 4 — coluna `handle` em `users` (concluída):**
-- `db/migration/V7__add_handle_to_users.sql`: acrescenta `handle` a `users`, opcional (quem já tinha conta
-  ainda não escolheu o seu) com índice único *case-insensitive* (`lower(handle)`), igual ao que já existe
-  para `email` desde a `V1`.
-- `users/internal/User.java` ganhou o campo `handle` e `getHandle`/`setHandle`.
-- `users/HandleTakenException.java`, `InvalidHandleException.java`: os dois erros de negócio deste pedaço —
-  "já pertence a outra conta" e "não tem o formato certo" (3 a 20 letras, números ou `_`).
-- `users/UserService.java` (API pública) ganhou `chooseHandle` e `findByHandle`; `UserSummary` agora carrega
-  o `handle` (`null` para quem ainda não escolheu).
-- `users/internal/UserServiceImpl.java`: valida o formato antes de tocar no banco; se o handle já estiver em
-  uso, o índice único da migration recusa o `saveAndFlush` e o erro é traduzido para `HandleTakenException`
-  — mesmo padrão já usado para e-mail duplicado em `findOrCreateByGoogle`.
-- Testes novos em `UserServiceImplTest`: escolhe e encontra por handle ignorando maiúsculas, recusa handle já
-  usado por outra conta, recusa formato inválido.
-
-**Etapa 5 — convite por @handle, caminho padrão (concluída):**
-- `relationships/HandleNotInvitableException.java`: o erro genérico de "não posso convidar esse @handle" —
-  junta três motivos (não existe, é seu, já está vinculado) numa mensagem só, de propósito (anti-enumeração,
-  RN-30/RA-07). Ver `docs/GLOSSARIO-TECNICO.md`.
-- `relationships/CouplePairingService.java` ganhou `inviteByHandle`: busca a pessoa por `UserService.findByHandle`
-  (módulo `users`, Etapa 4), confere que não é a própria pessoa e que ela não está em outro vínculo
-  (`CoupleMemberRepository.findByUserIdAndLeftAtIsNull`), e só então cria o convite — reaproveitando o
-  `initiate` que já existia.
-- `relationships/internal/CouplePairingServiceImpl.java`: antes de qualquer busca, chama o `RateLimiter`
-  (abaixo) para o RA-08 — a tentativa conta mesmo se o handle não existir, senão o limite não protegeria nada.
-- Novo módulo auxiliar `shared/RateLimiter.java` (interface) + `shared/RateLimitExceededException.java` +
-  `shared/internal/RateLimitAttempt.java`/`RateLimitAttemptRepository.java`/`RateLimiterImpl.java`: o freio
-  de mão contra força bruta (RA-08), guardado na tabela nova `rate_limit_attempts` (migration `V8`). Pensado
-  para ser reaproveitado por outras rotas depois (ex.: quando a Etapa 13 adicionar o IP, além da conta).
-- Testes novos: 5 em `CouplePairingServiceImplTest` (acha pelo handle, rejeita handle inexistente/próprio/já
-  vinculado, respeita o limite de tentativas) e 5 em `RateLimiterImplTest` (permite até o máximo, bloqueia
-  depois, reseta quando a janela passa, não mistura contadores de chaves/rotas diferentes).
-
-Ainda falta: tela para escolher o @handle (Etapa 14) e o controller HTTP de convite (Etapa 13) — hoje tudo
-isso só existe no `Service`, chamado pelos testes.
-
-**Etapa 6 — história em 4 passos (concluída):**
-- `relationships/StoryStep.java`: os 4 passos fixos da história (como nos conhecemos, o tempo antes de
-  namorar, o que eu pensava, o que eu penso agora — mesma ordem de `docs/epico-2-vinculo.md`).
-- `relationships/StorySummary.java`: o que o resto do sistema pode saber sobre a história de alguém (os 4
-  textos), sem tocar na entidade JPA.
-- `relationships/StoryIncompleteException.java`: erro de "ainda falta preencher algum passo" — usado por
-  quem exigir a história pronta (a Etapa 8 vai reusar isso na hora de "firmar" o vínculo).
-- `relationships/internal/CouplePairingStory.java`: a entidade — uma linha por pessoa por pareamento, com os
-  4 passos em colunas (não em linhas separadas: são sempre os mesmos 4, sempre lidos e escritos juntos).
-  `updateStep` troca o texto de um passo por vez, sem validar nada — é assim que o **rascunho** existe pela
-  metade enquanto a pessoa ainda escreve. `isComplete()` só confere se os 4 passos têm texto depois de
-  `trim()` — **revisão de 2026-11-05:** o plano original pedia um mínimo de 20 caracteres (RN-25); o fundador
-  decidiu que isso pune quem responde curto e sincero sem garantir resposta de verdade, então o texto ficou
-  livre (só não pode ficar vazio).
-- `relationships/internal/CouplePairingStoryRepository.java`: acesso ao banco (`findByPairingIdAndUserId`).
-- `db/migration/V9__create_couple_pairing_stories.sql`: cria `couple_pairing_stories`, com índice único em
-  `(pairing_id, user_id)` — uma história por pessoa por pareamento.
-- `relationships/internal/CouplePairing.java` ganhou `partnerOf(userId)`: devolve a outra pessoa do
-  pareamento (ou `null` se for um convite por link ainda não usado por ninguém) — é como `readPartnerStory`
-  sabe de quem buscar a história.
-- `relationships/CouplePairingService.java`/`internal/CouplePairingServiceImpl.java` ganharam
-  `saveStoryDraft` (grava um passo, sem validar), `isStoryComplete`/`requireStoryComplete` (RN-25) e
-  `readPartnerStory` — só devolve a história do parceiro quando **as duas** (a própria e a dele) estiverem
-  completas (RN-26); nunca antes, mesmo se só a minha estiver pronta.
-- Testes novos (17): `CouplePairingStoryTest` (a lógica de `isComplete`, sem banco), 3 testes de `partnerOf`
-  em `CouplePairingTest`, e 8 testes de fluxo completo em `CouplePairingServiceImplTest` contra o `duo_test`
-  real (rascunho incompleto, texto livre sem mínimo, acesso cruzado recusado, `readPartnerStory` só liberando
-  com as duas completas, e vazio para convite por link ainda não usado).
-- **Sem tela nova nesta etapa** (decisão do fundador, 2026-11-05): a demonstração é só pelos testes — a tela
-  real do vínculo é a Etapa 14, quando já houver dados reais (casal, fotos) para ligar nela.
-
-**Etapa 7 — as duas datas do casal, por consenso (concluída, P3/RN-27):**
-- `relationships/internal/CouplePairing.java` ganhou `proposeDates`/`acceptDates`: um propõe, o outro aceita
-  (nunca quem propôs) — e qualquer proposta nova (inclusive uma contraproposta) **reabre o consenso**,
-  descartando uma aceitação anterior. Guardas simples (`IllegalStateException`) impedem propor/aceitar fora de
-  `PENDING`, aceitar sem proposta, ou aceitar a própria proposta — são erros de uso, não de regra de negócio
-  (por isso não ganharam uma exceção própria, diferente da `DatesNotAcceptedException`).
-- `relationships/DatesNotAcceptedException.java`: para quando algo exigir as datas aceitas e elas ainda não
-  estiverem (a Etapa 8 vai reusar isso na hora de "firmar").
-- `relationships/CouplePairingService.java`/`internal/CouplePairingServiceImpl.java` ganharam
-  `proposeDates`/`acceptDates`/`areDatesAccepted`/`requireDatesAccepted`.
-- `db/migration/V10__add_dates_to_pairings.sql`: acrescenta a `couple_pairings` as colunas da negociação
-  (quem propôs, as duas datas propostas, quando foi aceito). As datas **finais** do casal só existem em
-  `couples` depois que ele nascer (Etapa 8) — aqui é só a negociação.
-
-**Etapa 9 — "o que levar": só a estrutura (concluída, P4/RN-09):**
-- `shared/Scope.java`: os 4 "lugares" onde algo pode morar (`PERSONAL`, `ARCHIVED`, `MEMBER_SIDE`,
-  `COUPLE_CENTER`) — decisão do fundador: mora em `shared`, não em `relationships`, porque fotos (Semana 4) e
-  memórias (Semana 5) também vão precisar dele. Tem um método, `isVisibleToPartner()` (RN-09/RN-12a).
-- `shared/Scopeable.java`: o contrato que uma entidade real (futura) vai implementar para "ter um Scope".
-- Nenhuma tabela, nenhum endpoint — só a estrutura, testada com um objeto fictício (`ScopeTest`).
-
-**Etapa 10 — pausar, retomar, sair (concluída, RN-13 a RN-18):**
-- **Refatoração:** o enum `State` que morava dentro de `Couple` virou `relationships/CoupleState.java`, um
-  tipo próprio no nível do módulo — mesmo padrão que `PairingState` já usava para `CouplePairing`. Motivo:
-  `IllegalCoupleTransitionException` (nova) precisa citar o estado num erro público, e isso só é possível se o
-  tipo não estiver escondido dentro de `internal` (regra do ArchUnit).
-- `relationships/internal/Couple.java` ganhou `pause`/`resume`/`end`: só valem a partir do estado certo
-  (`ACTIVE`→`PAUSED`, `PAUSED`→`ACTIVE`, e de qualquer um dos dois para `ENDED`, que é final).
-- `relationships/CoupleService.java` (API pública) + `internal/CoupleServiceImpl.java`: `find`/`pause`/
-  `resume`/`leave`. `leave` é a peça mais específica do Duo aqui: no MVP (RN-07, 2 membros), uma pessoa sair
-  **termina o vínculo inteiro** — por isso busca todo mundo ainda "dentro" do casal
-  (`findByCoupleIdAndLeftAtIsNull`) e marca a saída de todos de uma vez, não só de quem pediu.
-- `relationships/CoupleNotFoundException.java`: mesma ideia do `PairingNotFoundException` — só membros atuais
-  enxergam o casal (RN-12); depois que o vínculo termina, ninguém mais "encontra" esse casal por aqui.
-- Testes novos: `CoupleTest` (a máquina de estados pura) e `CoupleServiceImplTest` (contra o `duo_test` real,
-  incluindo "depois de sair, nenhum dos dois vê mais o casal").
-
-**Etapa 8 — firmar o vínculo e nascer o `Couple` (concluída, RN-06/RN-08):**
-- **Mudança de plano, decidida pelo fundador nesta etapa:** o vínculo firma **primeiro**; história e datas só
-  existem depois, já dentro do Couple Universe nascido (antes era o contrário). Isso simplificou o `confirm`
-  (não precisa mais checar história/data antes de firmar) e mudou a trava de `proposeDates`/`saveStoryDraft`
-  de "enquanto `PENDING`" para "só depois de `CONFIRMED`" — ver `docs/epico-2-vinculo.md` para o fluxo novo.
-- `relationships/internal/CouplePairing.java` ganhou `recordConfirmation`/`isFullyConfirmed` (cada pessoa
-  confirma a sua parte; só quando as duas confirmaram é que o `Couple` nasce) e um `requireConfirmed()`
-  (visível ao pacote) que `proposeDates`/`acceptDates` e o `saveStoryDraft` do serviço passaram a usar.
-- `relationships/internal/Couple.java` ganhou `recordDates(...)`: o `Couple` nasce vazio (sem data de
-  conhecer/namorar); essas datas só chegam depois, quando as duas são aceitas no `CouplePairing` (RN-28).
-- `relationships/internal/CouplePairingRepository.java` ganhou `findByIdForUpdate`, com
-  `@Lock(PESSIMISTIC_WRITE)` — trava a linha do pareamento até a transação terminar, mesmo truque do
-  `RefreshTokenRepository`. **Por quê:** sem isso, as duas confirmações do mesmo pareamento (uma de cada
-  pessoa) poderiam ler o banco "ao mesmo tempo" e uma delas se perderia (um "lost update" clássico) — foi
-  provado com um teste (abaixo) que falha, de forma consistente, sem a trava.
-- `relationships/internal/CoupleFactory.java` (novo, `@Component` próprio — precisa ser uma classe separada
-  porque o Spring só aplica `@Transactional` através de um proxy em volta do *bean*, e uma chamada de um
-  método para outro **dentro da mesma classe** não passa por esse proxy): cria o `Couple` + os 2
-  `CoupleMember` numa transação **própria e independente** (`@Transactional(propagation = REQUIRES_NEW)`).
-  Se o índice único de RN-06 recusar (a pessoa já está em outro vínculo), só essa transação de dentro desfaz
-  — vira `AlreadyInRelationshipException` (novo, em `relationships`).
-- `relationships/internal/CouplePairingServiceImpl.java` ganhou `confirm(pairingId, userId)`:
-  trava a linha, confere se já venceu (cancela e sai, se sim), grava a confirmação, e — só quando as duas já
-  confirmaram — chama o `CoupleFactory` e marca o pareamento `CONFIRMED`. Anotado com
-  `@Transactional(noRollbackFor = AlreadyInRelationshipException.class)`: sem isso, se o nascimento do
-  `Couple` falhar (a segunda corrida, abaixo), o Spring desfaria a transação inteira — inclusive a
-  confirmação legítima que acabou de ser gravada.
-- **Duas corridas, duas peças diferentes:**
-  1. **Os dois membros do mesmo pareamento confirmando ao mesmo tempo** — resolvida pela trava
-     (`findByIdForUpdate`) acima.
-  2. **A mesma pessoa confirmando dois pareamentos diferentes ao mesmo tempo** — a trava de um pareamento não
-     protege o outro (são linhas diferentes); quem impede a pessoa de ficar em dois vínculos é o índice único
-     do banco (RN-06, desde a Etapa 1). A peça nova aqui não é uma trava, é a **reação correta** à recusa do
-     banco: `REQUIRES_NEW` + `noRollbackFor` (acima) garantem que só o nascimento do segundo `Couple` falha —
-     a confirmação da pessoa continua valendo, o pareamento "perdedor" fica com as duas confirmações
-     gravadas mas sem `Couple` nenhum (um limbo raro, aceitável para o MVP).
-- `relationships/internal/CouplePairingConcurrencyTest.java` (novo, **primeiro teste do tipo no projeto**):
-  prova as duas corridas acima com threads de verdade (`ExecutorService` + `CountDownLatch`, sincronizadas
-  para disparar "ao mesmo tempo"). Usa `@SpringBootTest` em vez do `@DataJpaTest` do resto do módulo: um
-  objeto criado com `new CouplePairingServiceImpl(...)` nunca passa pelo proxy que o Spring usa para aplicar
-  `@Transactional`/`@Lock` — fora do Spring essas anotações não fazem nada. Precisa do bean de verdade,
-  gerenciado pelo Spring, para a trava e a transação separada funcionarem de verdade. Sem a transação de
-  teste que os outros têm (que desfaz tudo sozinha no final), cada teste limpa manualmente o que criou.
-  **Verificado à mão nesta sessão:** tirando a trava de propósito, o primeiro teste falha de forma
-  consistente (5 de 5 execuções) — prova de que o teste realmente pega o problema, não só que "não dá erro".
-- 18 testes novos (entre a entidade, o serviço e a concorrência), 146 no total. `./gradlew build` verde.
-
-**Etapa 13 — exposição HTTP (concluída):**
-- `shared/DuoHttpException.java` (novo): classe-base para exceções de negócio que viram resposta HTTP direto
-  — cada exceção já sabe o próprio status (`httpStatus()`). Criada porque a primeira tentativa (o
-  `GlobalExceptionHandler` importando cada exceção de `relationships`/`users` direto) criou um **ciclo de
-  módulos** (`shared` dependendo de volta de quem já depende de `shared`) — o `ArchitectureTest` pegou isso.
-  Com a base em `shared`, a dependência só vai num sentido: os módulos dependem de `shared`, nunca o
-  contrário. Todas as exceções de negócio do projeto (`PairingNotFoundException`, `CoupleNotFoundException`,
-  `HandleTakenException`, `RateLimitExceededException` etc.) agora estendem essa classe em vez de
-  `RuntimeException` direto.
-- `shared/GlobalExceptionHandler.java` (novo, `@RestControllerAdvice`): um método só, que pega qualquer
-  `DuoHttpException` e devolve um `ProblemDetail` (formato de erro HTTP padronizado, já incluso no Spring —
-  não é dependência nova) com o status que a própria exceção definiu.
-- `relationships/IllegalPairingOperationException.java` (novo): peguei dois `IllegalStateException` que
-  existiam dentro de `CouplePairing` (ex.: tentar escrever a história antes de firmar) e troquei por essa
-  exceção própria — sem isso, o `GlobalExceptionHandler` não sabia traduzi-los e a API devolvia 500 em vez
-  de 409.
-- `shared/SecurityConfig.java`: o parâmetro do `@Bean securityFilterChain` trocou de
-  `GoogleLoginSuccessHandler` (tipo concreto, de `auth`) para `AuthenticationSuccessHandler` (a interface do
-  próprio Spring Security) — mesma causa raiz do ciclo acima: `shared` dependia de `auth`, que depende de
-  `users`, que (com o `DuoHttpException`) passou a depender de `shared`. Dependendo da interface, o Spring
-  ainda encontra e injeta o mesmo bean, mas o `ArchUnit` não vê mais a ligação `shared → auth`.
-- `relationships/CouplePairingController.java` e `relationships/CoupleController.java` (novos): só chamam o
-  `Service` — nunca repositório direto (regra verificada pelo `ArchitectureTest`). A pessoa autenticada vem
-  sempre do token (`@AuthenticationPrincipal Jwt`), nunca de um id do pedido (RN-20).
-- `users/UserController.java` (novo): só `PUT /api/me/handle` — a Etapa 14 (`HandleSetupScreen`) usa isso.
-- `relationships/CouplePairingService.java`/`CoupleService.java` ganharam `findPendingForUser`/
-  `findActiveForUser` — sem isso, o app não teria como saber, ao abrir, se a pessoa tem um convite esperando
-  ou um casal ativo (não dá pra perguntar "me mostra o pareamento X" sem saber o id de X primeiro).
-- `relationships/PairingSummary.java` ganhou o campo `coupleId` — faltava, e o frontend precisa saber pra
-  onde navegar assim que o vínculo firma.
-- `relationships/RelationshipsHttpTest.java` (novo, testes de ponta a ponta via `MockMvc`): o fluxo inteiro
-  (convidar → firmar → escrever história → ver o casal) passando pelos controllers de verdade, mais os
-  testes de acesso cruzado (RN-12/RN-20: quem não participa nunca enxerga, sempre 404). **Sem
-  `@Transactional` de propósito** (diferente do `SessionFlowTest`) — mesma razão do `CouplePairingConcurrencyTest`
-  (Etapa 8): o `CoupleFactory` roda numa transação própria (`REQUIRES_NEW`), que usa uma conexão separada e
-  não enxergaria usuários ainda não commitados por uma transação de teste em volta de tudo. A limpeza manual
-  no `@AfterEach` usa um `TransactionTemplate` explícito, porque `@Transactional` posto direto num método de
-  `@AfterEach` não é interceptado pelo Spring (esse mecanismo só olha o método de `@Test`).
-- 7 testes novos, 151 no total. `./gradlew build` verde.
-
-**Etapa 11 — a matriz de permissões por estado (concluída, RN-11/12/12a/13a):**
-- `relationships/CouplePermissions.java`: 4 perguntas puras sobre um `CoupleState` —
-  `canViewCoupleCenter`/`canPostToCoupleCenter`/`canPostToOwnSide`/`canUsePersonal` — exatamente a tabela do
-  `docs/epico-2-vinculo.md`. `canUsePersonal` é a RN-13a (decidida em 2026-11-05): só `true` durante `PAUSED`.
-  Ainda não é chamada por ninguém "de verdade" — é a peça que fotos/memórias vão consultar mais adiante, para
-  não reescrever essa tabela em cada módulo.
-
-**Etapa 12 — limpeza de rascunhos (concluída, RN-29):**
-- **O problema que faltava resolver:** desde a Etapa 2, `CouplePairing.cancel()` só trocava o estado para
-  `CANCELLED` — não apagava nada. Isso já bastava para o pareamento em si, mas duas etapas depois adicionaram
-  "rascunhos" presos a um pareamento: a Etapa 6 (história, numa **tabela separada**, `couple_pairing_stories`)
-  e a Etapa 7 (proposta de datas, em **colunas da própria** `couple_pairings`). RN-29 diz que cancelar, recusar
-  ou vencer apaga os dois — e isso não estava acontecendo.
-- `relationships/internal/CouplePairing.java`: `cancel()` agora também chama um método novo e privado,
-  `eraseDateProposal()`, que zera os 4 campos da negociação de data (quem propôs, as duas datas propostas,
-  quando foi aceito). Como são colunas da própria entidade, a própria entidade consegue limpar sozinha.
-- `relationships/internal/CouplePairingStoryRepository.java`: ganhou `deleteAllByPairingId(Long pairingId)` —
-  um **método derivado** do Spring Data: não escrevemos nenhuma query, o nome do método já diz o que fazer
-  ("apague tudo onde `pairing_id` for este"), e o Spring Data JPA gera o SQL sozinho a partir do nome.
-- `relationships/internal/CouplePairingServiceImpl.java`: como a história mora numa tabela separada, só a
-  entidade `CouplePairing` não alcança ela — por isso criamos `cancelAndEraseDrafts(pairing, when)`, que chama
-  `pairing.cancel(when)` e, na sequência, `stories.deleteAllByPairingId(...)`. Os três lugares do serviço que
-  cancelavam um pareamento direto (`cancel` público, a expiração "lazy" dentro de `find`, e a mesma expiração
-  dentro de `redeemByLink`) passaram a usar esse método novo, para nenhum deles esquecer de apagar a história.
-- **As outras duas decisões da Etapa 12 não pediram código:** a limpeza continua "lazy" (igual às Etapas 2/3 —
-  só confere quando alguém olha o pareamento, sem tarefa agendada rodando sozinha); e mais de um
-  `CouplePairing` `PENDING` por pessoa ao mesmo tempo já era permitido (nunca existiu um índice único
-  bloqueando isso) — só ganhou um teste de regressão para deixar a intenção registrada, em vez de ser um
-  comportamento "por acaso".
-- Testes novos (4): em `CouplePairingTest` (puro, sem banco), cancelar apaga a proposta de datas. Em
-  `CouplePairingServiceImplTest` (contra o `duo_test` real): cancelar um pareamento com histórias dos dois
-  lados apaga as duas; um pareamento que expira sozinho (via `find()`) também apaga a história; e a mesma
-  pessoa consegue ter dois pareamentos `PENDING` ao mesmo tempo, com convidados diferentes.
-
-## Fatia 0 da v5 (2026-11-09) — fundação segura e social congelado
-
-Requisitos em `docs/ESPECIFICACAO-V5.md` (RF-A01, A02, A06, A08, A10, A11).
-
-- `users/UserService.findActiveByHandle`: igual a `findByHandle`, mas ignora conta excluída e perfil oculto.
-- `social/BlockService.existsBetween`: pergunta pública "há bloqueio entre A e B?"; o vínculo (`relationships`)
-  passa a usá-la. `relationships` agora depende de `social` (sem ciclo: `social` nunca importa `relationships`).
-- `relationships/.../CouplePairingServiceImpl.inviteByHandle`: respeita bloqueio/oculto/excluído e reaproveita o
-  convite pendente do mesmo par (`CouplePairingRepository.findBetween`). `redeemByLink` não desfaz mais o
-  cancelamento do convite vencido (`noRollbackFor`), e `findPendingForUser` esconde convites vencidos.
-- `shared/.../RateLimiterImpl` + `RateLimitAttemptRepository.insertIfAbsent`: cria a linha com
-  `INSERT ... ON CONFLICT DO NOTHING` antes de travar, para duas primeiras tentativas simultâneas não gerarem 500.
-- `shared/exception/GlobalExceptionHandler`: `NoSuchElementException` → 404, `IllegalArgumentException` → 400,
-  `DataIntegrityViolationException` → 409, sempre com mensagem fixa.
-- **Congelamento do social:** chave `duo.features.social.enabled` (`DUO_FEATURE_SOCIAL`, padrão `false`; testes
-  ligam). Desligada: `FollowController` e `ProfileController` (ver perfil e buscar) nem existem (404);
-  `ProfileAccessServiceImpl` devolve `UNAVAILABLE` para tudo que não é do próprio dono (fotos de terceiros somem);
-  a denúncia foi para o novo `ReportController`, sempre ligado; bloqueio continua. No frontend,
-  `frontend/src/features.ts` (`socialEnabled()`, `VITE_FEATURE_SOCIAL`) esconde Buscar, Duollowers/Duollowing e
-  as rotas de busca e perfil de terceiros. Nenhuma tabela foi apagada.
-- Testes novos: `SocialFrozenHttpTest`, `ExpiredLinkRedeemTest`, `RateLimiterConcurrencyTest`, `features.test.tsx`,
-  e 6 casos em `CouplePairingServiceImplTest`.
-
-## Fundo aurora (2026-11-09) — design
-
-Mesmo conceito do Astrodny: manchas de cor enormes e desfocadas que giram devagar e se misturam
-(`mix-blend-mode: screen`).
-
-- `frontend/src/AuroraBackground.tsx`: o componente (três `<span class="blob">` dentro de `.aurora`, tudo
-  `aria-hidden`). Montado uma vez, em `main.tsx`, antes do `<App />`.
-- `frontend/src/index.css`: tokens `--aurora-base`, `--aurora-1/2/3` e `--aurora-veil` no `:root`; regras
-  `.aurora`, `.blob`, `.blob-1/2/3` e `@keyframes orbitar` no fim do arquivo. A aurora é `position: fixed` com
-  `z-index: -1` e `pointer-events: none`, então fica atrás de tudo e nunca recebe clique. O véu escuro
-  (`.aurora::after`) mantém o texto legível. Na tela larga (1024px+) as manchas crescem; com
-  `prefers-reduced-motion` ela fica parada.
-- **Estado:** as cores ainda são as do Astrodny (azul e um toque de roxo). A paleta do Duo está proposta e
-  aguarda aprovação (ver `docs/ESPECIFICACAO-V5.md`, seção 8).
+A cada push ou pull request na `main`, dois jobs em paralelo: **backend** (sobe um Postgres descartável e
+roda `./gradlew build`: formatação Spotless, compilação e testes incluindo ArchUnit) e **frontend** (`npm ci`,
+lint, `format:check`, testes e build). A senha do Postgres do CI não é segredo real.
