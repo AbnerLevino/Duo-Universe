@@ -24,6 +24,27 @@
   ); /* controles */
   --color-error-text: #ffb4b4;
 
+  /* Barra lateral de vidro no roxo da marca (painel de perfil e navegação, DEC-036): fica na mesma família do vidro
+     do conteúdo e da aurora; fundo escuro, então as letras são claras. */
+  --sidebar-bg: rgba(57, 0, 90, 0.72);
+  --sidebar-solid: #2d0a4e; /* versão sem transparência, para o que flutua (menu da foto) */
+  --sidebar-text: #ffffff;
+  --sidebar-text-muted: #c6b8e6;
+  --sidebar-border: rgba(255, 255, 255, 0.14);
+
+  /* Vidro (glassmorphism) por cima da aurora: tom roxo translúcido + desfoque do que está atrás + borda clara.
+     `--glass-sheen` é o brilho (gloss): um clarão diagonal no canto de cima, por cima do tom. */
+  --glass-bg: rgba(30, 14, 64, 0.38);
+  --glass-sheen: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.04) 35%,
+    transparent 60%
+  );
+  --glass-blur: blur(16px) saturate(140%);
+  --glass-border: rgba(255, 255, 255, 0.25);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
   /* Aurora (fundo animado, mesmo conceito do Astrodny): base escura + quatro manchas que se somam com "screen".
      Paleta do Duo aprovada em 2026-11-09 (docs/ESPECIFICACAO-V5.md, seção 8). */
   --aurora-base: #0d0716;
@@ -55,7 +76,7 @@
   --text-xl: 1.5rem;
   --text-display: 2.25rem;
 
-  font-family: system-ui, sans-serif;
+  font-family: 'Instrument Sans Variable', system-ui, sans-serif;
   background: var(--color-bg);
   color: var(--color-text);
 }

@@ -1,86 +1,465 @@
-/* Rascunho (2026-11-09, em discussão com o fundador): no celular, um cartão estreito centrado sobre a
-   aurora inteira (a imagem não cabe do lado, então fica de fora). No desktop, a imagem enviada pelo
-   fundador entra pela esquerda e o quadrado do login fica à direita, do lado dela. */
+/* Tela de login (2026-11-10, com o fundador). A arte é o fundo da tela inteira.
+   - Desktop: a imagem cabe inteira; o quadrado do login é um cartão de vidro (glassmorphism) à direita,
+     com pouco respiro das bordas.
+   - Celular: sem quadrado. A imagem é mais larga que a tela e se arrasta de lado (scroll-snap nativo, sem
+     biblioteca): num lado está o casal, no outro a frase promocional escrita sobre a arte. Um painel de
+     vidro colado embaixo (como o "Editar perfil") guarda o botão de entrar. */
 .login {
   min-height: 100dvh;
   max-width: none;
   margin: 0;
   padding: var(--space-4);
   display: grid;
-  place-items: center;
+  justify-items: end;
+  align-items: center;
+  align-content: stretch;
 }
 
-.loginArt {
+/* ---------- Fundo (arte) ---------- */
+.scroller {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.scroller::-webkit-scrollbar {
   display: none;
 }
 
-.loginPanel {
-  box-sizing: border-box;
+/* Celular: a trilha tem a proporção da imagem (16:9) na altura da tela, então é mais larga que ela. */
+.track {
+  position: relative;
+  height: 100dvh;
+  width: max(100vw, calc(100dvh * 16 / 9));
+}
+
+/* O palco tem a proporção exata da imagem (16:9): a arte e os efeitos por cima dela dividem as mesmas
+   coordenadas em %. Fica centrado na vertical; se sobrar altura, o excesso é cortado. */
+.stage {
+  position: absolute;
+  top: 50%;
+  left: 0;
   width: 100%;
-  max-width: 24rem;
+  aspect-ratio: 16 / 9;
+  transform: translateY(-50%);
+}
+
+.art {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Efeitos sobre a ilustração: só `opacity` e `transform` (animados pela placa de vídeo, sem peso). */
+.fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Halo de luz sobre cada estrela com anéis do céu; reaproveita o `twinkle` das estrelas do cartão. */
+.halo {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: 3.2%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(200, 170, 255, 0.45) 28%,
+    transparent 68%
+  );
+  opacity: 0;
+  animation: twinkle var(--dur) ease-in-out var(--delay) infinite;
+}
+
+/* Vaga-lume: nasce na grama, sobe balançando de leve e some. */
+.firefly {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff1b8;
+  box-shadow: 0 0 8px 2px rgba(255, 224, 140, 0.7);
+  opacity: 0;
+  animation: rise var(--dur) ease-in-out var(--delay) infinite;
+}
+
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.7);
+  }
+  20%,
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--sway), calc(var(--rise) * -1)) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halo {
+    animation: none;
+    opacity: 0.3;
+  }
+
+  .firefly {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+/* Pontos de parada do arrasto: o casal (~43% da largura da imagem) centrado, e o fim da imagem. */
+.anchorStart,
+.anchorEnd {
+  position: absolute;
+  top: 0;
+  width: 0;
+  height: 100%;
+}
+
+.anchorStart {
+  left: 43%;
+  scroll-snap-align: center;
+}
+
+.anchorEnd {
+  right: 0;
+  scroll-snap-align: end;
+}
+
+/* Frase promocional no lado direito da imagem, direto sobre a arte; o degradê escuro leve só garante
+   a leitura sobre os redemoinhos claros. */
+.promo {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100vw;
+  box-sizing: border-box;
+  padding: var(--space-8) var(--space-6) var(--space-8);
   display: grid;
   gap: var(--space-3);
-  padding: var(--space-6) var(--space-5);
-  border-radius: var(--radius-lg);
-  background: #fdfbff;
-  color: #1a1025;
-  text-align: left;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(to bottom, rgba(13, 7, 22, 0.7), transparent);
+  color: #ffffff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
 }
 
-@media (min-width: 1024px) {
-  .login {
-    grid-template-columns: 1fr minmax(380px, 440px);
-    place-items: stretch;
-    padding: 0;
-  }
-
-  .loginArt {
-    grid-column: 1;
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-  }
-
-  .loginPanel {
-    grid-column: 2;
-    min-width: 0;
-    max-width: none;
-    align-content: center;
-    border-radius: 0;
-    box-shadow: -40px 0 80px rgba(0, 0, 0, 0.35);
-    padding: var(--space-8);
-  }
-}
-
-/* Ícone provisório, centrado em cima do título (o resto do cartão é alinhado à esquerda). */
-.loginIcon {
-  justify-self: center;
-  height: 4rem;
-  width: auto;
-  margin-bottom: var(--space-2);
-}
-
-.tagline {
-  color: #6b6275;
+.promoTagline {
   margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.promoPitch {
+  margin: 0;
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ---------- Painel de vidro (celular: colado embaixo) ---------- */
+.loginPanel {
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  color: #ffffff;
+  text-align: center;
+
+  /* Glassmorphism: fundo translúcido + desfoque do que está atrás + borda fina clara + sombra suave. */
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Navegador sem suporte a desfoque: sem ele o vidro não protege o texto, então o fundo fica mais opaco. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .loginPanel {
+    background: rgba(26, 16, 37, 0.85);
+  }
+}
+
+/* No celular a frase vive na imagem; o texto do painel só aparece no desktop. */
+.copy {
+  display: none;
+}
+
+/* Tudo que não é estrela fica na frente delas. */
+.loginPanel > *:not(.stars) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Estrelas brilhando dentro do vidro: posição, tamanho e ritmo vêm de variáveis sorteadas no React. */
+.stars {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.star {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: #f3e8ff;
+  box-shadow: 0 0 6px 1px rgba(216, 180, 254, 0.8);
+  opacity: 0;
+  animation: twinkle var(--dur) ease-in-out var(--delay) infinite;
+}
+
+/* No celular o painel é baixo: só as primeiras estrelas aparecem. */
+.star:nth-child(n + 7) {
+  display: none;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.1;
+    transform: scale(0.6);
+  }
+  50% {
+    opacity: var(--peak);
+    transform: scale(1.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+/* Marca: no celular, ícone e título lado a lado. */
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.loginIcon {
+  height: 3.5rem;
+  width: auto;
+}
+
+.loginPanel h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.brandText {
+  text-align: center;
+}
+
+/* O lema, colado no título como descrição da marca: leve, pequeno e espaçado, para ser um segundo texto
+   e não competir com o título. No celular ele já vive na imagem, então só aparece no desktop. */
+.tagline {
+  display: none;
+  margin: var(--space-2) 0 0;
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.3;
+  color: #ffffff;
+  text-shadow: 0 1px 8px rgba(20, 10, 40, 0.6);
+}
+
+/* Linha fina com um pontinho redondo no meio, separando a marca da descrição (só desktop). */
+.divider {
+  display: none;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #f3e8ff;
+  box-shadow: 0 0 6px 1px rgba(216, 180, 254, 0.8);
+}
+
+/* Aviso dos termos, em letra pequena logo abaixo do botão. */
+.terms {
+  margin: 0;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.termsLink {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .loginPitch {
-  margin: 0;
-  color: #4a4254;
+  margin: 0 auto;
+  max-width: 32ch;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Bolinhas: em qual lado da imagem você está (só celular). */
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.dots span {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.dots .dotActive {
+  background: #ffffff;
 }
 
 /* `.login-error` e `.button.primary` são classes globais (base.css/buttons.css) — escapam o escopo do
    módulo com `:global` pra continuar herdando o estilo compartilhado, só com a cor ajustada aqui dentro. */
 .loginPanel :global(.login-error) {
-  color: #a3123a;
+  color: #ffb3c7;
+  margin: 0;
 }
 
-/* O botão herda a cor do texto (`.button { color: inherit }`), que aqui é escura por causa da parede
-   clara — sem isso o texto do botão fica quase ilegível em cima do roxo. */
+.googleIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+}
+
+/* Botão branco: o maior contraste possível sobre o vidro roxo. */
 .loginPanel :global(.button.primary) {
-  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  background: #ffffff;
+  border-color: #ffffff;
+  color: #3b1a7a;
+  box-shadow: 0 0 18px rgba(216, 180, 254, 0.45);
+}
+
+.loginPanel :global(.button.primary:hover) {
+  background: #f3e8ff;
+}
+
+/* ---------- Desktop: imagem inteira atrás, cartão de vidro à direita ---------- */
+@media (min-width: 1024px) {
+  .scroller {
+    overflow: hidden;
+  }
+
+  .track {
+    width: 100%;
+  }
+
+  /* A imagem é um pouco maior que a tela e encostada na direita: o excesso é cortado pela esquerda (só céu),
+     o que empurra o casal e a montanha para a esquerda, longe do cartão de vidro. */
+  .stage {
+    left: auto;
+    right: 0;
+    width: max(108%, calc(100dvh * 16 / 9));
+  }
+
+  .anchorStart,
+  .anchorEnd,
+  .promo,
+  .dots {
+    display: none;
+  }
+
+  .star:nth-child(n + 7) {
+    display: block;
+  }
+
+  .brand {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .tagline {
+    display: block;
+  }
+
+  .divider {
+    display: flex;
+  }
+
+  .copy {
+    display: block;
+  }
+
+  .loginPanel {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    max-width: 24rem;
+    /* Altura total da tela (menos o respiro do .login), com tudo num bloco só, centrado na vertical e
+       com espaços regulares entre as partes. */
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-8);
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
+    text-align: left;
+  }
+
+  .loginIcon {
+    height: 4.5rem;
+  }
+
+  .loginPanel h1 {
+    font-size: 1.6rem;
+  }
 }

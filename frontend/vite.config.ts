@@ -32,7 +32,7 @@ export default defineConfig({
       workbox: {
         // Só arquivos estáticos do app entram no cache. A API NUNCA é cacheada:
         // são dados privados do casal (seção 15) e não há runtimeCaching configurado.
-        globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,png,svg,woff2,webmanifest}'],
         // public/images/ guarda arte pesada (ex.: o fundo do login, 13,7 MB) que não precisa funcionar
         // offline — sem isso, o build quebra: o limite padrão de pré-cache é 2 MB por arquivo.
         globIgnores: ['images/**'],

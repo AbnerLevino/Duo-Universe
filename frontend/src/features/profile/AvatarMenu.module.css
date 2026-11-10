@@ -1,0 +1,136 @@
+.wrap {
+  display: flex;
+  justify-content: center;
+}
+
+/* O botão é a foto mais o círculo em volta dela. O `padding` é o respiro entre a foto e o círculo (5px) mais
+   a espessura do círculo (3px). Anel de foco visível para quem usa o teclado. */
+.trigger {
+  position: relative;
+  display: block;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--radius-round);
+  background: none;
+  line-height: 0;
+  cursor: pointer;
+}
+
+/* O círculo: duas camadas com as cores da aurora (as mesmas manchas do fundo do app) girando devagar em
+   sentidos opostos e em tempos diferentes (22s e 30s, como as manchas), então as cores se misturam e andam
+   como a aurora. Só `transform` é animado, e a máscara recorta o miolo para sobrar uma linha fina. */
+.trigger::before,
+.trigger::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-round);
+  pointer-events: none;
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 3.5px),
+    #000 calc(100% - 2.5px)
+  );
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2.5px));
+}
+
+.trigger::before {
+  background: conic-gradient(
+    var(--aurora-1),
+    var(--aurora-3),
+    var(--aurora-4),
+    var(--aurora-2),
+    var(--aurora-1)
+  );
+  animation: orbit 22s linear infinite;
+}
+
+.trigger::after {
+  background: conic-gradient(
+    var(--aurora-4),
+    var(--aurora-1),
+    var(--aurora-2),
+    var(--aurora-3),
+    var(--aurora-4)
+  );
+  opacity: 0.55;
+  animation: orbit 30s linear infinite reverse;
+}
+
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger::before,
+  .trigger::after {
+    animation: none;
+  }
+}
+
+.trigger:hover {
+  filter: brightness(0.92);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--sidebar-text);
+  outline-offset: 3px;
+}
+
+/* O cartão ao lado da foto, no mesmo tom claro da barra lateral. A seta aponta para a foto. */
+.menu {
+  position: fixed;
+  z-index: 30;
+  min-width: 14rem;
+  box-sizing: border-box;
+  padding: var(--space-2);
+  border: 1px solid var(--sidebar-border);
+  border-radius: var(--radius-md);
+  background: var(--sidebar-solid);
+  color: var(--sidebar-text);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.menu::before {
+  content: '';
+  position: absolute;
+  top: 2.5rem;
+  left: -6px;
+  width: 10px;
+  height: 10px;
+  background: var(--sidebar-solid);
+  border-left: 1px solid var(--sidebar-border);
+  border-bottom: 1px solid var(--sidebar-border);
+  transform: rotate(45deg);
+}
+
+.option {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  margin: var(--space-2) var(--space-3) var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--color-error-text);
+}

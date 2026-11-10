@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import Avatar from '@/shared/ui/Avatar'
+import AvatarMenu from './AvatarMenu'
 import { socialEnabled } from '@/shared/lib/features'
 import { TERMS } from '@/shared/lib/labels'
 import { useMe } from '@/shared/context/meContext'
@@ -9,15 +9,11 @@ import { useMe } from '@/shared/context/meContext'
  * topo do painel à esquerda; no celular vira a faixa do topo da tela (quem decide é o CSS).
  */
 export default function SideProfile() {
-  const { profile, duollowers, duollowing, openEdit } = useMe()
+  const { duollowers, duollowing, openEdit } = useMe()
 
   return (
     <section className="side-profile" aria-label="Seu perfil">
-      <Avatar
-        name={profile?.displayName ?? ''}
-        mediaId={profile?.avatarMediaId ?? null}
-        size="xl"
-      />
+      <AvatarMenu />
       <ul className="side-stats">
         {socialEnabled() && (
           <>

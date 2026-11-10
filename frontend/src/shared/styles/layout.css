@@ -4,12 +4,34 @@
 
 .app-shell {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-columns: 224px minmax(0, 1fr);
   min-height: 100dvh;
 }
 
+/* A área de conteúdo é o vidro sobre a aurora, na tela toda (sem margem, sem cantos arredondados): o fundo
+   aparece borrado por trás, e o tom roxo translúcido mais o brilho (gloss) mantêm as letras e os campos
+   legíveis. */
 .app-content {
   min-width: 0;
+  background: var(--glass-sheen), var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+/* Navegador sem desfoque: sem ele o vidro não protege o texto, então o tom fica mais opaco. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .app-content {
+    background: rgba(26, 16, 37, 0.85);
+  }
+}
+
+/* Sem suporte a desfoque a barra precisa ser opaca, senão as letras se perdem sobre a aurora. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .side,
+  .side-profile,
+  .main-nav {
+    background: var(--sidebar-solid);
+  }
 }
 
 /* O painel fica parado enquanto a página da direita rola. */
@@ -24,21 +46,38 @@
   flex-direction: column;
   gap: var(--space-6);
   padding: var(--space-4) var(--space-3);
-  border-right: 1px solid var(--color-border);
+
+  /* Barra de vidro azul-noite: translúcida e com desfoque, então a aurora aparece por trás dela. As cores do
+     app dentro dela são trocadas pelas da barra (tokens `--sidebar-*`), então o perfil, os números, o botão
+     Editar e a navegação se leem sem mexer em cada regra. */
+  background: var(--glass-sheen), var(--sidebar-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-right: 1px solid var(--sidebar-border);
+  color: var(--sidebar-text);
+  --color-text: var(--sidebar-text);
+  --color-text-muted: var(--sidebar-text-muted);
+  --color-border: var(--sidebar-border);
 }
 
 .side-profile {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--space-3);
 }
 
-/* A foto grande, quadrada na largura do painel — estica o .avatar global (avatar.css) por cima. */
+/* A foto, redonda e pequena, centrada — estica o .avatar global (avatar.css) por cima. As iniciais (sem foto)
+   ficam brancas porque o fundo do círculo continua roxo. */
 .side-profile .avatar {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1;
-  font-size: 4rem;
+  width: 8rem;
+  height: 8rem;
+  font-size: 2.5rem;
+  color: #ffffff;
+}
+
+.side-profile .side-stats {
+  align-self: stretch;
 }
 
 /* Duollowers, Duollowing e Editar na mesma linha reta. */
@@ -107,13 +146,18 @@
     display: block;
   }
 
-  /* No celular o painel se divide: o resumo vira a faixa do topo... */
+  /* No celular o painel se divide: o resumo vira a faixa do topo... O vidro sai do painel e vai para cada
+     faixa: um `backdrop-filter` no painel faria dele a referência da faixa fixa de baixo, e ela deixaria de
+     grudar na tela. */
   .side {
     position: static;
     height: auto;
     overflow: visible;
     display: block;
     padding: 0;
+    background: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     border-right: 0;
   }
 
@@ -121,14 +165,17 @@
     flex-direction: row;
     align-items: center;
     gap: var(--space-4);
-    padding: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: var(--sidebar-bg);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
   }
 
   .side-profile .avatar {
     flex: none;
-    width: 4.5rem;
-    height: 4.5rem;
-    font-size: var(--text-xl);
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: var(--text-lg);
   }
 
   .side-stats {
@@ -145,7 +192,9 @@
     overflow-x: auto;
     scroll-snap-type: x proximity;
     scrollbar-width: none;
-    background: var(--color-surface);
+    background: var(--sidebar-bg);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
     border-top: 1px solid var(--color-border);
     /* a área da barra de gestos do iPhone, para a faixa não ficar escondida embaixo dela */
     padding-bottom: env(safe-area-inset-bottom);
@@ -164,6 +213,7 @@
     scroll-snap-align: center;
   }
 
+  /* A faixa de baixo é fixa: o espaço no fim do vidro deixa o fim da página livre dela. */
   .app-content {
     padding-bottom: 5rem;
   }
