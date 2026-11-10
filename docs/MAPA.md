@@ -160,13 +160,13 @@ src/
               cache de fotos
     ui/       Avatar, AuthedImage, BottomSheet, FollowButton, PhotoGrid, ReportForm
     lib/      imageTools (recorte e redução no aparelho), names, labels (textos da interface),
-              features (a chave do social congelado)
+              features (a chave do social congelado), useMediaQuery (diz se uma media query do CSS vale agora)
     context/  meContext (o "eu" que o AppLayout carrega e reparte com as telas)
     styles/   tokens, base, buttons, forms, avatar, lists, layout, aurora (CSS global compartilhado)
     test/     test-setup, testHelpers
   features/   cada assunto com suas telas e seu api.ts; uma feature não importa de outra
     auth/           LoginScreen, HandleSetupScreen
-    profile/        HomeScreen, EditProfileForm, SideProfile, PublicProfileScreen
+    profile/        HomeScreen, EditProfileForm, SideProfile, AvatarMenu, PublicProfileScreen
     social/         SearchScreen, FollowListScreen (congelado)
     media/          NewMomentScreen
     relationships/  InviteScreen, AcceptInviteScreen, ConfirmScreen, StoryScreen,
@@ -186,9 +186,31 @@ precisa vir antes de qualquer tela, senão o CSS global vence o do módulo num e
 **Fundo aurora:** 4 manchas (roxo, azul escuro, azul claro, rosa) com véu escuro para o texto ficar legível;
 cores em `shared/styles/tokens.css` (`--aurora-*`), regras em `aurora.css`. Respeita `prefers-reduced-motion`.
 
+**Vidro (glassmorphism) sobre a aurora:** os tokens `--glass-*` (`tokens.css`: tom roxo translúcido, brilho/gloss,
+desfoque, borda e sombra) valem para o cartão do login, para a área de conteúdo (`.app-content`, vidro na tela
+toda, sem margem e sem cantos) e para a barra lateral. Sem suporte a `backdrop-filter` o tom fica mais opaco.
+
+**Barra lateral** (`layout.css`, `SideProfile`, `AvatarMenu`): vidro no roxo da marca (tokens `--sidebar-*`; dentro
+dela as cores do app são trocadas pelas claras). No celular o vidro sai do painel e vai para cada faixa (o
+`backdrop-filter` no painel prenderia a faixa fixa de baixo). `AvatarMenu` (só no computador, `min-width: 768px`):
+a foto é um botão com um círculo em degradê da aurora que gira; ao clicar abre um cartão ao lado ("Colocar foto de
+perfil" sem foto, "Trocar foto de perfil" com foto), posicionado com `position: fixed` num portal porque o painel
+rola por dentro. No celular a foto continua só uma imagem (o perfil por lá ainda vai ser pensado).
+
+**Tela de login** (`features/auth/LoginScreen`): a ilustração (`public/images/login-art.png`, 3840×2160) é o fundo
+da tela inteira, dentro de um "palco" 16:9 para os efeitos por cima dividirem as coordenadas em % da imagem:
+halos pulsando sobre as estrelas com anéis e vaga-lumes subindo perto do casal (só `opacity`/`transform`). No
+computador: cartão de vidro de altura total à direita (marca, lema, descrição, botão do Google com o "G" e o aviso
+dos termos, que por ora é **texto sem link**). No celular: a imagem é mais larga que a tela e se arrasta de lado
+(`scroll-snap`): num lado o casal, no outro a frase promocional; um painel de vidro embaixo guarda o botão.
+
+**Fonte:** Instrument Sans, hospedada no app (`@fontsource-variable/instrument-sans`, importada em `main.tsx`; os
+`.woff2` entram no cache offline do service worker).
+
 **Outros:** `public/images/` guarda arte pesada (fora do cache offline do service worker, limite de 2 MB por
-arquivo); `public/pwa-*.png` são ícones **provisórios**. Comandos: `npm run dev | test | lint | format:check |
-build`. Dependências de runtime: React, React Router, `lucide-react` (ícones, versão fixa).
+arquivo; a `login-art.png` tem 13 MB e ainda não foi otimizada); `public/pwa-*.png` são ícones **provisórios**.
+Comandos: `npm run dev | test | lint | format:check | build`. Dependências de runtime: React, React Router,
+`lucide-react` (ícones) e `@fontsource-variable/instrument-sans` (fonte), ambos em versão fixa.
 
 ## `.github/workflows/ci.yml`
 

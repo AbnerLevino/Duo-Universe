@@ -169,6 +169,15 @@
 - **Scroll snap:** a rolagem horizontal "encaixa" em cada item (faixa de navegação do celular).
 - **Área segura (`env(safe-area-inset-bottom)`):** espaço que o iPhone reserva para a barra de gestos.
 - **`box-sizing: border-box`:** `width` e `min-width` passam a incluir o espaçamento interno.
+- **Glassmorphism / `backdrop-filter`:** efeito de vidro fosco: fundo translúcido que borra o que está atrás (a
+  aurora). Tokens `--glass-*`. **Gloss:** o brilho diagonal claro por cima do vidro.
+- **Portal (`createPortal`):** desenha um componente fora de onde ele está na árvore (direto no `body`), para não ser
+  cortado por um pai com rolagem. O cartão do `AvatarMenu` usa.
+- **`matchMedia` / `useMediaQuery`:** pergunta ao navegador se uma media query do CSS vale agora; o `AvatarMenu` usa
+  para existir só no computador.
+- **`aspect-ratio`, `conic-gradient` e `mask`:** proporção fixa de uma caixa; degradê em volta de um ponto (o
+  círculo da foto); recorte que deixa só a linha fina do círculo.
+- **`@fontsource`:** pacote npm que traz a fonte dentro do app, sem pedir nada ao Google (LGPD) e disponível offline.
 - **Multipart:** formato HTTP para enviar arquivo junto com campos de texto (`POST /api/me/photos`).
 - **StrictMode (React):** em desenvolvimento executa efeitos duas vezes. Como o token de renovação é de uso único,
   o frontend divide uma única chamada de refresh entre pedidos simultâneos, senão leria isso como roubo.
@@ -436,6 +445,12 @@ duas pessoas, changelog, `MAPA.md` e glossário atualizados, commit citando RF/R
 Também aguardam decisão: valores do rate limit (RF-A05), o desenho da correção da corrida de abas (RF-A07) e a
 denúncia de perfil com o social congelado.
 
+Pendências do visual (2026-11-10): páginas de **Termos de uso** e **Política de privacidade** (o aviso do login é
+texto sem link até existirem; precisam de revisão de advogado, seção 9 do `CLAUDE.md`); **otimizar `login-art.png`**
+(13 MB, gerar versões menores); **perfil no celular**: como apresentar a área do perfil e o menu da foto por lá
+(hoje a foto é só uma imagem); espaço vazio do cartão do login (altura do conteúdo ou três destaques); testar o
+vidro e a aurora no iPhone (o desfoque sobre a aurora animada pode pesar).
+
 ### Ideias guardadas (nada daqui é implementado sem decisão registrada — regra 3)
 
 - **Universo de estrelas e planetas (2026-11-04):** em vez de linha do tempo, o casal vê o seu universo; momentos
@@ -467,4 +482,10 @@ denúncia de perfil com o social congelado.
   - **Feed com fim:** se houver feed, ele acaba ("você viu tudo de hoje").
   - **Resumo automático ("nosso ano em 1 minuto"):** o app monta um vídeo curto a partir das datas e momentos do
     casal. Gerar vídeo é pesado: decidir aparelho x servidor e o custo antes de prometer.
+- **DuoLife (2026-11-10):** espaço em que a pessoa publica um momento do jeito e pelo tempo que quiser (segundos,
+  minutos, dias), com música, inclusive **agendado como surpresa**; a pessoa define quem vê e por quanto tempo.
+  Seria a segunda opção do menu da foto (ao lado de "foto"). Formato próprio, sem o limite fixo de 24 horas. Pontos
+  a decidir antes de qualquer código: **quem vê** (parceiro, amigos ou qualquer um; fora do foco do casal ele cai na
+  camada social congelada); **música** (um player incorporado como o Spotify, previsto para a Fase 2, é diferente de
+  enviar arquivo, que traz risco de direitos autorais); agendamento exige lembrar/disparar depois. Nada implementado.
 - **Fora de questão:** cards e compartilhamento para o Instagram. Não fazer.

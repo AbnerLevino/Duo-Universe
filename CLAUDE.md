@@ -307,11 +307,14 @@ de uma interface.
   existem; **ainda não foi validado em dois aparelhos reais**.
 - **Épico 3 (Personal):** perfil, DuoName, avatar e fotos, bloqueio e denúncia; busca, Duollowers e perfil de
   terceiros existem mas estão **congelados** (RF-A11; `duo.features.social.enabled=false`).
-- **Frontend:** reorganizado por feature com alias `@/` e CSS Modules; fundo aurora; moldura com painel lateral.
+- **Frontend:** reorganizado por feature com alias `@/` e CSS Modules; fundo aurora com vidro (glassmorphism) por
+  cima; moldura com barra lateral de vidro roxo; fonte Instrument Sans; tela de login nova (ilustração em tela
+  cheia, cartão de vidro, halos e vaga-lumes animados); menu da foto de perfil no computador. Detalhe em
+  `docs/MAPA.md`. O perfil e o menu da foto no **celular** ainda serão pensados.
 - **Fatia 0 (parcial):** feitos RF-A01, A02, A06, A08, A10, A11. Próximos: RF-A03 (revalidar conta no refresh) e
   RF-A12; depois a limpeza de `refresh_tokens`/`rate_limit_attempts` (parte do RF-A09).
-- **Números (contagem por `grep`, 2026-11-10, testes ainda não rodados nesta sessão):** ~225 testes de backend,
-  ~65 de frontend; migrations V1 a V14. Rode `./gradlew build` e `npm test` para o valor real.
+- **Números:** frontend 71 testes passando (2026-11-10); ~225 testes de backend por `grep`, não rodados nesta
+  sessão; migrations V1 a V14. Rode `./gradlew build` e `npm test` para o valor real.
 
 **Em aberto / parqueado:**
 - **CI:** o fundador autenticou o `gh`; falta conferir a aba Actions no GitHub (verde ou vermelho). O job do
