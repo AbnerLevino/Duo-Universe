@@ -1,0 +1,53 @@
+/* Reset mínimo e elementos de página que toda tela usa. */
+
+body {
+  margin: 0;
+}
+
+/* Quem navega por teclado precisa ver onde está o foco. */
+:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+/* O retângulo padrão de conteúdo de uma tela, centrado e com largura máxima de leitura confortável. */
+.screen {
+  min-height: 100dvh;
+  box-sizing: border-box;
+  padding: var(--space-6) var(--space-4);
+  max-width: 32rem;
+  margin: 0 auto;
+}
+
+/* Texto apagado (legenda, subtítulo, dado secundário) — usado por praticamente toda tela. */
+.muted {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Erro de formulário/ação — o nome é "login" por causa de onde nasceu, mas hoje toda tela usa (RF-A11 e
+   outras). Renomear é tarefa da Etapa 4 do plano de reorganização, não desta etapa. */
+.login-error {
+  color: var(--color-error-text);
+  max-width: 22rem;
+}
+
+code {
+  background: var(--color-surface);
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--space-1);
+  word-break: break-all;
+}
+
+section {
+  margin-top: var(--space-8);
+}
+
+select {
+  font: inherit;
+  color: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem var(--space-3);
+}

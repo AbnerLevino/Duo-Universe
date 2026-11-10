@@ -1,0 +1,72 @@
+.sheetBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.55);
+}
+
+/* O topo bem arredondado dá o jeito de "barriga". */
+.sheet {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 40rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-bottom: 0;
+  border-radius: 2rem 2rem 0 0;
+  outline: none;
+  animation: sheet-up 0.25s ease-out;
+  transition: height 0.2s ease;
+}
+
+/* Enquanto o dedo arrasta, a altura acompanha na hora, sem animação. */
+.sheet[data-dragging='true'] {
+  transition: none;
+}
+
+.sheetHandle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding: var(--space-3) 0 var(--space-2);
+  background: none;
+  border: 0;
+  cursor: grab;
+  /* o navegador não pode tomar a puxada para rolar a página */
+  touch-action: none;
+}
+
+.sheetGrip {
+  width: 3rem;
+  height: 0.3rem;
+  border-radius: 1rem;
+  background: var(--color-text-muted);
+}
+
+.sheetBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 var(--space-4) var(--space-6);
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+    transition: none;
+  }
+}

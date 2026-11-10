@@ -1,0 +1,55 @@
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-1);
+  list-style: none;
+  padding: 0;
+  margin: var(--space-4) 0;
+}
+
+.photoCell {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--color-surface);
+}
+
+.photoThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.dialogBackdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgb(0 0 0 / 0.7);
+  overflow-y: auto;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 28rem;
+  box-sizing: border-box;
+  padding: var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-outline);
+  border-radius: var(--radius-lg);
+}
+
+.photoLarge {
+  display: block;
+  width: 100%;
+  max-height: 60dvh;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+}

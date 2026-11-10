@@ -35,6 +35,9 @@ public class SecurityConfig {
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
 				.requestMatchers(HttpMethod.POST, "/api/auth/refresh", "/api/auth/logout").permitAll()
+				// Só existe de verdade com o perfil "dev" ativo (DevLoginController); sem o perfil, o bean
+				// não existe e a rota 404, então liberá-la aqui não abre nada em produção.
+				.requestMatchers(HttpMethod.GET, "/api/dev/**").permitAll()
 				.anyRequest().authenticated())
 			.oauth2Login(oauth -> oauth.successHandler(googleLoginSuccessHandler))
 			.oauth2ResourceServer(resourceServer -> resourceServer.jwt(Customizer.withDefaults()))

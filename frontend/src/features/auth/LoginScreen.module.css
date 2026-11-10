@@ -1,0 +1,86 @@
+/* Rascunho (2026-11-09, em discussão com o fundador): no celular, um cartão estreito centrado sobre a
+   aurora inteira (a imagem não cabe do lado, então fica de fora). No desktop, a imagem enviada pelo
+   fundador entra pela esquerda e o quadrado do login fica à direita, do lado dela. */
+.login {
+  min-height: 100dvh;
+  max-width: none;
+  margin: 0;
+  padding: var(--space-4);
+  display: grid;
+  place-items: center;
+}
+
+.loginArt {
+  display: none;
+}
+
+.loginPanel {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 24rem;
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-5);
+  border-radius: var(--radius-lg);
+  background: #fdfbff;
+  color: #1a1025;
+  text-align: left;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+@media (min-width: 1024px) {
+  .login {
+    grid-template-columns: 1fr minmax(380px, 440px);
+    place-items: stretch;
+    padding: 0;
+  }
+
+  .loginArt {
+    grid-column: 1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .loginPanel {
+    grid-column: 2;
+    min-width: 0;
+    max-width: none;
+    align-content: center;
+    border-radius: 0;
+    box-shadow: -40px 0 80px rgba(0, 0, 0, 0.35);
+    padding: var(--space-8);
+  }
+}
+
+/* Ícone provisório, centrado em cima do título (o resto do cartão é alinhado à esquerda). */
+.loginIcon {
+  justify-self: center;
+  height: 4rem;
+  width: auto;
+  margin-bottom: var(--space-2);
+}
+
+.tagline {
+  color: #6b6275;
+  margin: 0;
+}
+
+.loginPitch {
+  margin: 0;
+  color: #4a4254;
+}
+
+/* `.login-error` e `.button.primary` são classes globais (base.css/buttons.css) — escapam o escopo do
+   módulo com `:global` pra continuar herdando o estilo compartilhado, só com a cor ajustada aqui dentro. */
+.loginPanel :global(.login-error) {
+  color: #a3123a;
+}
+
+/* O botão herda a cor do texto (`.button { color: inherit }`), que aqui é escura por causa da parede
+   clara — sem isso o texto do botão fica quase ilegível em cima do roxo. */
+.loginPanel :global(.button.primary) {
+  color: #ffffff;
+}

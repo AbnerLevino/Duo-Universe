@@ -1,0 +1,28 @@
+/* Campos de formulário — mesmo visual em toda tela que tem um (perfil, momento novo, denúncia...). */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+}
+
+.form label {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.form input,
+.form textarea {
+  font: inherit;
+  color: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem var(--space-3);
+  resize: vertical;
+}
+
+.form input[type='search'] {
+  font: inherit;
+}

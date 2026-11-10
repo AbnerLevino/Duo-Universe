@@ -1,0 +1,92 @@
+/* Padrões repetidos em mais de uma tela: grupo de botões de ação, cabeçalho com avatar e nome, números
+   clicáveis (duollowers/duollowing), selo e lista de itens (convites, pedidos, resultado de busca...). */
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.profile h1 {
+  font-size: var(--text-lg);
+  margin: 0;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.profile-header h1 {
+  font-size: var(--text-xl);
+  margin: 0;
+}
+
+.profile-header p {
+  margin: var(--space-1) 0 0;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  list-style: none;
+  padding: 0;
+  margin: var(--space-4) 0;
+}
+
+.stats a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--color-accent);
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-4) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.list-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.list-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: inherit;
+  text-decoration: none;
+  min-width: 0;
+}
+
+.list-actions {
+  display: flex;
+  gap: var(--space-2);
+}

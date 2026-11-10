@@ -1,0 +1,170 @@
+/* ---------- A moldura: painel à esquerda (computador) / faixas no topo e embaixo (celular) ---------- */
+/* AppLayout, SideProfile e MainNav dividem essas classes entre si, por isso ficam juntas aqui (um módulo
+   por componente exigiria um deles "vazar" regra pro outro, ex.: .side-profile .avatar). */
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+.app-content {
+  min-width: 0;
+}
+
+/* O painel fica parado enquanto a página da direita rola. */
+.side {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100dvh;
+  box-sizing: border-box;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-3);
+  border-right: 1px solid var(--color-border);
+}
+
+.side-profile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* A foto grande, quadrada na largura do painel — estica o .avatar global (avatar.css) por cima. */
+.side-profile .avatar {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  font-size: 4rem;
+}
+
+/* Duollowers, Duollowing e Editar na mesma linha reta. */
+.side-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.side-stats a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.side-stats span {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.side-edit {
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+}
+
+/* A navegação: só letras e ícones, sem bloco de cor e sem efeito de hover. */
+.main-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  color: var(--color-text-muted);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+/* A página atual só fica com a letra mais clara, sem fundo. */
+.nav-item.active {
+  color: var(--color-text);
+}
+
+@media (max-width: 767px) {
+  .app-shell {
+    display: block;
+  }
+
+  /* No celular o painel se divide: o resumo vira a faixa do topo... */
+  .side {
+    position: static;
+    height: auto;
+    overflow: visible;
+    display: block;
+    padding: 0;
+    border-right: 0;
+  }
+
+  .side-profile {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4);
+  }
+
+  .side-profile .avatar {
+    flex: none;
+    width: 4.5rem;
+    height: 4.5rem;
+    font-size: var(--text-xl);
+  }
+
+  .side-stats {
+    flex: 1;
+  }
+
+  /* ...e a navegação vira uma faixa fixa embaixo, que se arrasta com o dedo para os lados. */
+  .main-nav {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 10;
+    flex-direction: row;
+    gap: 0;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    /* a área da barra de gestos do iPhone, para a faixa não ficar escondida embaixo dela */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .nav-item {
+    flex: 1 0 5rem;
+    box-sizing: border-box;
+    min-width: 5rem;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-xs);
+    text-align: center;
+    scroll-snap-align: center;
+  }
+
+  .app-content {
+    padding-bottom: 5rem;
+  }
+}

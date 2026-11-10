@@ -1,0 +1,40 @@
+/* A foto de perfil (ou as iniciais, sem foto) — Avatar.tsx monta `avatar avatar-${size}`, então as duas
+   classes têm que continuar globais: telas de fora (ex.: SideProfile) estilizam o avatar por cima
+   (`.side-profile .avatar`, em layout.css), o que só funciona com uma classe global, não um módulo. */
+.avatar {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-round);
+  background: var(--color-primary);
+  display: grid;
+  place-content: center;
+  font-size: var(--text-xl);
+  font-weight: 700;
+  /* Quando é uma foto de verdade (não as iniciais): corta certinho, sem esticar. */
+  flex: none;
+  object-fit: cover;
+  overflow: hidden;
+}
+
+.avatar-sm {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: var(--text-base);
+}
+
+.avatar-md {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.avatar-lg {
+  width: 5rem;
+  height: 5rem;
+  font-size: var(--text-xl);
+}
+
+.avatar-xl {
+  width: 12rem;
+  height: 12rem;
+  font-size: 4rem;
+}

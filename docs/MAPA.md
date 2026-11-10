@@ -215,21 +215,81 @@ navegador → SecurityConfig (confere login) → Controller (recebe o HTTP)
 ## `frontend/` — o app
 
 - `vite.config.ts`: a configuração do Vite (a ferramenta que builda e serve o frontend). Aqui também vive o
-  plugin de PWA (o que faz o site "se instalar" no celular) e o proxy que redireciona `/api/...` para o
-  backend em `localhost:8080` durante o desenvolvimento, imitando a mesma origem que teremos em produção.
-- `index.html`: a página HTML única do app (todo o resto é desenhado por React dentro dela).
-- `src/main.tsx`: o ponto de entrada — pega a `<div id="root">` do `index.html` e manda o React desenhar o
-  `<App />` dentro dela.
-- `src/App.tsx`: o componente principal. Decide qual tela mostrar (carregando, entrar ou início); veja a seção "Sessão própria".
-- `src/App.test.tsx` / `src/test-setup.ts`: o teste do componente acima e a configuração que liga o Vitest
-  (framework de teste) ao `jsdom` (um navegador falso que roda em memória, sem abrir uma janela de verdade).
-- `src/index.css`: estilo global básico.
+  plugin de PWA (o que faz o site "se instalar" no celular), o proxy que redireciona `/api/...` para o
+  backend em `localhost:8080` durante o desenvolvimento, e o alias `@/` → `src/` (ver reorganização abaixo).
+- `index.html`: a página HTML única do app (todo o resto é desenhado por React dentro dela); aponta pro
+  `src/app/main.tsx`.
+- `src/app/main.tsx`: o ponto de entrada — pega a `<div id="root">` do `index.html` e manda o React desenhar
+  o `<App />` e o fundo da aurora dentro dela.
+- `src/app/App.tsx`: o componente principal. Decide qual tela mostrar (carregando, entrar ou início); veja a
+  seção "Sessão própria".
+- `src/shared/test/test-setup.ts`: a configuração que liga o Vitest (framework de teste) ao `jsdom` (um
+  navegador falso que roda em memória, sem abrir uma janela de verdade).
+- `src/index.css`: só `@import` dos arquivos de `shared/styles/` (tokens, base, botão, formulário, avatar,
+  listas, moldura, aurora) — ver "Como o CSS está organizado" logo abaixo.
 - `public/pwa-192.png`, `public/pwa-512.png`: os ícones do app quando instalado no celular — **provisórios**.
+- `public/images/`: arte pesada (ex.: o fundo do login) que fica fora do cache offline do service worker
+  (`globIgnores` no `vite.config.ts`) — o limite de pré-cache é 2 MB por arquivo.
 - `package.json`: lista as dependências (React, Vite, ferramentas de teste e lint) e os comandos disponíveis
   (`npm run dev`, `npm test`, etc.).
 - `eslint.config.js`, `.prettierrc`, `.prettierignore`: regras de qualidade de código (ESLint acha erros e
   maus hábitos; Prettier só formata, sem opinar sobre lógica).
-- `tsconfig.json`: as regras do TypeScript (o quão estrito ele é ao checar tipos).
+- `tsconfig.json`: as regras do TypeScript (o quão estrito ele é ao checar tipos) e o `paths` do alias `@/`.
+
+### Como o `src/` do frontend está organizado (reorganização de 2026-11-09)
+
+`docs/plano-reorganizacao-frontend.md` (escrito em 2026-11-06, executado em 2026-11-09) espelha a ideia da
+reorganização do backend: separar por **assunto** (feature), não por tipo de arquivo. Dentro de cada feature,
+os imports pra fora dela só podem vir de `shared/` — nunca de outra feature (um componente usado por mais de
+uma feature sobe pra `shared/ui/`).
+
+```
+src/
+  app/        A moldura: App (rotas), AppLayout (painel + navegação), Dashboard, MainNav, AuroraBackground
+  shared/
+    api/      client.ts (call, ApiError, fileForm...) e types.ts (tipos usados por 2+ features)
+    session/  token, cache de fotos e usuário atual — reunidos em shared/session (index.ts)
+    ui/       Avatar, AuthedImage, BottomSheet, FollowButton, ReportForm, PhotoGrid (usados por 2+ features)
+    lib/      imageTools, names, labels, features (a flag do social congelado)
+    context/  meContext (o "eu" que o AppLayout carrega uma vez e reparte com as telas)
+    test/     testHelpers, test-setup
+  features/
+    auth/          LoginScreen, HandleSetupScreen
+    profile/        HomeScreen, EditProfileForm, SideProfile, PublicProfileScreen, api.ts
+    social/         SearchScreen, FollowListScreen, api.ts (congelado, RF-A11)
+    media/          NewMomentScreen, api.ts
+    relationships/  InviteScreen, AcceptInviteScreen, ConfirmScreen, StoryScreen,
+                    DateConsensusScreen, CoupleHomeScreen, api.ts
+```
+
+O `api.ts` único de antes (62 exports, 4 assuntos misturados) virou um `client.ts`/`types.ts` genéricos em
+`shared/` mais um `api.ts` por feature. `chooseHandle` (escolher @handle) é a única ação chamada por duas
+telas de features diferentes (`auth` na primeira vez, `profile` ao editar depois) — por isso mora à parte, em
+`shared/api/account.ts`. O `@/` (configurado no `vite.config.ts` e no `tsconfig.json`) evita que os imports
+dentro de `features/` virem uma fileira de `../../..`.
+
+### Como o CSS está organizado (Etapa 3, 2026-11-09)
+
+O `index.css` (795 linhas, tudo global) virou dois tipos de arquivo:
+
+- **`shared/styles/*.css`** (importados uma vez, em `src/index.css`): o que é usado por **duas ou mais**
+  features ao mesmo tempo — `tokens.css` (cores, espaço, cantos), `base.css` (`.screen`, `.muted`,
+  `.login-error`), `buttons.css`, `forms.css`, `avatar.css`, `lists.css` (ações, badge, lista, cabeçalho de
+  perfil), `layout.css` (a moldura: `app-shell`, `side`, `main-nav`) e `aurora.css`. Continuam globais de
+  propósito: por exemplo, `Avatar.tsx` monta a classe na mão (`` `avatar avatar-${size}` ``) e `layout.css`
+  tem uma regra (`.side-profile .avatar`) que estica essa foto por fora — um módulo escondido não permitiria
+  isso sem redesenhar a API do `Avatar`, o que seria mudança de comportamento, fora do escopo desta etapa.
+- **`Componente.module.css`**, ao lado do componente, só para o que **nenhuma outra tela enxerga**:
+  `features/auth/LoginScreen.module.css`, `shared/ui/PhotoGrid.module.css`, `shared/ui/BottomSheet.module.css`,
+  `shared/ui/AuthedImage.module.css`, `features/profile/HomeScreen.module.css`. O Vite já suporta isso sem
+  nenhuma dependência nova; o TypeScript também, porque `vite/client` (em `tsconfig.json`) já declara o tipo
+  de um import `*.module.css`.
+
+**Achado importante:** depois de mover `.login` para um módulo, a ordem dos `import` em `app/main.tsx` passou
+a importar de verdade — antes, `import App` vinha antes de `import '../index.css'`, e como o JavaScript injeta
+o `<style>` de cada módulo na ordem em que é executado, o CSS global acabava carregando **depois** do CSS da
+tela, fazendo `.screen` (global) vencer `.login` (módulo) num empate de cascata. Corrigido invertendo a ordem:
+o `index.css` tem que vir antes de qualquer tela.
 
 ## `.github/workflows/ci.yml` — a verificação automática
 

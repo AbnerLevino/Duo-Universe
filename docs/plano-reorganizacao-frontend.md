@@ -1,10 +1,21 @@
 # Plano: reorganização do frontend por feature
 
-> Status: **PLANEJADO, aguardando decisão e execução.** Nenhum arquivo foi movido ainda.
+> Status: **EXECUTADO em 2026-11-09** (Etapas 1 a 3; ver `docs/MAPA.md`, seção "Como o `src/` do frontend
+> está organizado"). A Etapa 3 virou **CSS Modules** para o que é de uma tela/componente só, não só
+> "dividir em arquivos" — decisão tomada com o fundador depois do bug de cascata do cartão de login
+> (2026-11-09, mesmo dia). Etapas 4 e 5 (tirar as repetições, trava no ESLint) seguem pendentes.
 > Origem: vistoria pedida pelo fundador em 2026-11-06, logo depois do Épico 3 (moldura com painel lateral).
 > Ele pediu para guardar o processo para fazer mais tarde. Mesmo espírito da reorganização do backend
 > (`docs/plano-reorganizacao-pacotes.md`, executada em 2026-11-06): só organização, **nenhuma mudança de
 > comportamento**, uma etapa por vez, com testes verdes e um commit por etapa.
+>
+> **Atualização de 2026-11-09:** revisitado antes de começar. Contagem revista: **48 arquivos** soltos em
+> `src/` (eram 45 em 2026-11-06; os novos são `AuroraBackground.tsx` e o painel de login). Decisão tomada
+> sobre o ponto 3 de "Decisões a tomar" (abaixo): **CSS Modules**, não só dividir em arquivos globais — motivo
+> concreto, não hipotético: nesta mesma sessão, uma regra de CSS *depois* no `index.css` venceu em silêncio
+> uma regra dentro de uma media query no cartão de login, exatamente o tipo de bug que escopo por componente
+> evita por construção. As outras recomendações do plano (pastas por feature, alias `@/`, Etapa 4 depois de
+> 1-3) foram aceitas como estavam.
 
 ## O que a vistoria encontrou (fatos de 2026-11-06)
 
@@ -65,8 +76,13 @@ no backend (mapa "caminho antigo → novo", atualizando os imports sozinho).
    `session.ts` em token/`authedFetch`, usuário atual e cache de fotos. Mover `imageTools`, `names` e os helpers de teste.
 2. **Pastas por feature.** Mover as telas e componentes para `features/*`, atualizar os imports e configurar o alias
    `@/` (Vite e `tsconfig`), para os caminhos não virarem `../../..`.
-3. **CSS em arquivos por assunto.** Dividir o `index.css`: tokens, base, moldura, modal e um arquivo por feature,
-   importados por quem usa. Nenhuma regra muda de lugar sem necessidade.
+3. ~~**CSS em arquivos por assunto.**~~ **Feito em 2026-11-09, com um ajuste:** o que é usado por 2+ features
+   (botão, formulário, avatar, lista, badge, a moldura, a aurora) virou `shared/styles/*.css`, importado uma
+   vez em `src/index.css`. O que é de uma tela/componente só virou `Componente.module.css` ao lado dele
+   (`LoginScreen`, `PhotoGrid`, `BottomSheet`, `AuthedImage`, `HomeScreen`). Achado no caminho: a ordem dos
+   `import` em `main.tsx` importa de verdade com módulos (o CSS global precisa carregar **antes** das telas,
+   senão uma classe de tela específica pode perder "empate" de cascata para uma global, ex.: `.login` perdendo
+   `max-width` para `.screen`) — corrigido lá.
 4. **Tirar as repetições.** Hook `useResource` nas 12 telas, componente `ErrorMessage` nos 21 blocos de erro,
    renomear `login-error` (ex.: `error-text`) e apagar o `getCouple`.
 5. **Trava e documentação.** Regra de fronteira no ESLint; atualizar o `docs/MAPA.md` (árvore nova) e o
@@ -77,8 +93,9 @@ no backend (mapa "caminho antigo → novo", atualizando os imports sozinho).
 1. **Pastas por feature** (recomendado, espelha o backend) ou **por tipo** (`components/`, `screens/`, `hooks/`)? Por
    tipo é mais familiar, mas cada mudança num assunto espalha arquivos por todas as pastas.
 2. **Alias `@/`** nos imports: **sim** (só configuração, sem dependência).
-3. **CSS:** **dividir em arquivos** (risco baixo) ou migrar para *CSS Modules* (escopo por componente, mais trabalho
-   agora; o Vite já suporta, sem dependência)? Recomendado: dividir agora, avaliar Modules depois.
+3. ~~**CSS:** dividir em arquivos ou CSS Modules?~~ **Decidido em 2026-11-09: CSS Modules.** Mais trabalho na
+   migração, mas o Vite já suporta sem dependência nova, e evita por construção o tipo de bug de cascata que a
+   Etapa 3 original (só dividir em arquivos globais) não teria evitado — ver nota no topo do doc.
 4. **Etapa 4** (hook e componente de erro) junto da reorganização ou depois? Recomendado: depois das etapas 1 a 3,
    ainda no mesmo mutirão, porque as telas já estarão nas pastas novas.
 

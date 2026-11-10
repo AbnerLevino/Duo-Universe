@@ -1,0 +1,12 @@
+.profileInfo {
+  margin: 0 0 var(--space-4);
+}
+
+.profileInfo h1 {
+  font-size: var(--text-xl);
+  margin: 0;
+}
+
+.profileInfo p {
+  margin: var(--space-1) 0 0;
+}

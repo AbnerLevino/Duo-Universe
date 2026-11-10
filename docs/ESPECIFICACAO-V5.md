@@ -219,14 +219,14 @@ RF-A01, A02, A06, A08, A10, A11.
   "visível" pela regra central de acesso. Para o convite de vínculo isso precisa de uma decisão (RF-H01).
 
 ### Design: aurora (2026-11-09)
-- Feito: fundo aurora no frontend, com as cores do Astrodny provisórias (ver `docs/MAPA.md`).
-- **Proposta aguardando aprovação:** paleta do Duo na aurora, com 4 manchas: roxo `#7b3fe4` (dominante), azul
-  escuro `#1a2a8f`, azul claro `#5aa9ff` e rosa claro `#ff9ad5`; base `#0d0716` e véu em ~0,4 para o texto branco
-  continuar legível. Os tokens do esboço (`--color-bg`, `--color-primary`...) são só roxo escuro e não têm azul nem
-  rosa; a paleta nova entraria como tokens no mesmo bloco `:root`. O fundador pode trocar os valores.
+- **Aprovado e feito:** paleta do Duo na aurora, com 4 manchas: roxo `#7b3fe4` (dominante), azul escuro `#1a2a8f`,
+  azul claro `#5aa9ff` e rosa claro `#ff9ad5`; base `#0d0716` e véu em 0,4 para o texto branco continuar legível.
+  Tokens em `frontend/src/index.css` (`--aurora-*`); quarto `blob` adicionado em `AuroraBackground.tsx` e no CSS
+  (`.blob-4`, com o par na tela larga). Os tokens do esboço (`--color-bg`, `--color-primary`...) continuam só
+  roxo escuro, sem azul nem rosa — não fazem parte da aurora.
 
 ### Próximos passos (retomar daqui)
-1. Aprovar ou ajustar a paleta da aurora e implementar (só CSS e um quarto `blob`).
+1. ~~Aprovar a paleta da aurora e implementar~~ feito em 2026-11-09.
 2. Fatia 0, sem decisão do fundador: RF-A03 (revalidar a conta no refresh) e RF-A12; depois, limpeza de
    `refresh_tokens`/`rate_limit_attempts` (parte de RF-A09).
 3. Decisões abertas: P1 a P4, P6, P7, valores do rate limit (RF-A05), desenho da correção da corrida de abas
